@@ -1,0 +1,26 @@
+# Sublime Text files
+*.sublime*
+*.*~*.TMP
+
+# OS temp files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Tool temp files
+npm-debug.log
+*.sw*
+*~
+\#*#
+yarn.lock
+
+# project ignores
+!.gitkeep
+node_modules
+dist
+gh-pages
+build-es6
+.idea
+
+# build temp
+compilation.ts

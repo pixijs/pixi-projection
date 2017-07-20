@@ -1,1 +1,1 @@
-# pixi-sprite-projection
+# pixi-projection
