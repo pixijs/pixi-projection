@@ -1,37 +1,51 @@
+declare namespace PIXI {
+	export interface TransformStatic {
+		projection: pixi_projection.Projection2d;
+	}
+}
+
 namespace pixi_projection {
+
+	function transformHack(this: PIXI.TransformStatic, parentTransform: PIXI.TransformStatic) {
+		// implementation here
+	}
+
 	export class Projection2d {
-		// store transforms in arrays by column
-		localTransform = [1.0, 0, 0, 0, 1, 0, 0, 0, 1];
-		worldTransform = [1.0, 0, 0, 0, 1, 0, 0, 0, 1];
 
-		_parentID = -1;
-		_worldID = 0;
+		constructor(legacy: PIXI.TransformBase, enable?: boolean) {
+			this.legacy = legacy as PIXI.TransformStatic;
 
-		updateTransform(parentTransform: PIXI.Transform) {
-			const lt = this.localTransform;
-			let pid = (parentTransform as any)._worldID;
+			if (enable) {
+				this.enabled = true;
+			}
 
-			if (this._parentID !== pid) {
-				// concat the parent matrix with the objects transform.
-				const pt = parentTransform.worldTransform;
-				const wt = this.worldTransform;
+			// sorry for hidden class, it would be good to have special projection field in official pixi
+			this.legacy.projection = this;
+		}
 
-				this._parentID = pid;
+		legacy: PIXI.TransformStatic;
 
-				wt[0] = pt.a * lt[0] + pt.c * lt[1] + pt.tx * lt[2];
-				wt[1] = pt.b * lt[0] + pt.d * lt[1] + pt.ty * lt[2];
-				wt[2] = lt[2];
+		local = new Matrix2d();
+		world = new Matrix2d();
 
-				wt[3] = pt.a * lt[3] + pt.c * lt[4] + pt.tx * lt[5];
-				wt[4] = pt.b * lt[3] + pt.d * lt[4] + pt.ty * lt[5];
-				wt[5] = lt[5];
+		_localID = -1;
+		_currentLocalID = -1;
 
-				wt[6] = pt.a * lt[6] + pt.c * lt[7] + pt.tx * lt[8];
-				wt[7] = pt.b * lt[6] + pt.d * lt[7] + pt.ty * lt[8];
-				wt[8] = lt[8];
+		_enabled: boolean = false;
 
-				// update the id of the transform..
-				this._worldID++;
+		get enabled() {
+			return this._enabled;
+		}
+
+		set enabled(value: boolean) {
+			if (value === this._enabled) {
+				return;
+			}
+			this._enabled = value;
+			if (value) {
+				this.legacy.updateTransform = transformHack;
+			} else {
+				this.legacy.updateTransform = PIXI.TransformStatic.prototype.updateTransform;
 			}
 		}
 	}

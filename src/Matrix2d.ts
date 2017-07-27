@@ -289,9 +289,5 @@ namespace pixi_projection {
 
 			return this;
 		}
-
-		adjustLegacy(mat: PIXI.Matrix) {
-
-		}
 	}
 }
