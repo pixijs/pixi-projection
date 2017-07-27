@@ -3,7 +3,6 @@
 namespace pixi_projection {
 	import Point = PIXI.Point;
 	import IPoint = PIXI.PointLike;
-	import DEG_TO_RAD = PIXI.DEG_TO_RAD;
 
 	const mat3id = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 
