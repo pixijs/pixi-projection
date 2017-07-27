@@ -5,13 +5,6 @@ namespace pixi_projection {
 	import IPoint = PIXI.PointLike;
 	import DEG_TO_RAD = PIXI.DEG_TO_RAD;
 
-	export enum MATRIX_TYPE {
-		IDENTITY = 0,
-		TRANSLATE = 1,
-		ROTATE = 2,
-		PROJECT = 3
-	}
-
 	export class Matrix2d {
 		/**
 		 * A default (identity) matrix
@@ -19,7 +12,7 @@ namespace pixi_projection {
 		 * @static
 		 * @const
 		 */
-		static readonly IDENTITY = new Matrix2d().setType(MATRIX_TYPE.IDENTITY);
+		static readonly IDENTITY = new Matrix2d();
 
 		/**
 		 * A temp matrix
@@ -34,20 +27,10 @@ namespace pixi_projection {
 		 */
 		mat3: Array<number>;
 
-		/**
-		 * type 2 is old pixi matrix, type 3 is projective
-		 */
-		type = MATRIX_TYPE.ROTATE;
-
 		array: Float32Array = null;
 
 		constructor(backingArray?: Array<number>) {
 			this.mat3 = backingArray || [1, 0, 0, 0, 1, 0, 0, 0, 1];
-		}
-
-		setType(rank: MATRIX_TYPE) {
-			this.type = rank;
-			return this;
 		}
 
 		get a() {
@@ -152,9 +135,9 @@ namespace pixi_projection {
 			const x = pos.x;
 			const y = pos.y;
 
-			let z = mat3[2] * x + mat3[5] * y + mat3[8];
-			newPos.x = (mat3[0] * x + mat3[3] * y + mat3[6]) / z;
-			newPos.y = (mat3[1] * x + mat3[4] * y + mat3[7]) / z;
+			let z = 1.0 / (mat3[2] * x + mat3[5] * y + mat3[8]);
+			newPos.x = z * (mat3[0] * x + mat3[3] * y + mat3[6]);
+			newPos.y = z * (mat3[1] * x + mat3[4] * y + mat3[7]);
 
 			return newPos;
 		}
@@ -163,159 +146,54 @@ namespace pixi_projection {
 		applyInverse(pos: IPoint, newPos: IPoint): IPoint {
 			newPos = newPos || new Point();
 
-			const id = 1 / ((this.a * this.d) + (this.c * -this.b));
-
+			const a = this.mat3;
 			const x = pos.x;
 			const y = pos.y;
 
-			newPos.x = (this.d * id * x) + (-this.c * id * y) + (((this.ty * this.c) - (this.tx * this.d)) * id);
-			newPos.y = (this.a * id * y) + (-this.b * id * x) + (((-this.ty * this.a) + (this.tx * this.b)) * id);
+			const a00 = a[0], a01 = a[1], a02 = a[2],
+				a10 = a[3], a11 = a[4], a12 = a[5],
+				a20 = a[6], a21 = a[7], a22 = a[8];
+
+			let newX = (a22 * a11 - a12 * a21) * x + (-a22 * a01 + a02 * a21) * y + (a12 * a01 - a02 * a11);
+			let newY = (-a22 * a10 + a12 * a20) * x + (a22 * a00 - a02 * a20) * y + (-a12 * a00 + a02 * a10);
+			let newZ = (a21 * a10 - a11 * a20) * x + (-a21 * a00 + a01 * a20) * y + (a11 * a00 - a01 * a10);
+
+			newPos.x = newX / newZ;
+			newPos.y = newY / newZ;
 
 			return newPos;
 		}
 
-		//TODO: remove props
-		translate(x: number, y: number): Matrix2d {
-			this.tx += x;
-			this.ty += y;
-
-			return this;
-		}
-
-		//TODO: remove props
-		scale(x: number, y: number): Matrix2d {
-			this.a *= x;
-			this.d *= y;
-			this.c *= x;
-			this.b *= y;
-			this.tx *= x;
-			this.ty *= y;
-
-			return this;
-		}
-
-		//TODO: remove props
-		rotateRad(angle: number): Matrix2d {
-			const cos = Math.cos(angle);
-			const sin = Math.sin(angle);
-
-			const a1 = this.a;
-			const c1 = this.c;
-			const tx1 = this.tx;
-
-			this.a = (a1 * cos) - (this.b * sin);
-			this.b = (a1 * sin) + (this.b * cos);
-			this.c = (c1 * cos) - (this.d * sin);
-			this.d = (c1 * sin) + (this.d * cos);
-			this.tx = (tx1 * cos) - (this.ty * sin);
-			this.ty = (tx1 * sin) + (this.ty * cos);
-
-			return this;
-		}
-
-		//TODO: remove props
-		rotateDeg(angle: number): Matrix2d {
-			const cos = Math.cos(angle * DEG_TO_RAD);
-			const sin = Math.sin(angle * DEG_TO_RAD);
-
-			const a1 = this.a;
-			const c1 = this.c;
-			const tx1 = this.tx;
-
-			this.a = (a1 * cos) - (this.b * sin);
-			this.b = (a1 * sin) + (this.b * cos);
-			this.c = (c1 * cos) - (this.d * sin);
-			this.d = (c1 * sin) + (this.d * cos);
-			this.tx = (tx1 * cos) - (this.ty * sin);
-			this.ty = (tx1 * sin) + (this.ty * cos);
-
-			return this;
-		}
-
-		//TODO: remove props
-		append(matrix: Matrix2d): Matrix2d {
-			const a1 = this.a;
-			const b1 = this.b;
-			const c1 = this.c;
-			const d1 = this.d;
-
-			this.a = (matrix.a * a1) + (matrix.b * c1);
-			this.b = (matrix.a * b1) + (matrix.b * d1);
-			this.c = (matrix.c * a1) + (matrix.d * c1);
-			this.d = (matrix.c * b1) + (matrix.d * d1);
-
-			this.tx = (matrix.tx * a1) + (matrix.ty * c1) + this.tx;
-			this.ty = (matrix.tx * b1) + (matrix.ty * d1) + this.ty;
-
-			return this;
-		}
-
-		//TODO: remove props
-		setToMult(pt: Matrix2d, lt: Matrix2d) {
-			const a1 = pt.a;
-			const b1 = pt.b;
-			const c1 = pt.c;
-			const d1 = pt.d;
-
-			this.a = (lt.a * a1) + (lt.b * c1);
-			this.b = (lt.a * b1) + (lt.b * d1);
-			this.c = (lt.c * a1) + (lt.d * c1);
-			this.d = (lt.c * b1) + (lt.d * d1);
-
-			this.tx = (lt.tx * a1) + (lt.ty * c1) + pt.tx;
-			this.ty = (lt.tx * b1) + (lt.ty * d1) + pt.ty;
-		}
-
-		//TODO: remove props
-		prepend(matrix: Matrix2d): Matrix2d {
-			const tx1 = this.tx;
-
-			if (matrix.mat3[0] !== 1 || matrix.mat3[1] !== 0 || matrix.mat3[2] !== 0 || matrix.mat3[3] !== 1) {
-				const a1 = this.a;
-				const c1 = this.c;
-
-				this.a = (a1 * matrix.a) + (this.b * matrix.c);
-				this.b = (a1 * matrix.b) + (this.b * matrix.d);
-				this.c = (c1 * matrix.a) + (this.d * matrix.c);
-				this.d = (c1 * matrix.b) + (this.d * matrix.d);
-			}
-
-			this.tx = (tx1 * matrix.a) + (this.ty * matrix.c) + matrix.tx;
-			this.ty = (tx1 * matrix.b) + (this.ty * matrix.d) + matrix.ty;
-
-			return this;
-		}
-
 		invert(): Matrix2d {
-			const mat3 = this.mat3;
+			const a = this.mat3;
 
-			const a1 = mat3[0];
-			const b1 = mat3[1];
-			const c1 = mat3[3];
-			const d1 = mat3[4];
-			const tx1 = mat3[6];
-			const n = (a1 * d1) - (b1 * c1);
+			const a00 = a[0], a01 = a[1], a02 = a[2],
+				a10 = a[3], a11 = a[4], a12 = a[5],
+				a20 = a[6], a21 = a[7], a22 = a[8],
 
-			mat3[0] = d1 / n;
-			mat3[1] = -b1 / n;
-			mat3[3] = -c1 / n;
-			mat3[4] = a1 / n;
-			mat3[6] = ((c1 * this.ty) - (d1 * tx1)) / n;
-			mat3[7] = -((a1 * this.ty) - (b1 * tx1)) / n;
+				b01 = a22 * a11 - a12 * a21,
+				b11 = -a22 * a10 + a12 * a20,
+				b21 = a21 * a10 - a11 * a20;
+
+			// Calculate the determinant
+			let det = a00 * b01 + a01 * b11 + a02 * b21;
+			if (!det) {
+				return this;
+			}
+			det = 1.0 / det;
+
+			a[0] = b01 * det;
+			a[1] = (-a22 * a01 + a02 * a21) * det;
+			a[2] = (a12 * a01 - a02 * a11) * det;
+			a[3] = b11 * det;
+			a[4] = (a22 * a00 - a02 * a20) * det;
+			a[5] = (-a12 * a00 + a02 * a10) * det;
+			a[6] = b21 * det;
+			a[7] = (-a21 * a00 + a01 * a20) * det;
+			a[8] = (a11 * a00 - a01 * a10) * det;
 
 			return this;
 		}
-
-		// normalize(): Matrix2d {
-		// 	const mat3 = this.mat3;
-		// 	if (Math.abs(mat3[8]) > 1e-9) {
-		// 		mat3[6] /= mat3[8];
-		// 		mat3[7] /= mat3[8];
-		// 		mat3[8] = 1;
-		// 	}
-		//
-		// 	return this;
-		// }
 
 		identity(): Matrix2d {
 			const mat3 = this.mat3;
@@ -328,7 +206,6 @@ namespace pixi_projection {
 			mat3[6] = 0;
 			mat3[7] = 0;
 			mat3[8] = 1;
-			this.type = MATRIX_TYPE.IDENTITY;
 			return this;
 		}
 
@@ -348,7 +225,6 @@ namespace pixi_projection {
 			ar2[6] = mat3[6];
 			ar2[7] = mat3[7];
 			ar2[8] = mat3[8];
-			matrix.type = this.type;
 			return matrix;
 		}
 
@@ -359,13 +235,63 @@ namespace pixi_projection {
 		 */
 		copy(matrix: PIXI.Matrix) {
 			const mat3 = this.mat3;
-			//TODO: check if rank is projective, throw an error
-			matrix.a = mat3[0];
-			matrix.b = mat3[1];
-			matrix.c = mat3[3];
-			matrix.d = mat3[4];
-			matrix.tx = mat3[6];
-			matrix.ty = mat3[7];
+			const d = 1.0 / mat3[8];
+			matrix.a = mat3[0] * d;
+			matrix.b = mat3[1] * d;
+			matrix.c = mat3[3] * d;
+			matrix.d = mat3[4] * d;
+			matrix.tx = mat3[6] * d;
+			matrix.ty = mat3[7] * d;
+		}
+
+		setToMultLegacy(pt: PIXI.Matrix, lt: Matrix2d) {
+			const a1 = pt.a;
+			const b1 = pt.b;
+			const c1 = pt.c;
+			const d1 = pt.d;
+
+			const mat3 = this.mat3;
+			const ltm = lt.mat3;
+
+			mat3[0] = (ltm[0] * a1) + (ltm[1] * c1);
+			mat3[1] = (ltm[0] * b1) + (ltm[1] * d1);
+			mat3[3] = (ltm[3] * a1) + (ltm[4] * c1);
+			mat3[4] = (ltm[3] * b1) + (ltm[4] * d1);
+
+			mat3[6] = (ltm[5] * a1) + (ltm[6] * c1) + pt.tx;
+			mat3[7] = (ltm[5] * b1) + (ltm[6] * d1) + pt.ty;
+		}
+
+		// that's transform multiplication we use
+		setToMult2d(pt: Matrix2d, lt: Matrix2d) {
+			const out = this.mat3;
+			const a = pt.mat3, b = lt.mat3;
+
+			const a00 = a[0], a01 = a[1], a02 = a[2],
+				a10 = a[3], a11 = a[4], a12 = a[5],
+				a20 = a[6], a21 = a[7], a22 = a[8],
+
+				b00 = b[0], b01 = b[1], b02 = b[2],
+				b10 = b[3], b11 = b[4], b12 = b[5],
+				b20 = b[6], b21 = b[7], b22 = b[8];
+
+			out[0] = b00 * a00 + b01 * a10 + b02 * a20;
+			out[1] = b00 * a01 + b01 * a11 + b02 * a21;
+			out[2] = b00 * a02 + b01 * a12 + b02 * a22;
+
+			out[3] = b10 * a00 + b11 * a10 + b12 * a20;
+			out[4] = b10 * a01 + b11 * a11 + b12 * a21;
+			out[5] = b10 * a02 + b11 * a12 + b12 * a22;
+
+			out[6] = b20 * a00 + b21 * a10 + b22 * a20;
+			out[7] = b20 * a01 + b21 * a11 + b22 * a21;
+			out[8] = b20 * a02 + b21 * a12 + b22 * a22;
+
+			return this;
+		}
+
+		adjustLegacy(mat: PIXI.Matrix) {
+
 		}
 	}
 }
