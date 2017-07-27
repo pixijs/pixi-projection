@@ -5,12 +5,49 @@ namespace pixi_projection {
 	import IPoint = PIXI.PointLike;
 	import DEG_TO_RAD = PIXI.DEG_TO_RAD;
 
+	export enum MATRIX_TYPE {
+		IDENTITY = 0,
+		TRANSLATE = 1,
+		ROTATE = 2,
+		PROJECT = 3
+	}
+
 	export class Matrix2d {
+		/**
+		 * A default (identity) matrix
+		 *
+		 * @static
+		 * @const
+		 */
+		static readonly IDENTITY = new Matrix2d().setType(MATRIX_TYPE.IDENTITY);
+
+		/**
+		 * A temp matrix
+		 *
+		 * @static
+		 * @const
+		 */
+		static readonly TEMP_MATRIX = new Matrix2d();
+
+		/**
+		 * mat3 implementation through array of 9 elements
+		 */
 		mat3: Array<number>;
+
+		/**
+		 * type 2 is old pixi matrix, type 3 is projective
+		 */
+		type = MATRIX_TYPE.ROTATE;
+
 		array: Float32Array = null;
 
 		constructor(backingArray?: Array<number>) {
 			this.mat3 = backingArray || [1, 0, 0, 0, 1, 0, 0, 0, 1];
+		}
+
+		setType(rank: MATRIX_TYPE) {
+			this.type = rank;
+			return this;
 		}
 
 		get a() {
@@ -111,11 +148,13 @@ namespace pixi_projection {
 		apply(pos: IPoint, newPos: IPoint): IPoint {
 			newPos = newPos || new PIXI.Point();
 
+			const mat3 = this.mat3;
 			const x = pos.x;
 			const y = pos.y;
 
-			newPos.x = (this.a * x) + (this.c * y) + this.tx;
-			newPos.y = (this.b * x) + (this.d * y) + this.ty;
+			let z = mat3[2] * x + mat3[5] * y + mat3[8];
+			newPos.x = (mat3[0] * x + mat3[3] * y + mat3[6]) / z;
+			newPos.y = (mat3[1] * x + mat3[4] * y + mat3[7]) / z;
 
 			return newPos;
 		}
@@ -289,6 +328,7 @@ namespace pixi_projection {
 			mat3[6] = 0;
 			mat3[7] = 0;
 			mat3[8] = 1;
+			this.type = MATRIX_TYPE.IDENTITY;
 			return this;
 		}
 
@@ -308,6 +348,7 @@ namespace pixi_projection {
 			ar2[6] = mat3[6];
 			ar2[7] = mat3[7];
 			ar2[8] = mat3[8];
+			matrix.type = this.type;
 			return matrix;
 		}
 
@@ -318,6 +359,7 @@ namespace pixi_projection {
 		 */
 		copy(matrix: PIXI.Matrix) {
 			const mat3 = this.mat3;
+			//TODO: check if rank is projective, throw an error
 			matrix.a = mat3[0];
 			matrix.b = mat3[1];
 			matrix.c = mat3[3];
@@ -325,21 +367,5 @@ namespace pixi_projection {
 			matrix.tx = mat3[6];
 			matrix.ty = mat3[7];
 		}
-
-		/**
-		 * A default (identity) matrix
-		 *
-		 * @static
-		 * @const
-		 */
-		static readonly IDENTITY = new Matrix2d();
-
-		/**
-		 * A temp matrix
-		 *
-		 * @static
-		 * @const
-		 */
-		static readonly TEMP_MATRIX = new Matrix2d();
 	}
 }
