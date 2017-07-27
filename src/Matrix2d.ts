@@ -1,9 +1,11 @@
-// according to https://jsperf.com/obj-vs-array-view-access/1 , literal array member is the best there.
+// according to https://jsperf.com/obj-vs-array-view-access/1 , Float64Array is the best here
 
 namespace pixi_projection {
 	import Point = PIXI.Point;
 	import IPoint = PIXI.PointLike;
 	import DEG_TO_RAD = PIXI.DEG_TO_RAD;
+
+	const mat3id = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 
 	export class Matrix2d {
 		/**
@@ -25,12 +27,12 @@ namespace pixi_projection {
 		/**
 		 * mat3 implementation through array of 9 elements
 		 */
-		mat3: Array<number>;
+		mat3: Float64Array;
 
-		array: Float32Array = null;
+		floatArray: Float32Array = null;
 
-		constructor(backingArray?: Array<number>) {
-			this.mat3 = backingArray || [1, 0, 0, 0, 1, 0, 0, 0, 1];
+		constructor(backingArray?: ArrayLike<number>) {
+			this.mat3 = new Float64Array(backingArray || mat3id);
 		}
 
 		get a() {
@@ -93,11 +95,11 @@ namespace pixi_projection {
 		}
 
 		toArray(transpose?: boolean, out?: Float32Array): Float32Array {
-			if (!this.array) {
-				this.array = new Float32Array(9);
+			if (!this.floatArray) {
+				this.floatArray = new Float32Array(9);
 			}
 
-			const array = out || this.array;
+			const array = out || this.floatArray;
 			const mat3 = this.mat3;
 
 			if (transpose) {
@@ -210,7 +212,7 @@ namespace pixi_projection {
 		}
 
 		clone() {
-			return new Matrix2d(this.mat3.slice(0));
+			return new Matrix2d(this.mat3);
 		}
 
 		copyTo(matrix: Matrix2d) {
