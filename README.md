@@ -6,30 +6,12 @@ There are many ways to define projections even when we are using only 2 dimensio
 
 Two-point projections in 2d are good for parallax.
 
-```js
-// create app or renderer, whatever works for you
-var app = new PIXI.Application(800, 600, {backgroundColor : 0x1099bb});
-document.body.appendChild(app.view);
+## Examples
 
-// specify where the center of projection is
-var center = new PIXI.Sprite(Texture.WHITE);
-center.anchor.set(0.5);
-center.position.set(app.screen.width/2, app.screen.height/2);
+[Two-point projection](http://pixijs.github.io/examples/#/projection/basic.js)
 
-app.stage.addChild(center);
+[Free quad transform](http://pixijs.github.io/examples/#/projection/quad.js)
 
-// create a sprite
-
-var spr = new PIXI.projection.Sprite2d(Texture.WHITE);
-spr.position.set(app.screen.width - 100, 100);
-spr.scale.set(5);
-spr.tint = 0xffff00;
-app.stage.addChild(spr);
-
-//one-point projection for Y axis
-
-spr.projY.follow = center;
-```
 
 ## Building
 
