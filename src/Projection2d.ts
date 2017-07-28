@@ -67,8 +67,9 @@ namespace pixi_projection {
 		}
 	}
 
-	const tempPoint = new PIXI.Point();
-	const tempPoint2 = new PIXI.Point();
+	const t0 = new PIXI.Point();
+	const t1 = new PIXI.Point();
+	const t2 = new PIXI.Point();
 	const tempZero = new PIXI.Point(0, 0);
 
 	export class Projection2d {
@@ -137,40 +138,48 @@ namespace pixi_projection {
 
 			let mat3 = this.matrix.mat3;
 
-			let f1 = utils.getIntersectionFactor(p[0], p[1], p[3], p[2], tempPoint);
-			tempPoint.x -= pp.x * f1;
-			tempPoint.y -= pp.y * f1;
-			this.setAxisX(tempPoint, f1);
-			let f2 = utils.getIntersectionFactor(p[1], p[2], p[0], p[3], tempPoint);
-			tempPoint.x -= pp.x * f2;
-			tempPoint.y -= pp.y * f2;
-			this.setAxisY(tempPoint, f2);
+			let f0 = utils.getIntersectionFactor(p[0], p[1], p[3], p[2], t0);
+			t0.x -= pp.x * f0;
+			t0.y -= pp.y * f0;
+			this.setAxisX(t0, f0);
+			let f1 = utils.getIntersectionFactor(p[1], p[2], p[0], p[3], t1);
+			t1.x -= pp.x * f1;
+			t1.y -= pp.y * f1;
+			this.setAxisY(t1, f1);
 
+			t0.x = p[0].x - pp.x;
+			t0.y = p[0].y - pp.y;
+			this.matrix.applyInverse(t0, t0);
+			t1.x = p[1].x - pp.x;
+			t1.y = p[1].y - pp.y;
+			this.matrix.applyInverse(t1, t1);
+			t2.x = p[2].x - pp.x;
+			t2.y = p[2].y - pp.y;
+			this.matrix.applyInverse(t2, t2);
+
+			let scaleX = 1.0;
 			if (sizeX !== 0) {
-				tempPoint.x = p[0].x - pp.x;
-				tempPoint.y = p[0].y - pp.y;
-				this.matrix.applyInverse(tempPoint, tempPoint);
-				tempPoint2.x = p[1].x - pp.x;
-				tempPoint2.y = p[1].y - pp.y;
-				this.matrix.applyInverse(tempPoint2, tempPoint2);
-
-				let sz = tempPoint2.x - tempPoint.x;
-				this.legacy.scale.x = sz / sizeX;
-				mat3[2] *= sizeX / sz;
+				scaleX = (t1.x - t0.x) / sizeX;
+			} else {
+				if (t1.x < t0.x) {
+					scaleX = -1;
+				}
 			}
+			mat3[0] *= scaleX;
+			mat3[1] *= scaleX;
+			mat3[2] *= scaleX;
 
+			let scaleY = 1.0;
 			if (sizeY !== 0) {
-				tempPoint.x = p[0].x - pp.x;
-				tempPoint.y = p[0].y - pp.y;
-				this.matrix.applyInverse(tempPoint, tempPoint);
-				tempPoint2.x = p[3].x - pp.x;
-				tempPoint2.y = p[3].y - pp.y;
-				this.matrix.applyInverse(tempPoint2, tempPoint2);
-
-				let sz = tempPoint2.y - tempPoint.y;
-				this.legacy.scale.y = sz / sizeY;
-				mat3[5] *= sizeY / sz;
+				scaleY = (t2.y - t0.y) / sizeY;
+			} else {
+				if (t2.y < t0.y) {
+					scaleY = -1;
+				}
 			}
+			mat3[3] *= scaleY;
+			mat3[4] *= scaleY;
+			mat3[5] *= scaleY;
 		}
 
 		clear() {
