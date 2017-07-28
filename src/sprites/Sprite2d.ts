@@ -8,9 +8,6 @@ namespace pixi_projection {
 
 		proj: Projection2d;
 
-		/**
-		 * calculates worldTransform * vertices, store it in vertexData
-		 */
 		calculateVertices() {
 			const wid = (this.transform as any)._worldID;
 			const tuid = (this._texture as any)._updateID;
@@ -20,8 +17,6 @@ namespace pixi_projection {
 
 			this._transformID = wid;
 			this._textureID = tuid;
-
-			// set the vertex data
 
 			const texture = this._texture;
 			const wt = this.proj.world.mat3;
@@ -36,8 +31,6 @@ namespace pixi_projection {
 			let h1 = 0;
 
 			if (trim) {
-				// if the sprite is trimmed and is not a tilingsprite then we need to add the extra
-				// space before transforming the sprite coords.
 				w1 = trim.x - (anchor._x * orig.width);
 				w0 = w1 + trim.width;
 
@@ -65,11 +58,9 @@ namespace pixi_projection {
 			vertexData[5] = z * ((wt[1] * w0) + (wt[4] * h0) + wt[7]);
 
 			z = 1.0 / (wt[2] * w1 + wt[5] * h0 + wt[8]);
-			vertexData[6] = z * ((wt[0] * w0) + (wt[3] * h0) + wt[6]);
-			vertexData[7] = z * ((wt[1] * w0) + (wt[4] * h0) + wt[7]);
+			vertexData[6] = z * ((wt[0] * w1) + (wt[3] * h0) + wt[6]);
+			vertexData[7] = z * ((wt[1] * w1) + (wt[4] * h0) + wt[7]);
 		}
-
-		//TODO: override all sprite methods about transforms
 
 		calculateTrimmedVertices() {
 			const wid = (this.transform as any)._worldID;
@@ -112,8 +103,12 @@ namespace pixi_projection {
 			vertexData[5] = z * ((wt[1] * w0) + (wt[4] * h0) + wt[7]);
 
 			z = 1.0 / (wt[2] * w1 + wt[5] * h0 + wt[8]);
-			vertexData[6] = z * ((wt[0] * w0) + (wt[3] * h0) + wt[6]);
-			vertexData[7] = z * ((wt[1] * w0) + (wt[4] * h0) + wt[7]);
+			vertexData[6] = z * ((wt[0] * w1) + (wt[3] * h0) + wt[6]);
+			vertexData[7] = z * ((wt[1] * w1) + (wt[4] * h0) + wt[7]);
+		}
+
+		get worldTransform() {
+			return this.proj.world as any;
 		}
 	}
 }

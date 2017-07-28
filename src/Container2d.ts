@@ -6,5 +6,9 @@ namespace pixi_projection {
 		}
 
 		proj: Projection2d;
+
+		get worldTransform() {
+			return this.proj.world as any;
+		}
 	}
 }
