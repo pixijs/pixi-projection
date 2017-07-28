@@ -151,9 +151,9 @@ namespace pixi_projection {
 			const x = pos.x;
 			const y = pos.y;
 
-			const a00 = a[0], a01 = a[1], a02 = a[2],
-				a10 = a[3], a11 = a[4], a12 = a[5],
-				a20 = a[6], a21 = a[7], a22 = a[8];
+			const a00 = a[0], a01 = a[3], a02 = a[6],
+				a10 = a[1], a11 = a[4], a12 = a[7],
+				a20 = a[2], a21 = a[5], a22 = a[8];
 
 			let newX = (a22 * a11 - a12 * a21) * x + (-a22 * a01 + a02 * a21) * y + (a12 * a01 - a02 * a11);
 			let newY = (-a22 * a10 + a12 * a20) * x + (a22 * a00 - a02 * a20) * y + (-a12 * a00 + a02 * a10);

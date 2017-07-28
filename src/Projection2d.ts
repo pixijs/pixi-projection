@@ -68,6 +68,8 @@ namespace pixi_projection {
 	}
 
 	const tempPoint = new PIXI.Point();
+	const tempPoint2 = new PIXI.Point();
+	const tempZero = new PIXI.Point(0, 0);
 
 	export class Projection2d {
 
@@ -129,19 +131,52 @@ namespace pixi_projection {
 			this._matrixID++;
 		}
 
-		setFromQuad(p: Array<PointLike>, applyLocal: number = 0) {
-			let f1 = utils.getIntersectionFactor(p[0], p[1], p[2], p[3], tempPoint);
-			if (applyLocal) {
-				tempPoint.x -= this.legacy.position.x;
-				tempPoint.y -= this.legacy.position.y;
-			}
+		setFromQuad(p: Array<PointLike>, anchor: PointLike = tempZero, sizeX: number = 0, sizeY: number = 0) {
+			let pp = this.legacy.position;
+			utils.getPositionFromQuad(p, anchor, pp);
+
+			let mat3 = this.matrix.mat3;
+
+			let f1 = utils.getIntersectionFactor(p[0], p[1], p[3], p[2], tempPoint);
+			tempPoint.x -= pp.x * f1;
+			tempPoint.y -= pp.y * f1;
 			this.setAxisX(tempPoint, f1);
-			let f2 = utils.getIntersectionFactor(p[1], p[2], p[3], p[0], tempPoint);
-			if (applyLocal) {
-				tempPoint.x -= this.legacy.position.x;
-				tempPoint.y -= this.legacy.position.y;
-			}
+			let f2 = utils.getIntersectionFactor(p[1], p[2], p[0], p[3], tempPoint);
+			tempPoint.x -= pp.x * f2;
+			tempPoint.y -= pp.y * f2;
 			this.setAxisY(tempPoint, f2);
+
+			if (sizeX !== 0) {
+				tempPoint.x = p[0].x - pp.x;
+				tempPoint.y = p[0].y - pp.y;
+				this.matrix.applyInverse(tempPoint, tempPoint);
+				tempPoint2.x = p[1].x - pp.x;
+				tempPoint2.y = p[1].y - pp.y;
+				this.matrix.applyInverse(tempPoint2, tempPoint2);
+
+				let sz = tempPoint2.x - tempPoint.x;
+				this.legacy.scale.x = sz / sizeX;
+				mat3[2] *= sizeX / sz;
+			}
+
+			if (sizeY !== 0) {
+				tempPoint.x = p[0].x - pp.x;
+				tempPoint.y = p[0].y - pp.y;
+				this.matrix.applyInverse(tempPoint, tempPoint);
+				tempPoint2.x = p[3].x - pp.x;
+				tempPoint2.y = p[3].y - pp.y;
+				this.matrix.applyInverse(tempPoint2, tempPoint2);
+
+				let sz = tempPoint2.y - tempPoint.y;
+				this.legacy.scale.y = sz / sizeY;
+				mat3[5] *= sizeY / sz;
+			}
+		}
+
+		clear() {
+			this._currentMatrixID = -1;
+			this._matrixID = 0;
+			this.matrix.identity();
 		}
 	}
 }
