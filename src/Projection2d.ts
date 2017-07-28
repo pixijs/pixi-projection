@@ -39,14 +39,14 @@ namespace pixi_projection {
 			ta._currentLocalID = ta._localID;
 
 			// force an update..
-			proj._currentCheatID = -1;
+			proj._currentMatrixID = -1;
 		}
 
-		const _cheatID = proj._cheatID;
-		if (proj._currentCheatID !== _cheatID) {
-			proj._currentCheatID = _cheatID;
-			if (_cheatID !== 0) {
-				proj.local.setToMultLegacy(lt, proj.cheat);
+		const _matrixID = proj._matrixID;
+		if (proj._currentMatrixID !== _matrixID) {
+			proj._currentMatrixID = _matrixID;
+			if (_matrixID !== 0) {
+				proj.local.setToMultLegacy(lt, proj.matrix);
 			} else {
 				proj.local.copyFrom(lt);
 			}
@@ -68,7 +68,7 @@ namespace pixi_projection {
 
 	export class Projection2d {
 
-		constructor(legacy: PIXI.TransformBase, enable?: boolean) {
+		constructor(legacy: PIXI.TransformBase, enable: boolean = true) {
 			this.legacy = legacy as PIXI.TransformStatic;
 
 			if (enable) {
@@ -81,12 +81,12 @@ namespace pixi_projection {
 
 		legacy: PIXI.TransformStatic;
 
-		cheat = new Matrix2d();
+		matrix = new Matrix2d();
 		local = new Matrix2d();
 		world = new Matrix2d();
 
-		_cheatID = 0;
-		_currentCheatID = -1;
+		_matrixID = 0;
+		_currentMatrixID = -1;
 
 		_enabled: boolean = false;
 

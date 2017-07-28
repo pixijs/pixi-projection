@@ -14,7 +14,7 @@ varying float vTextureId;
 
 void main(void){
     gl_Position.xyw = projectionMatrix * aVertexPosition;
-    gl_Position.z = 0;
+    gl_Position.z = 0.0;
     
     vTextureCoord = aTextureCoord;
     vTextureId = aTextureId;

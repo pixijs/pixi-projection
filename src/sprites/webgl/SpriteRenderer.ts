@@ -84,7 +84,7 @@ namespace pixi_projection.webgl {
          *
          * @private
          */
-        contextChange() {
+        onContextChange() {
             const gl = this.renderer.gl;
 
             this.MAX_TEXTURES = this.renderer.plugins['sprite'].MAX_TEXTURES;
@@ -110,11 +110,11 @@ namespace pixi_projection.webgl {
                 const vao = this.renderer.createVao()
                     .addIndex(this.indexBuffer)
                     .addAttribute(vertexBuffer, attrs.aVertexPosition, gl.FLOAT, false, this.vertByteSize, 0)
-                    .addAttribute(vertexBuffer, attrs.aTextureCoord, gl.UNSIGNED_SHORT, true, this.vertByteSize, 2 * 4)
-                    .addAttribute(vertexBuffer, attrs.aColor, gl.UNSIGNED_BYTE, true, this.vertByteSize, 3 * 4);
+                    .addAttribute(vertexBuffer, attrs.aTextureCoord, gl.UNSIGNED_SHORT, true, this.vertByteSize, 3 * 4)
+                    .addAttribute(vertexBuffer, attrs.aColor, gl.UNSIGNED_BYTE, true, this.vertByteSize, 4 * 4);
 
                 if (attrs.aTextureId) {
-                    vao.addAttribute(vertexBuffer, attrs.aTextureId, gl.FLOAT, false, this.vertByteSize, 4 * 4);
+                    vao.addAttribute(vertexBuffer, attrs.aTextureId, gl.FLOAT, false, this.vertByteSize, 5 * 4);
                 }
 
                 this.vaos[i] = vao;
@@ -239,8 +239,8 @@ namespace pixi_projection.webgl {
                             currentGroup.start = i;
                         }
 
-                        nextTexture._virtalBoundId = TICK;
-                        nextTexture._enabled = textureCount;
+                        nextTexture._enabled = TICK;
+                        nextTexture._virtalBoundId = textureCount;
 
                         currentGroup.textures[currentGroup.textureCount++] = nextTexture;
                         textureCount++;
