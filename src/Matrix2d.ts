@@ -245,6 +245,24 @@ namespace pixi_projection {
 			matrix.ty = mat3[7] * d;
 		}
 
+		/**
+		 * legacy method, change the values of given pixi matrix
+		 * @param matrix
+		 * @return
+		 */
+		copyFrom(matrix: PIXI.Matrix) {
+			const mat3 = this.mat3;
+			mat3[0] = matrix.a;
+			mat3[1] = matrix.b;
+			mat3[2] = 0;
+			mat3[3] = matrix.c;
+			mat3[4] = matrix.d;
+			mat3[5] = 0;
+			mat3[6] = matrix.tx;
+			mat3[7] = matrix.ty;
+			mat3[8] = 1.0;
+		}
+
 		setToMultLegacy(pt: PIXI.Matrix, lt: Matrix2d) {
 			const a1 = pt.a;
 			const b1 = pt.b;
