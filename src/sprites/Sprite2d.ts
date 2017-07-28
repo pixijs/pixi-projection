@@ -4,6 +4,7 @@ namespace pixi_projection {
 			super(texture);
 			this.proj = new Projection2d(this.transform);
 			this.pluginName = 'sprite2d';
+			this.vertexData = new Float32Array(12);
 		}
 
 		proj: Projection2d;
@@ -45,21 +46,21 @@ namespace pixi_projection {
 				h0 = h1 + orig.height;
 			}
 
-			let z = 1.0 / (wt[2] * w1 + wt[5] * h1 + wt[8]);
-			vertexData[0] = z * ((wt[0] * w1) + (wt[3] * h1) + wt[6]);
-			vertexData[1] = z * ((wt[1] * w1) + (wt[4] * h1) + wt[7]);
+			vertexData[0] = (wt[0] * w1) + (wt[3] * h1) + wt[6];
+			vertexData[1] = (wt[1] * w1) + (wt[4] * h1) + wt[7];
+			vertexData[2] = (wt[2] * w1) + (wt[5] * h1) + wt[8];
 
-			z = 1.0 / (wt[2] * w0 + wt[5] * h1 + wt[8]);
-			vertexData[2] = z * ((wt[0] * w0) + (wt[3] * h1) + wt[6]);
-			vertexData[3] = z * ((wt[1] * w0) + (wt[4] * h1) + wt[7]);
+			vertexData[3] = (wt[0] * w0) + (wt[3] * h1) + wt[6];
+			vertexData[4] = (wt[1] * w0) + (wt[4] * h1) + wt[7];
+			vertexData[5] = (wt[2] * w0) + (wt[5] * h1) + wt[8];
 
-			z = 1.0 / (wt[2] * w0 + wt[5] * h0 + wt[8]);
-			vertexData[4] = z * ((wt[0] * w0) + (wt[3] * h0) + wt[6]);
-			vertexData[5] = z * ((wt[1] * w0) + (wt[4] * h0) + wt[7]);
+			vertexData[6] = (wt[0] * w0) + (wt[3] * h0) + wt[6];
+			vertexData[7] = (wt[1] * w0) + (wt[4] * h0) + wt[7];
+			vertexData[8] = (wt[2] * w0) + (wt[5] * h0) + wt[8];
 
-			z = 1.0 / (wt[2] * w1 + wt[5] * h0 + wt[8]);
-			vertexData[6] = z * ((wt[0] * w1) + (wt[3] * h0) + wt[6]);
-			vertexData[7] = z * ((wt[1] * w1) + (wt[4] * h0) + wt[7]);
+			vertexData[9] = (wt[0] * w1) + (wt[3] * h0) + wt[6];
+			vertexData[10] = (wt[1] * w1) + (wt[4] * h0) + wt[7];
+			vertexData[11] = (wt[2] * w1) + (wt[5] * h0) + wt[8];
 		}
 
 		calculateTrimmedVertices() {
