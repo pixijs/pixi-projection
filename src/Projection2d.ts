@@ -14,6 +14,7 @@ declare namespace PIXI {
 }
 
 namespace pixi_projection {
+	import PointLike = PIXI.PointLike;
 
 	function transformHack(this: PIXI.TransformStatic, parentTransform: PIXI.TransformBase) {
 		// implementation here
@@ -66,6 +67,8 @@ namespace pixi_projection {
 		}
 	}
 
+	const tempPoint = new PIXI.Point();
+
 	export class Projection2d {
 
 		constructor(legacy: PIXI.TransformBase, enable: boolean = true) {
@@ -104,6 +107,41 @@ namespace pixi_projection {
 			} else {
 				this.legacy.updateTransform = PIXI.TransformStatic.prototype.updateTransform;
 			}
+		}
+
+		setAxisX(p: PointLike, factor: number = 1): void {
+			const x = p.x, y = p.y;
+			const d = Math.sqrt(x * x + y * y);
+			const mat3 = this.matrix.mat3;
+			mat3[0] = x / d;
+			mat3[1] = y / d;
+			mat3[2] = factor / d;
+			this._matrixID++;
+		}
+
+		setAxisY(p: PointLike, factor: number = 1) {
+			const x = p.x, y = p.y;
+			const d = Math.sqrt(x * x + y * y);
+			const mat3 = this.matrix.mat3;
+			mat3[3] = x / d;
+			mat3[4] = y / d;
+			mat3[5] = factor / d;
+			this._matrixID++;
+		}
+
+		setFromQuad(p: Array<PointLike>, applyLocal: number = 0) {
+			let f1 = utils.getIntersectionFactor(p[0], p[1], p[2], p[3], tempPoint);
+			if (applyLocal) {
+				tempPoint.x -= this.legacy.position.x;
+				tempPoint.y -= this.legacy.position.y;
+			}
+			this.setAxisX(tempPoint, f1);
+			let f2 = utils.getIntersectionFactor(p[1], p[2], p[3], p[0], tempPoint);
+			if (applyLocal) {
+				tempPoint.x -= this.legacy.position.x;
+				tempPoint.y -= this.legacy.position.y;
+			}
+			this.setAxisY(tempPoint, f2);
 		}
 	}
 }
