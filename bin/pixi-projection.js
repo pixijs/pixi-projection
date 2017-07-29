@@ -396,6 +396,42 @@ var pixi_projection;
     pixi_projection.Projection2d = Projection2d;
 })(pixi_projection || (pixi_projection = {}));
 (function (pixi_projection) {
+    PIXI.Sprite.prototype.convertTo2d = function () {
+        if (this.proj)
+            return;
+        this.calculateVertices = pixi_projection.Sprite2d.prototype.calculateVertices;
+        this.calculateTrimmedVertices = pixi_projection.Sprite2d.prototype.calculateTrimmedVertices;
+        this.proj = new pixi_projection.Projection2d(this.transform);
+        this.pluginName = 'sprite2d';
+        Object.defineProperty(this, "worldTransform", {
+            get: function () {
+                return this.proj.world;
+            },
+            enumerable: true,
+            configurable: true
+        });
+    };
+    PIXI.Container.prototype.convertTo2d = function () {
+        if (this.proj)
+            return;
+        this.proj = new pixi_projection.Projection2d(this.transform);
+        this.pluginName = 'sprite2d';
+        Object.defineProperty(this, "worldTransform", {
+            get: function () {
+                return this.proj.world;
+            },
+            enumerable: true,
+            configurable: true
+        });
+    };
+    PIXI.Container.prototype.convertSubtreeTo2d = function () {
+        this.convertTo2d();
+        for (var i = 0; i < this.children.length; i++) {
+            this.children[i].convertSubtreeTo2d();
+        }
+    };
+})(pixi_projection || (pixi_projection = {}));
+(function (pixi_projection) {
     var Sprite2d = (function (_super) {
         __extends(Sprite2d, _super);
         function Sprite2d(texture) {
@@ -491,6 +527,29 @@ var pixi_projection;
         return Sprite2d;
     }(PIXI.Sprite));
     pixi_projection.Sprite2d = Sprite2d;
+})(pixi_projection || (pixi_projection = {}));
+(function (pixi_projection) {
+    var Text2d = (function (_super) {
+        __extends(Text2d, _super);
+        function Text2d(text, style, canvas) {
+            var _this = _super.call(this, text, style, canvas) || this;
+            _this.proj = new pixi_projection.Projection2d(_this.transform);
+            _this.pluginName = 'sprite2d';
+            _this.vertexData = new Float32Array(12);
+            return _this;
+        }
+        Object.defineProperty(Text2d.prototype, "worldTransform", {
+            get: function () {
+                return this.proj.world;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return Text2d;
+    }(PIXI.Text));
+    pixi_projection.Text2d = Text2d;
+    Text2d.prototype.calculateVertices = pixi_projection.Sprite2d.prototype.calculateVertices;
+    Text2d.prototype.calculateTrimmedVertices = pixi_projection.Sprite2d.prototype.calculateTrimmedVertices;
 })(pixi_projection || (pixi_projection = {}));
 (function (pixi_projection) {
     var webgl;

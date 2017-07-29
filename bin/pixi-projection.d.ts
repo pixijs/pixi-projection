@@ -64,12 +64,30 @@ declare module PIXI.projection {
         clear(): void;
     }
 }
+declare module PIXI {
+    interface Sprite {
+        convertTo2d(): void;
+    }
+    interface Container {
+        convertTo2d(): void;
+        convertSubtreeTo2d(): void;
+    }
+}
+declare module PIXI.projection {
+}
 declare module PIXI.projection {
     class Sprite2d extends PIXI.Sprite {
         constructor(texture: PIXI.Texture);
         proj: Projection2d;
         calculateVertices(): void;
         calculateTrimmedVertices(): void;
+        readonly worldTransform: any;
+    }
+}
+declare module PIXI.projection {
+    class Text2d extends PIXI.Text {
+        constructor(text?: string, style?: PIXI.TextStyle, canvas?: HTMLCanvasElement);
+        proj: Projection2d;
         readonly worldTransform: any;
     }
 }

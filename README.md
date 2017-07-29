@@ -11,12 +11,15 @@ Done:
 - Projective 2d transform
 - Projective 2d quad mapping (buggy)
 
-Work in progress:
+Backlog:
 
 - Bilinear transform
 - Projective 2d by euler angles
 - Option to "drop" projection and go back to PIXI.Matrix in a child
 
+To-do:
+
+- Docs
 
 ## Examples
 
@@ -24,6 +27,25 @@ Work in progress:
 
 [Free quad projective transform](http://pixijs.github.io/examples/#/projection/quad.js)
 
+## Usage
+
+### convert existing elements
+
+```js
+var sprite = new PIXI.Sprite();
+sprite.convertTo2d();
+sprite.proj; //available now!
+
+var container = new PIXI.Container();
+container.convertTo2d();
+sprite.proj; //available now!
+
+var tree = new PIXI.Container();
+var child = new PIXI.Container();
+tree.addChild(child);
+tree.convertSubtreeTo2d(tree);
+child.proj; //available now!
+```
 
 ## Building
 
