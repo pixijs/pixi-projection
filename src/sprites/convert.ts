@@ -17,6 +17,7 @@ namespace pixi_projection {
         //cointainer
         this.proj = new Projection2d(this.transform);
         this.pluginName = 'sprite2d';
+        this.vertexData = new Float32Array(12);
         Object.defineProperty(this, "worldTransform", {
             get: function () {
                 return this.proj.world;

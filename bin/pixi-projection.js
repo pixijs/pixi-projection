@@ -337,9 +337,11 @@ var pixi_projection;
                 this._enabled = value;
                 if (value) {
                     this.legacy.updateTransform = transformHack;
+                    this.legacy._parentID = -1;
                 }
                 else {
                     this.legacy.updateTransform = PIXI.TransformStatic.prototype.updateTransform;
+                    this.legacy._parentID = -1;
                 }
             },
             enumerable: true,
@@ -403,6 +405,7 @@ var pixi_projection;
         this.calculateTrimmedVertices = pixi_projection.Sprite2d.prototype.calculateTrimmedVertices;
         this.proj = new pixi_projection.Projection2d(this.transform);
         this.pluginName = 'sprite2d';
+        this.vertexData = new Float32Array(12);
         Object.defineProperty(this, "worldTransform", {
             get: function () {
                 return this.proj.world;

@@ -108,8 +108,10 @@ namespace pixi_projection {
             this._enabled = value;
             if (value) {
                 this.legacy.updateTransform = transformHack;
+                (this.legacy as any)._parentID = -1;
             } else {
                 this.legacy.updateTransform = PIXI.TransformStatic.prototype.updateTransform;
+                (this.legacy as any)._parentID = -1;
             }
         }
 
