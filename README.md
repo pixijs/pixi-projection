@@ -6,11 +6,23 @@ There are many ways to define projections even when we are using only 2 dimensio
 
 Two-point projections in 2d are good for parallax.
 
+Done:
+
+- Projective 2d transform
+- Projective 2d quad mapping (buggy)
+
+Work in progress:
+
+- Bilinear transform
+- Projective 2d by euler angles
+- Option to "drop" projection and go back to PIXI.Matrix in a child
+
+
 ## Examples
 
 [Two-point projection](http://pixijs.github.io/examples/#/projection/basic.js)
 
-[Free quad transform](http://pixijs.github.io/examples/#/projection/quad.js)
+[Free quad projective transform](http://pixijs.github.io/examples/#/projection/quad.js)
 
 
 ## Building
