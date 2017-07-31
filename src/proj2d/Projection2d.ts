@@ -1,24 +1,9 @@
-declare namespace PIXI {
-    export interface TransformBase {
-        proj: pixi_projection.Projection2d;
-    }
-
-    export interface ObservablePoint {
-        _x: number;
-        _y: number;
-    }
-
-    export interface TransformStatic {
-        proj: pixi_projection.Projection2d;
-    }
-}
-
 namespace pixi_projection {
     import PointLike = PIXI.PointLike;
 
     function transformHack(this: PIXI.TransformStatic, parentTransform: PIXI.TransformBase) {
         // implementation here
-        const proj = this.proj;
+        const proj = this.proj as Projection2d;
         const ta = this as any;
         const pwid = (parentTransform as any)._worldID;
 
@@ -40,12 +25,12 @@ namespace pixi_projection {
             ta._currentLocalID = ta._localID;
 
             // force an update..
-            proj._currentMatrixID = -1;
+            proj._currentProjID = -1;
         }
 
-        const _matrixID = proj._matrixID;
-        if (proj._currentMatrixID !== _matrixID) {
-            proj._currentMatrixID = _matrixID;
+        const _matrixID = proj._projID;
+        if (proj._currentProjID !== _matrixID) {
+            proj._currentProjID = _matrixID;
             if (_matrixID !== 0) {
                 proj.local.setToMultLegacy(lt, proj.matrix);
             } else {
@@ -55,7 +40,7 @@ namespace pixi_projection {
         }
 
         if (ta._parentID !== pwid) {
-            const pp = parentTransform.proj;
+            const pp = parentTransform.proj as Projection2d;
             if (pp) {
                 proj.world.setToMult2d(pp.world, proj.local);
             } else {
@@ -73,33 +58,18 @@ namespace pixi_projection {
     const tempZero = new PIXI.Point(0, 0);
     const tempMat = new Matrix2d();
 
-    export class Projection2d {
+    export class Projection2d extends Projection {
 
-        constructor(legacy: PIXI.TransformBase, enable: boolean = true) {
-            this.legacy = legacy as PIXI.TransformStatic;
-
-            if (enable) {
-                this.enabled = true;
-            }
-
-            // sorry for hidden class, it would be good to have special projection field in official pixi
-            this.legacy.proj = this;
+        constructor(legacy: PIXI.TransformBase, enable?: boolean) {
+            super(legacy, enable);
         }
-
-        legacy: PIXI.TransformStatic;
 
         matrix = new Matrix2d();
         local = new Matrix2d();
         world = new Matrix2d();
 
-        _matrixID = 0;
-        _currentMatrixID = -1;
-
-        _enabled: boolean = false;
-
-        get enabled() {
-            return this._enabled;
-        }
+        _projID = 0;
+        _currentProjID = -1;
 
         set enabled(value: boolean) {
             if (value === this._enabled) {
@@ -122,7 +92,7 @@ namespace pixi_projection {
             mat3[0] = x / d;
             mat3[1] = y / d;
             mat3[2] = factor / d;
-            this._matrixID++;
+            this._projID++;
         }
 
         setAxisY(p: PointLike, factor: number = 1) {
@@ -132,7 +102,7 @@ namespace pixi_projection {
             mat3[3] = x / d;
             mat3[4] = y / d;
             mat3[5] = factor / d;
-            this._matrixID++;
+            this._projID++;
         }
 
         setFromQuad(p: Array<PointLike>, anchor: PointLike = tempZero, sizeX: number = 1, sizeY: number = 1) {
@@ -164,8 +134,8 @@ namespace pixi_projection {
         }
 
         clear() {
-            this._currentMatrixID = -1;
-            this._matrixID = 0;
+            this._currentProjID = -1;
+            this._projID = 0;
             this.matrix.identity();
         }
     }

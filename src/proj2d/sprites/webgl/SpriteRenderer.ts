@@ -149,6 +149,10 @@ namespace pixi_projection.webgl {
             if (!(sprite as any)._texture._uvs) {
                 return;
             }
+            if (!(sprite as any)._texture.baseTexture) {
+                //WTF, Rpgmaker MV?
+                return;
+            }
 
             // push a texture.
             // increment the batchsize
