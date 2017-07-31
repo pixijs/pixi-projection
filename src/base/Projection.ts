@@ -26,6 +26,7 @@ namespace pixi_projection {
             // sorry for hidden class, it would be good to have special projection field in official pixi
             this.legacy.proj = this;
         }
+
         legacy: PIXI.TransformStatic;
 
         _enabled: boolean = false;

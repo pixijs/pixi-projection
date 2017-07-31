@@ -1,4 +1,32 @@
 /// <reference types="pixi.js" />
+declare namespace PIXI {
+    interface TransformBase {
+        proj: pixi_projection.Projection;
+    }
+    interface ObservablePoint {
+        _x: number;
+        _y: number;
+    }
+    interface TransformStatic {
+        proj: pixi_projection.Projection;
+    }
+}
+declare module PIXI.projection {
+    class Projection {
+        constructor(legacy: PIXI.TransformBase, enable?: boolean);
+        legacy: PIXI.TransformStatic;
+        _projID: number;
+        _currentProjID: number;
+        _enabled: boolean;
+        enabled: boolean;
+        clear(): void;
+    }
+}
+declare module PIXI.projection {
+    class ProjectionCurve extends Projection {
+        constructor(legacy: PIXI.TransformBase, enable?: boolean);
+    }
+}
 declare module PIXI.projection {
     class Container2d extends PIXI.Sprite {
         constructor(texture: PIXI.Texture);
@@ -34,29 +62,13 @@ declare module PIXI.projection {
         setToMult2d(pt: Matrix2d, lt: Matrix2d): this;
     }
 }
-declare namespace PIXI {
-    interface TransformBase {
-        proj: pixi_projection.Projection2d;
-    }
-    interface ObservablePoint {
-        _x: number;
-        _y: number;
-    }
-    interface TransformStatic {
-        proj: pixi_projection.Projection2d;
-    }
-}
 declare module PIXI.projection {
     import PointLike = PIXI.PointLike;
-    class Projection2d {
+    class Projection2d extends Projection {
         constructor(legacy: PIXI.TransformBase, enable?: boolean);
-        legacy: PIXI.TransformStatic;
         matrix: Matrix2d;
         local: Matrix2d;
         world: Matrix2d;
-        _matrixID: number;
-        _currentMatrixID: number;
-        _enabled: boolean;
         enabled: boolean;
         setAxisX(p: PointLike, factor?: number): void;
         setAxisY(p: PointLike, factor?: number): void;

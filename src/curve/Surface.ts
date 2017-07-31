@@ -1,8 +1,8 @@
 namespace pixi_projection {
     import PointLike = PIXI.PointLike;
 
-    export abstract class Curve {
-        curveID = "default";
+    export abstract class Surface implements IWorldTransform {
+        surfaceID = "default";
 
         _updateID: number = 0;
 

@@ -10,6 +10,47 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var pixi_projection;
 (function (pixi_projection) {
+    var Projection = (function () {
+        function Projection(legacy, enable) {
+            if (enable === void 0) { enable = true; }
+            this._projID = 0;
+            this._currentProjID = -1;
+            this._enabled = false;
+            this.legacy = legacy;
+            if (enable) {
+                this.enabled = true;
+            }
+            this.legacy.proj = this;
+        }
+        Object.defineProperty(Projection.prototype, "enabled", {
+            get: function () {
+                return this._enabled;
+            },
+            set: function (value) {
+                this._enabled = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Projection.prototype.clear = function () {
+        };
+        return Projection;
+    }());
+    pixi_projection.Projection = Projection;
+})(pixi_projection || (pixi_projection = {}));
+(function (pixi_projection) {
+    function transformHack(parentTransform) {
+    }
+    var ProjectionCurve = (function (_super) {
+        __extends(ProjectionCurve, _super);
+        function ProjectionCurve(legacy, enable) {
+            return _super.call(this, legacy, enable) || this;
+        }
+        return ProjectionCurve;
+    }(pixi_projection.Projection));
+    pixi_projection.ProjectionCurve = ProjectionCurve;
+})(pixi_projection || (pixi_projection = {}));
+(function (pixi_projection) {
     var Container2d = (function (_super) {
         __extends(Container2d, _super);
         function Container2d(texture) {
@@ -280,11 +321,11 @@ var pixi_projection;
             lt.tx = ta.position._x - ((ta.pivot._x * lt.a) + (ta.pivot._y * lt.c));
             lt.ty = ta.position._y - ((ta.pivot._x * lt.b) + (ta.pivot._y * lt.d));
             ta._currentLocalID = ta._localID;
-            proj._currentMatrixID = -1;
+            proj._currentProjID = -1;
         }
-        var _matrixID = proj._matrixID;
-        if (proj._currentMatrixID !== _matrixID) {
-            proj._currentMatrixID = _matrixID;
+        var _matrixID = proj._projID;
+        if (proj._currentProjID !== _matrixID) {
+            proj._currentProjID = _matrixID;
             if (_matrixID !== 0) {
                 proj.local.setToMultLegacy(lt, proj.matrix);
             }
@@ -311,25 +352,16 @@ var pixi_projection;
     var t2 = new PIXI.Point();
     var tempZero = new PIXI.Point(0, 0);
     var tempMat = new pixi_projection.Matrix2d();
-    var Projection2d = (function () {
+    var Projection2d = (function (_super) {
+        __extends(Projection2d, _super);
         function Projection2d(legacy, enable) {
-            if (enable === void 0) { enable = true; }
-            this.matrix = new pixi_projection.Matrix2d();
-            this.local = new pixi_projection.Matrix2d();
-            this.world = new pixi_projection.Matrix2d();
-            this._matrixID = 0;
-            this._currentMatrixID = -1;
-            this._enabled = false;
-            this.legacy = legacy;
-            if (enable) {
-                this.enabled = true;
-            }
-            this.legacy.proj = this;
+            var _this = _super.call(this, legacy, enable) || this;
+            _this.matrix = new pixi_projection.Matrix2d();
+            _this.local = new pixi_projection.Matrix2d();
+            _this.world = new pixi_projection.Matrix2d();
+            return _this;
         }
         Object.defineProperty(Projection2d.prototype, "enabled", {
-            get: function () {
-                return this._enabled;
-            },
             set: function (value) {
                 if (value === this._enabled) {
                     return;
@@ -355,7 +387,7 @@ var pixi_projection;
             mat3[0] = x / d;
             mat3[1] = y / d;
             mat3[2] = factor / d;
-            this._matrixID++;
+            this._projID++;
         };
         Projection2d.prototype.setAxisY = function (p, factor) {
             if (factor === void 0) { factor = 1; }
@@ -365,7 +397,7 @@ var pixi_projection;
             mat3[3] = x / d;
             mat3[4] = y / d;
             mat3[5] = factor / d;
-            this._matrixID++;
+            this._projID++;
         };
         Projection2d.prototype.setFromQuad = function (p, anchor, sizeX, sizeY) {
             if (anchor === void 0) { anchor = tempZero; }
@@ -389,12 +421,12 @@ var pixi_projection;
             this.matrix.setToMult2d(this.matrix, tempMat);
         };
         Projection2d.prototype.clear = function () {
-            this._currentMatrixID = -1;
-            this._matrixID = 0;
+            this._currentProjID = -1;
+            this._projID = 0;
             this.matrix.identity();
         };
         return Projection2d;
-    }());
+    }(pixi_projection.Projection));
     pixi_projection.Projection2d = Projection2d;
 })(pixi_projection || (pixi_projection = {}));
 (function (pixi_projection) {
@@ -701,6 +733,9 @@ var pixi_projection;
                     this.flush();
                 }
                 if (!sprite._texture._uvs) {
+                    return;
+                }
+                if (!sprite._texture.baseTexture) {
                     return;
                 }
                 this.sprites[this.currentIndex++] = sprite;
