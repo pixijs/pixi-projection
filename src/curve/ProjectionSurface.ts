@@ -29,7 +29,7 @@ namespace pixi_projection {
             return;
         }
 
-        if (pp.surface) {
+        if (pp._surface) {
             proj._activeProjection = pp;
             this.updateLocalTransform();
             this.localTransform.copy(this.worldTransform);
@@ -48,9 +48,9 @@ namespace pixi_projection {
             super(legacy, enable);
         }
 
-        surface: Surface = null;
+        _surface: Surface = null;
         _activeProjection: ProjectionSurface = null;
-        _currentSurfaceID = 0;
+        _currentSurfaceID = -1;
 
         set enabled(value: boolean) {
             if (value === this._enabled) {
@@ -66,13 +66,25 @@ namespace pixi_projection {
             }
         }
 
+        get surface() {
+            return this._surface;
+        }
+
+        set surface(value: Surface) {
+            if (this._surface == value) {
+                return;
+            }
+            this._surface = value || null;
+            (this.legacy as any)._parentID = -1;
+        }
+
         apply(pos: PointLike, newPos?: PointLike): PointLike {
             if (this._activeProjection !== null) {
                 newPos = this.legacy.worldTransform.apply(pos, newPos);
                 this._activeProjection.surface.apply(newPos, newPos);
                 return this._activeProjection.legacy.worldTransform.apply(newPos, newPos);
             }
-            if (this.surface !== null) {
+            if (this._surface !== null) {
                 newPos = this.surface.apply(pos, newPos);
                 return this.legacy.worldTransform.apply(newPos, newPos);
             }
@@ -82,14 +94,21 @@ namespace pixi_projection {
         applyInverse(pos: PointLike, newPos: PointLike) {
             if (this._activeProjection !== null) {
                 newPos = this._activeProjection.legacy.worldTransform.applyInverse(pos, newPos);
-                this._activeProjection.surface.applyInverse(newPos, newPos);
+                this._activeProjection._surface.applyInverse(newPos, newPos);
                 return this.legacy.worldTransform.applyInverse(newPos, newPos);
             }
-            if (this.surface !== null) {
+            if (this._surface !== null) {
                 newPos = this.legacy.worldTransform.apply(pos, newPos);
-                return this.surface.applyInverse(newPos, newPos);
+                return this._surface.applyInverse(newPos, newPos);
             }
             return this.legacy.worldTransform.applyInverse(pos, newPos);
+        }
+
+        mapBilinearSprite(sprite: PIXI.Sprite, quad: Array<PointLike>) {
+            if (!(this._surface instanceof BilinearSurface)) {
+                this.surface = new BilinearSurface();
+            }
+            (this.surface as BilinearSurface).mapSprite(sprite, quad, this.legacy);
         }
     }
 }
