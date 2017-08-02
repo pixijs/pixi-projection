@@ -1,11 +1,13 @@
 namespace pixi_projection {
 	import MultiTextureSpriteRenderer = pixi_projection.webgl.MultiTextureSpriteRenderer;
 
+	const tempMat = new PIXI.Matrix();
+
 	class SpriteBilinearRenderer extends MultiTextureSpriteRenderer {
 		shaderVert = `precision highp float;
 attribute vec2 aVertexPosition;
 attribute mat3 aTrans;
-attribute vec4 frame;
+attribute vec4 aFrame;
 attribute vec4 aColor;
 attribute float aTextureId;
 
@@ -62,20 +64,39 @@ float textureId = floor(vTextureId+0.5);
 gl_FragColor = color * rColor;
 }`;
 
+		defUniforms = {
+			worldTransform: new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]),
+			distortion: new Float32Array([0, 0])
+		};
+
+		getUniforms(sprite: PIXI.Sprite) {
+			let proj = (sprite as Sprite2s).proj;
+			let shader = this.shader;
+
+			if (proj.surface !== null) {
+				return proj.uniforms;
+			}
+			if (proj._activeProjection !== null) {
+				return proj._activeProjection.uniforms;
+			}
+			return this.defUniforms;
+		}
+
 		createVao(vertexBuffer: PIXI.glCore.GLBuffer) {
 			const attrs = this.shader.attributes;
-			this.vertSize = 6;
+			this.vertSize = 17;
 			this.vertByteSize = this.vertSize * 4;
 
 			const gl = this.renderer.gl;
 			const vao = this.renderer.createVao()
 				.addIndex(this.indexBuffer)
 				.addAttribute(vertexBuffer, attrs.aVertexPosition, gl.FLOAT, false, this.vertByteSize, 0)
-				.addAttribute(vertexBuffer, attrs.aTextureCoord, gl.UNSIGNED_SHORT, true, this.vertByteSize, 3 * 4)
-				.addAttribute(vertexBuffer, attrs.aColor, gl.UNSIGNED_BYTE, true, this.vertByteSize, 4 * 4);
+				.addAttribute(vertexBuffer, attrs.aTrans, gl.FLOAT, true, this.vertByteSize, 2 * 4)
+				.addAttribute(vertexBuffer, attrs.aFrame, gl.FLOAT, true, this.vertByteSize, 11 * 4)
+				.addAttribute(vertexBuffer, attrs.aColor, gl.UNSIGNED_BYTE, true, this.vertByteSize, 15 * 4);
 
 			if (attrs.aTextureId) {
-				vao.addAttribute(vertexBuffer, attrs.aTextureId, gl.FLOAT, false, this.vertByteSize, 5 * 4);
+				vao.addAttribute(vertexBuffer, attrs.aTextureId, gl.FLOAT, false, this.vertByteSize, 16 * 4);
 			}
 
 			return vao;
@@ -84,74 +105,45 @@ gl_FragColor = color * rColor;
 
 		fillVertices(float32View: Float32Array, uint32View: Uint32Array, index: number, sprite: any, argb: number, textureId: number) {
 			const vertexData = sprite.vertexData;
-			const uvs = sprite._texture._uvs.uvsUint32;
-			if (vertexData.length === 8) {
-				//PIXI standart sprite
-				if (this.renderer.roundPixels) {
-					const resolution = this.renderer.resolution;
-
-					float32View[index] = ((vertexData[0] * resolution) | 0) / resolution;
-					float32View[index + 1] = ((vertexData[1] * resolution) | 0) / resolution;
-					float32View[index + 2] = 1.0;
-
-					float32View[index + 6] = ((vertexData[2] * resolution) | 0) / resolution;
-					float32View[index + 7] = ((vertexData[3] * resolution) | 0) / resolution;
-					float32View[index + 8] = 1.0;
-
-					float32View[index + 12] = ((vertexData[4] * resolution) | 0) / resolution;
-					float32View[index + 13] = ((vertexData[5] * resolution) | 0) / resolution;
-					float32View[index + 14] = 1.0;
-
-					float32View[index + 18] = ((vertexData[6] * resolution) | 0) / resolution;
-					float32View[index + 19] = ((vertexData[7] * resolution) | 0) / resolution;
-					float32View[index + 20] = 1.0;
-				}
-				else {
-					float32View[index] = vertexData[0];
-					float32View[index + 1] = vertexData[1];
-					float32View[index + 2] = 1.0;
-
-					float32View[index + 6] = vertexData[2];
-					float32View[index + 7] = vertexData[3];
-					float32View[index + 8] = 1.0;
-
-					float32View[index + 12] = vertexData[4];
-					float32View[index + 13] = vertexData[5];
-					float32View[index + 14] = 1.0;
-
-					float32View[index + 18] = vertexData[6];
-					float32View[index + 19] = vertexData[7];
-					float32View[index + 20] = 1.0;
-				}
-			} else {
-				// projective 2d/3d sprite
-
-				// I removed roundPixels, dont need that for those kind of sprites
-
-				float32View[index] = vertexData[0];
-				float32View[index + 1] = vertexData[1];
-				float32View[index + 2] = vertexData[2];
-
-				float32View[index + 6] = vertexData[3];
-				float32View[index + 7] = vertexData[4];
-				float32View[index + 8] = vertexData[5];
-
-				float32View[index + 12] = vertexData[6];
-				float32View[index + 13] = vertexData[7];
-				float32View[index + 14] = vertexData[8];
-
-				float32View[index + 18] = vertexData[9];
-				float32View[index + 19] = vertexData[10];
-				float32View[index + 20] = vertexData[11];
+			const tex = sprite._texture;
+			const w = tex.orig.width;
+			const h = tex.orig.height;
+			const ax = sprite._anchor._x;
+			const ay = sprite._anchor._y;
+			const uvs = tex._uvs;
+			if (!tex.transform) {
+				tex.transform = new PIXI.extras.TextureTransform(tex);
 			}
+			tex.transform.update();
 
-			uint32View[index + 3] = uvs[0];
-			uint32View[index + 9] = uvs[1];
-			uint32View[index + 15] = uvs[2];
-			uint32View[index + 21] = uvs[3];
+			tempMat.set(w, 0, 0, h, -ax * w, -ay * h);
+			tempMat.prepend(sprite.transform.localTransform);
+			tempMat.invert();
+			tempMat.prepend(tex.transform.mapCoord);
 
-			uint32View[index + 4] = uint32View[index + 10] = uint32View[index + 16] = uint32View[index + 22] = argb;
-			float32View[index + 5] = float32View[index + 11] = float32View[index + 17] = float32View[index + 23] = textureId;
+			for (let i = 0; i < 4; i++) {
+				index += 17;
+				float32View[index] = vertexData[i * 2];
+				float32View[index + 1] = vertexData[i * 2 + 1];
+
+				float32View[index + 2] = tempMat.a;
+				float32View[index + 3] = tempMat.b;
+				float32View[index + 4] = 0;
+				float32View[index + 5] = tempMat.c;
+				float32View[index + 6] = tempMat.d;
+				float32View[index + 7] = 0;
+				float32View[index + 8] = tempMat.tx;
+				float32View[index + 9] = tempMat.ty;
+				float32View[index + 10] = 0;
+
+				float32View[index + 11] = uvs.x0;
+				float32View[index + 12] = uvs.y0;
+				float32View[index + 13] = uvs.x1;
+				float32View[index + 14] = uvs.y1;
+
+				float32View[index + 15] = argb;
+				float32View[index + 16] = textureId;
+			}
 		}
 	}
 

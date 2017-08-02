@@ -78,6 +78,17 @@ namespace pixi_projection {
 			(this.legacy as any)._parentID = -1;
 		}
 
+		applyPartial(pos: PointLike, newPos?: PointLike): PointLike {
+			if (this._activeProjection !== null) {
+				newPos = this.legacy.worldTransform.apply(pos, newPos);
+				return this._activeProjection.surface.apply(newPos, newPos);
+			}
+			if (this._surface !== null) {
+				return this.surface.apply(pos, newPos);
+			}
+			return this.legacy.worldTransform.apply(pos, newPos);
+		}
+
 		apply(pos: PointLike, newPos?: PointLike): PointLike {
 			if (this._activeProjection !== null) {
 				newPos = this.legacy.worldTransform.apply(pos, newPos);
@@ -122,9 +133,8 @@ namespace pixi_projection {
 				return this._lastUniforms;
 			}
 
-			this._lastUniforms = {
-				translationMatrix: this.legacy.worldTransform.toArray(true)
-			};
+			this._lastUniforms = this._lastUniforms || {};
+			this._lastUniforms.worldTransform = this.legacy.worldTransform.toArray(true)
 			this._surface.fillUniforms(this._lastUniforms);
 			return this._lastUniforms;
 		}
