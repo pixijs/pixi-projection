@@ -14,16 +14,18 @@ namespace pixi_projection {
 		apply(pos: PointLike, newPos?: PointLike): PointLike {
 			newPos = newPos || new PIXI.Point();
 			const d = this.distortion;
-			newPos.x = pos.x + d.x * (pos.x - 1) * (pos.y - 1);
-			newPos.y = pos.y + d.y * (pos.x - 1) * (pos.y - 1);
+			const m = pos.x * pos.y;
+			newPos.x = pos.x + d.x * m;
+			newPos.y = pos.y + d.y * m;
 			return newPos;
 		}
 
 		applyInverse(pos: PointLike, newPos: PointLike): PointLike {
 			newPos = newPos || new PIXI.Point();
-			let dx = this.distortion.x, dy = this.distortion.y;
-			newPos.x = pos.x * (dx + 1) / (dx + 1 + pos.y * dy);
-			newPos.y = pos.y * (dx + 1) / (dy + 1 + pos.x * dx);
+			const px = pos.x, py = pos.y;
+			const dx = this.distortion.x, dy = this.distortion.y;
+			newPos.x = px * (dx + 1) / (dx + 1 + py * dy);
+			newPos.y = py * (dy + 1) / (dy + 1 + px * dx);
 			return newPos;
 		}
 
