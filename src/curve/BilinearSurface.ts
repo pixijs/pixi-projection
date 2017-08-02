@@ -35,7 +35,7 @@ namespace pixi_projection {
 			tempRect.width = tex.orig.width;
 			tempRect.height = tex.orig.height;
 
-			return this.mapSprite(sprite, quad, outTransform || sprite.transform as PIXI.TransformStatic);
+			return this.mapQuad(tempRect, quad, outTransform || sprite.transform as PIXI.TransformStatic);
 		}
 
 		mapQuad(rect: PIXI.Rectangle, quad: Array<PointLike>, outTransform: PIXI.TransformStatic) {
