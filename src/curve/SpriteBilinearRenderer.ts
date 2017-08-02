@@ -1,8 +1,6 @@
 namespace pixi_projection {
 	import MultiTextureSpriteRenderer = pixi_projection.webgl.MultiTextureSpriteRenderer;
 
-	const tempMat = new PIXI.Matrix();
-
 	class SpriteBilinearRenderer extends MultiTextureSpriteRenderer {
 		shaderVert = `precision highp float;
 attribute vec2 aVertexPosition;
@@ -111,29 +109,21 @@ gl_FragColor = color * rColor;
 			const ax = sprite._anchor._x;
 			const ay = sprite._anchor._y;
 			const uvs = tex._uvs;
-			if (!tex.transform) {
-				tex.transform = new PIXI.extras.TextureTransform(tex);
-			}
-			tex.transform.update();
-
-			tempMat.set(w, 0, 0, h, -ax * w, -ay * h);
-			tempMat.prepend(sprite.transform.localTransform);
-			tempMat.invert();
-			tempMat.prepend(tex.transform.mapCoord);
+			const aTrans = sprite.aTrans;
 
 			for (let i = 0; i < 4; i++) {
 				index += 17;
 				float32View[index] = vertexData[i * 2];
 				float32View[index + 1] = vertexData[i * 2 + 1];
 
-				float32View[index + 2] = tempMat.a;
-				float32View[index + 3] = tempMat.b;
+				float32View[index + 2] = aTrans.a;
+				float32View[index + 3] = aTrans.b;
 				float32View[index + 4] = 0;
-				float32View[index + 5] = tempMat.c;
-				float32View[index + 6] = tempMat.d;
+				float32View[index + 5] = aTrans.c;
+				float32View[index + 6] = aTrans.d;
 				float32View[index + 7] = 0;
-				float32View[index + 8] = tempMat.tx;
-				float32View[index + 9] = tempMat.ty;
+				float32View[index + 8] = aTrans.tx;
+				float32View[index + 9] = aTrans.ty;
 				float32View[index + 10] = 0;
 
 				float32View[index + 11] = uvs.x0;

@@ -15,6 +15,7 @@ namespace pixi_projection {
 		if (this.proj) return;
 		//cointainer
 		this.pluginName = 'sprite_bilinear';
+		this.aTrans = new PIXI.Matrix();
 		this.calculateVertices = Sprite2s.prototype.calculateVertices;
 		this.calculateTrimmedVertices = Sprite2s.prototype.calculateTrimmedVertices;
 		PIXI.Container.prototype.convertTo2s.call(this);

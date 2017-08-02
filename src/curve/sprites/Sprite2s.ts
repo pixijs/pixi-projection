@@ -1,6 +1,4 @@
 namespace pixi_projection {
-	const tempPoint = new PIXI.Point();
-
 	export class Sprite2s extends PIXI.Sprite {
 		constructor(texture: PIXI.Texture) {
 			super(texture);
@@ -10,6 +8,7 @@ namespace pixi_projection {
 		}
 
 		proj: ProjectionSurface;
+		aTrans = new PIXI.Matrix();
 
 		calculateVertices() {
 			const wid = (this.transform as any)._worldID;
@@ -77,6 +76,19 @@ namespace pixi_projection {
 					this.proj._activeProjection.surface.boundsQuad(vertexData, vertexData);
 				}
 			}
+
+			if (!texture.transform) {
+				texture.transform = new PIXI.extras.TextureTransform(texture);
+			}
+			texture.transform.update();
+
+			const aTrans = this.aTrans;
+			aTrans.set(orig.width, 0, 0, orig.height, w1, h1);
+			if (this.proj._surface === null) {
+				aTrans.prepend(this.transform.worldTransform);
+			}
+			aTrans.invert();
+			aTrans.prepend(texture.transform.mapCoord);
 		}
 
 		calculateTrimmedVertices() {

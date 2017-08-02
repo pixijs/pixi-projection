@@ -8,6 +8,8 @@ namespace pixi_projection {
 
 		proj: ProjectionSurface;
 
+		aTrans = new PIXI.Matrix();
+
 		get worldTransform() {
 			return this.proj as any;
 		}
