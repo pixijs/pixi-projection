@@ -83,5 +83,9 @@ namespace pixi_projection {
 
             return this;
         }
+
+	    fillUniforms(uniforms: any) {
+
+	    }
     }
 }

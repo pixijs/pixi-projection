@@ -30,6 +30,7 @@ namespace pixi_projection.webgl {
 		size = 0;
 		start = 0;
 		blend = PIXI.BLEND_MODES.NORMAL;
+		uniforms: any = null;
 	}
 
 	export abstract class MultiTextureSpriteRenderer extends ObjectRenderer {
@@ -40,6 +41,18 @@ namespace pixi_projection.webgl {
 		abstract createVao(vertexBuffer: GLBuffer): PIXI.glCore.VertexArrayObject;
 
 		abstract fillVertices(float32View: Float32Array, uint32View: Uint32Array, index: number, sprite: any, argb: number, textureId: number);
+
+		getUniforms(spr: PIXI.Sprite): any {
+			return null;
+		}
+
+		syncUniforms(obj: any) {
+			if (!obj) return;
+			let sh = this.shader;
+			for (let key in obj) {
+				sh.uniforms[key] = obj[key];
+			}
+		}
 
 		vertSize = 5;
 		vertByteSize = this.vertSize * 4;
@@ -186,6 +199,7 @@ namespace pixi_projection.webgl {
 			let index = 0;
 			let nextTexture: any;
 			let currentTexture: BaseTexture;
+			let currentUniforms: any = null;
 			let groupCount = 1;
 			let textureCount = 0;
 			let currentGroup = groups[0];
@@ -224,6 +238,15 @@ namespace pixi_projection.webgl {
 					TICK++;
 				}
 
+				const uniforms = this.getUniforms(sprite);
+				if (currentUniforms !== uniforms) {
+					currentUniforms = uniforms;
+
+					currentTexture = null;
+					textureCount = MAX_TEXTURES;
+					TICK++;
+				}
+
 				if (currentTexture !== nextTexture) {
 					currentTexture = nextTexture;
 
@@ -239,6 +262,7 @@ namespace pixi_projection.webgl {
 							currentGroup.textureCount = 0;
 							currentGroup.blend = blendMode;
 							currentGroup.start = i;
+							currentGroup.uniforms = currentUniforms;
 						}
 
 						nextTexture._enabled = TICK;
@@ -287,11 +311,16 @@ namespace pixi_projection.webgl {
 				this.vertexBuffers[this.vertexCount].upload(buffer.vertices, 0, true);
 			}
 
+			currentUniforms = null;
+
 			// / render the groups..
 			for (i = 0; i < groupCount; i++) {
 				const group = groups[i];
 				const groupTextureCount = group.textureCount;
 
+				if (group.uniforms !== currentUniforms) {
+					this.syncUniforms(group.uniforms);
+				}
 
 				for (let j = 0; j < groupTextureCount; j++) {
 					this.renderer.bindTexture(group.textures[j], j, true);

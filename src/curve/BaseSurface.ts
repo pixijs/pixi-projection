@@ -9,7 +9,9 @@ namespace pixi_projection {
         vertexSrc: string = "";
         fragmentSrc: string = "";
 
-        readonly uniforms: any;
+        fillUniforms(uniforms: any) {
+
+        }
 
         abstract apply(pos: PointLike, newPos: PointLike): PointLike;
 
