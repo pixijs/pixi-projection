@@ -138,7 +138,7 @@ gl_FragColor = color * rColor;
 				float32View[index + 10] = uvs.x1;
 				float32View[index + 11] = uvs.y1;
 
-				float32View[index + 12] = argb;
+				uint32View[index + 12] = argb;
 				float32View[index + 13] = textureId;
 				index += 14;
 			}
