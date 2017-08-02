@@ -50,16 +50,13 @@ uniform vec2 samplerSize[%count%];
 uniform vec2 distortion;
 
 void main(void){
-vec3 surface;
+vec2 surface;
 surface.x = vTextureCoord.x * (distortion.y + 1.0) / (distortion.y + 1.0 + vTextureCoord.y * distortion.x);
 surface.y = vTextureCoord.y * (distortion.x + 1.0) / (distortion.x + 1.0 + vTextureCoord.x * distortion.y);
-surface.z = 1.0;
-
-vec3 uvx = vTrans1 * surface, uvy = vTrans1 * surface;
 
 vec2 uv;
-uv.x = uvx.x + uvx.y + uvx.z;
-uv.y = uvy.x + uvy.y + uvy.z;
+uv.x = vTrans1.x * surface.x + vTrans1.y * surface.y + vTrans1.z;
+uv.y = vTrans2.x * surface.x + vTrans2.y * surface.y + vTrans2.z;
 
 vec4 edge;
 edge.xy = clamp(uv - vFrame.xy + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));
@@ -102,9 +99,9 @@ gl_FragColor = color * rColor;
 			const vao = this.renderer.createVao()
 				.addIndex(this.indexBuffer)
 				.addAttribute(vertexBuffer, attrs.aVertexPosition, gl.FLOAT, false, this.vertByteSize, 0)
-				.addAttribute(vertexBuffer, attrs.aTrans1, gl.FLOAT, true, this.vertByteSize, 2 * 4)
-				.addAttribute(vertexBuffer, attrs.aTrans2, gl.FLOAT, true, this.vertByteSize, 5 * 4)
-				.addAttribute(vertexBuffer, attrs.aFrame, gl.FLOAT, true, this.vertByteSize, 8 * 4)
+				.addAttribute(vertexBuffer, attrs.aTrans1, gl.FLOAT, false, this.vertByteSize, 2 * 4)
+				.addAttribute(vertexBuffer, attrs.aTrans2, gl.FLOAT, false, this.vertByteSize, 5 * 4)
+				.addAttribute(vertexBuffer, attrs.aFrame, gl.FLOAT, false, this.vertByteSize, 8 * 4)
 				.addAttribute(vertexBuffer, attrs.aColor, gl.UNSIGNED_BYTE, true, this.vertByteSize, 12 * 4);
 
 			if (attrs.aTextureId) {
@@ -143,7 +140,7 @@ gl_FragColor = color * rColor;
 
 				float32View[index + 12] = argb;
 				float32View[index + 13] = textureId;
-				index += 17;
+				index += 14;
 			}
 		}
 	}
