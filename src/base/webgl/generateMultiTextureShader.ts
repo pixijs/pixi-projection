@@ -33,7 +33,7 @@ namespace pixi_projection.webgl {
 			}
 
 			src += '\n{';
-			src += `\n\tcolor = texture2D(uSamplers[${i}], vTextureCoord);`;
+			src += `\n\tcolor = texture2D(uSamplers[${i}], textureCoord);`;
 			src += '\n}';
 		}
 

@@ -65,11 +65,12 @@ vec4 edge;
 edge.xy = clamp(uv - vFrame.xy + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));
 edge.zw = clamp(vFrame.zw - uv + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));
 
-float alpha = edge.x * edge.y * edge.z * edge.w;
+float alpha = 1.0; //edge.x * edge.y * edge.z * edge.w;
 vec4 rColor = vColor * alpha;
 
 float textureId = floor(vTextureId+0.5);
 vec4 color;
+vec2 textureCoord = uv;
 %forloop%
 gl_FragColor = color * rColor;
 }`;

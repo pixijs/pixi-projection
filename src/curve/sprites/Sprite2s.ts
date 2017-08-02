@@ -4,7 +4,6 @@ namespace pixi_projection {
 			super(texture);
 			this.proj = new ProjectionSurface(this.transform);
 			this.pluginName = 'sprite_bilinear';
-			this.vertexData = new Float32Array(12);
 		}
 
 		proj: ProjectionSurface;

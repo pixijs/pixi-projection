@@ -32,6 +32,7 @@ uniform sampler2D uSamplers[%count%];
 
 void main(void){
 vec4 color;
+vec2 textureCoord = vTextureCoord;
 float textureId = floor(vTextureId+0.5);
 %forloop%
 gl_FragColor = color * vColor;
