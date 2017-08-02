@@ -324,6 +324,13 @@ namespace pixi_projection.webgl {
 
 				for (let j = 0; j < groupTextureCount; j++) {
 					this.renderer.bindTexture(group.textures[j], j, true);
+
+					const v = this.shader.uniforms.samplerSize;
+					if (v) {
+						v[0] = group.textures[j].realWidth;
+						v[1] = group.textures[j].realHeight;
+						this.shader.uniforms.samplerSize = v;
+					}
 				}
 
 				// set the blend mode..

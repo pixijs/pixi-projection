@@ -2,6 +2,9 @@ namespace pixi_projection {
 	import MultiTextureSpriteRenderer = pixi_projection.webgl.MultiTextureSpriteRenderer;
 
 	class SpriteBilinearRenderer extends MultiTextureSpriteRenderer {
+		size = 1;
+		MAX_TEXTURES = 1;
+
 		shaderVert = `precision highp float;
 attribute vec2 aVertexPosition;
 attribute mat3 aTrans;
@@ -39,7 +42,7 @@ varying vec4 vColor;
 varying float vTextureId;
 
 uniform sampler2D uSamplers[%count%];
-uniform vec2 samplesSize[%count%]; 
+uniform vec2 samplerSize[%count%]; 
 uniform vec2 distortion;
 
 void main(void){
