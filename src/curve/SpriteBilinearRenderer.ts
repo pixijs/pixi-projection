@@ -51,8 +51,33 @@ uniform vec2 distortion;
 
 void main(void){
 vec2 surface;
-surface.x = vTextureCoord.x * (distortion.y + 1.0) / (distortion.y + 1.0 + vTextureCoord.y * distortion.x);
-surface.y = vTextureCoord.y * (distortion.x + 1.0) / (distortion.x + 1.0 + vTextureCoord.x * distortion.y);
+
+float vx = vTextureCoord.x;
+float vy = vTextureCoord.y;
+float dx = distortion.x;
+float dy = distortion.y;
+
+if (distortion.x == 0.0) {
+    surface.x = vx;
+    surface.y = vy / (1.0 + dy * vx);
+} else
+if (distortion.y == 0.0) {
+    surface.y = vy;
+    surface.x = vx/ (1.0 + dx * vy);
+} else {
+    float b = (vy * dx - vx * dy + 1.0) * 0.5 / dy;
+    float d = b * b + vx / dy;
+
+    if (d <= 0.00001) {
+        discard;
+    }
+    if (dy > 0.0) {
+    	surface.x = - b + sqrt(d);
+    } else {
+    	surface.x = - b - sqrt(d);
+    }
+    surface.y = (vx / surface.x - 1.0) / dx;
+}
 
 vec2 uv;
 uv.x = vTrans1.x * surface.x + vTrans1.y * surface.y + vTrans1.z;

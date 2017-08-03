@@ -3,6 +3,7 @@ namespace pixi_projection {
 
 	const tempMat = new PIXI.Matrix();
 	const tempRect = new PIXI.Rectangle();
+	const tempPoint = new PIXI.Point();
 
 	export class BilinearSurface extends Surface {
 		distortion = new PIXI.Point();
@@ -14,16 +15,18 @@ namespace pixi_projection {
 		apply(pos: PointLike, newPos?: PointLike): PointLike {
 			newPos = newPos || new PIXI.Point();
 			const d = this.distortion;
-			newPos.x = pos.x + d.x * (pos.x - 1) * (pos.y - 1);
-			newPos.y = pos.y + d.y * (pos.x - 1) * (pos.y - 1);
+			const m = pos.x * pos.y;
+			newPos.x = pos.x + d.x * m;
+			newPos.y = pos.y + d.y * m;
 			return newPos;
 		}
 
 		applyInverse(pos: PointLike, newPos: PointLike): PointLike {
 			newPos = newPos || new PIXI.Point();
-			let dx = this.distortion.x, dy = this.distortion.y;
-			newPos.x = pos.x * (dx + 1) / (dx + 1 + pos.y * dy);
-			newPos.y = pos.y * (dx + 1) / (dy + 1 + pos.x * dx);
+			const px = pos.x, py = pos.y;
+			const dx = this.distortion.x, dy = this.distortion.y;
+			newPos.x = px * (dx + 1) / (dx + 1 + py * dy);
+			newPos.y = py * (dy + 1) / (dy + 1 + px * dx);
 			return newPos;
 		}
 
@@ -68,16 +71,15 @@ namespace pixi_projection {
 			const y11 = up2y * (1.0 - ay2) + down2y * ay2;
 
 			const mat = tempMat;
-
-			this.distortion.set(x11 - x10 - x01 + x00,
-				y11 - y10 - y01 + y00);
-
 			mat.tx = x00;
 			mat.ty = y00;
 			mat.a = x10 - x00;
 			mat.b = y10 - y00;
 			mat.c = x01 - x00;
 			mat.d = y01 - y00;
+			tempPoint.set(x11, y11);
+			mat.applyInverse(tempPoint, tempPoint);
+			this.distortion.set(tempPoint.x - 1, tempPoint.y - 1);
 
 			outTransform.setFromMatrix(mat);
 
@@ -86,8 +88,11 @@ namespace pixi_projection {
 
 		fillUniforms(uniforms: any) {
 			uniforms.distortion = uniforms.distortion || new Float32Array([0, 0]);
-			uniforms.distortion[0] = this.distortion.x;
-			uniforms.distortion[1] = this.distortion.y;
+			const ax = Math.abs(this.distortion.x);
+			const ay = Math.abs(this.distortion.y);
+
+			uniforms.distortion[0] = ax * 10000 <= ay ? 0 : this.distortion.x;
+			uniforms.distortion[1] = ay * 10000 <= ax ? 0 : this.distortion.y;
 		}
 	}
 }

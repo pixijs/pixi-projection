@@ -9,11 +9,11 @@ Two-point projections in 2d are good for parallax.
 Done:
 
 - Projective 2d transform
-- Projective 2d quad mapping (buggy)
+- Projective 2d quad mapping
+- Bilinear 2d quad mapping
 
 Backlog:
 
-- Bilinear transform
 - Projective 2d by euler angles
 - Option to "drop" projection and go back to PIXI.Matrix in a child
 
@@ -23,13 +23,20 @@ To-do:
 
 ## Examples
 
-[Two-point projection](http://pixijs.github.io/examples/#/projection/basic.js)
+Projective sprites: Container2d, Sprite2d, Text2d
 
-[Free quad projective transform](http://pixijs.github.io/examples/#/projection/quad.js)
+[Two-point projection](http://pixijs.github.io/examples/#/projection/basic.js)
+[Projective transform of quad](http://pixijs.github.io/examples/#/projection/quad-homo.js)
+
+Surface sprites: Container2s, Sprite2s, Text2s for now only bilinear
+
+[Bilinear transform of quad](http://pixijs.github.io/examples/#/projection/quad-bi.js)
 
 ## Usage
 
 ### convert existing elements
+
+Same can be applied to Container2s. You cant use both projective and surface sprites
 
 ```js
 var sprite = new PIXI.Sprite();
