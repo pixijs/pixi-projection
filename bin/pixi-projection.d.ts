@@ -221,7 +221,8 @@ declare module PIXI.projection {
         enabled: boolean;
         setAxisX(p: PointLike, factor?: number): void;
         setAxisY(p: PointLike, factor?: number): void;
-        setFromQuad(p: Array<PointLike>, anchor?: PointLike, sizeX?: number, sizeY?: number): void;
+        mapSprite(sprite: PIXI.Sprite, quad: Array<PointLike>): void;
+        mapQuad(rect: PIXI.Rectangle, p: Array<PointLike>): void;
         clear(): void;
     }
 }

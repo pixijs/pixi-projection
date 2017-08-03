@@ -1,6 +1,6 @@
 {
   "name": "pixi-projection",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Two-point projection for pixi v^4",
   "author": "Ivan Popelyshev",
   "contributors": [
