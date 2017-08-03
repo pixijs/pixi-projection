@@ -152,32 +152,32 @@ namespace pixi_projection {
 			let d2 = Math.sqrt((p[k2].x - t0.x) * (p[k2].x - t0.x) + (p[k2].y - t0.y) * (p[k2].y - t0.y));
 			let d3 = Math.sqrt((p[k3].x - t0.x) * (p[k3].x - t0.x) + (p[k3].y - t0.y) * (p[k3].y - t0.y));
 
-			let q0 = (d0 + d3) / d0;
-			let q1 = (d1 + d2) / d1;
-			let q2 = (d1 + d2) / d2;
+			let q0 = (d0 + d3) / d3;
+			let q1 = (d1 + d2) / d2;
+			let q2 = (d1 + d2) / d1;
 
 			let mat3 = this.matrix.mat3;
-			mat3[0] = tt[0].x;
-			mat3[1] = tt[0].y;
-			mat3[2] = 1;
-			mat3[3] = tt[k1].x;
-			mat3[4] = tt[k1].y;
-			mat3[5] = 1;
-			mat3[6] = tt[k2].x;
-			mat3[7] = tt[k2].y;
-			mat3[8] = 1;
+			mat3[0] = tt[0].x * q0;
+			mat3[1] = tt[0].y * q0;
+			mat3[2] = q0;
+			mat3[3] = tt[k1].x * q1;
+			mat3[4] = tt[k1].y * q1;
+			mat3[5] = q1;
+			mat3[6] = tt[k2].x * q2;
+			mat3[7] = tt[k2].y * q2;
+			mat3[8] = q2;
 			this.matrix.invert();
 
 			mat3 = tempMat.mat3;
-			mat3[0] = p[0].x * q0;
-			mat3[1] = p[0].y * q0;
-			mat3[2] = q0;
-			mat3[3] = p[k1].x * q1;
-			mat3[4] = p[k1].y * q1;
-			mat3[5] = q1;
-			mat3[6] = p[k2].x * q2;
-			mat3[7] = p[k2].y * q2;
-			mat3[8] = q2;
+			mat3[0] = p[0].x;
+			mat3[1] = p[0].y;
+			mat3[2] = 1;
+			mat3[3] = p[k1].x;
+			mat3[4] = p[k1].y;
+			mat3[5] = 1;
+			mat3[6] = p[k2].x;
+			mat3[7] = p[k2].y;
+			mat3[8] = 1;
 
 			this.matrix.setToMult2d(tempMat, this.matrix);
 			this._projID++;
