@@ -64,11 +64,17 @@ namespace pixi_projection.utils {
 			return 0;
 		}
 		let T = C1 * B2 - C2 * B1;
-		out.x = p1.x + (T / D) * (p2.x - p1.x);
-		out.y = p1.y + (T / D) * (p2.y - p1.y);
 		let U = A1 * C2 - A2 * C1;
 
-		return T * U < 0 ? -1 : 1;
+		let t = T / D, u = U / D;
+		if (u < (1e-6) || u - 1 > -1e-6) {
+			return -1;
+		}
+
+		out.x = p1.x + t * (p2.x - p1.x);
+		out.y = p1.y + t * (p2.y - p1.y);
+
+		return 1;
 	}
 
 	export function getPositionFromQuad(p: Array<PointLike>, anchor: PointLike, out: PointLike) {
