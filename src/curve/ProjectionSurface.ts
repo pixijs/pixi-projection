@@ -109,7 +109,7 @@ namespace pixi_projection {
 				return this.legacy.worldTransform.applyInverse(newPos, newPos);
 			}
 			if (this._surface !== null) {
-				newPos = this.legacy.worldTransform.apply(pos, newPos);
+				newPos = this.legacy.worldTransform.applyInverse(pos, newPos);
 				return this._surface.applyInverse(newPos, newPos);
 			}
 			return this.legacy.worldTransform.applyInverse(pos, newPos);

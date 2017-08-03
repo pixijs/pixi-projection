@@ -23,10 +23,31 @@ namespace pixi_projection {
 
 		applyInverse(pos: PointLike, newPos: PointLike): PointLike {
 			newPos = newPos || new PIXI.Point();
-			const px = pos.x, py = pos.y;
+			const vx = pos.x, vy = pos.y;
 			const dx = this.distortion.x, dy = this.distortion.y;
-			newPos.x = px * (dx + 1) / (dx + 1 + py * dy);
-			newPos.y = py * (dy + 1) / (dy + 1 + px * dx);
+
+			if (dx == 0.0) {
+				newPos.x = vx;
+				newPos.y = vy / (1.0 + dy * vx);
+			} else
+			if (dy == 0.0) {
+				newPos.y = vy;
+				newPos.x = vx/ (1.0 + dx * vy);
+			} else {
+				const b = (vy * dx - vx * dy + 1.0) * 0.5 / dy;
+				const d = b * b + vx / dy;
+
+				if (d <= 0.00001) {
+					newPos.set(NaN, NaN);
+					return;
+				}
+				if (dy > 0.0) {
+					newPos.x = - b + Math.sqrt(d);
+				} else {
+					newPos.x = - b - Math.sqrt(d);
+				}
+				newPos.y = (vx / newPos.x - 1.0) / dx;
+			}
 			return newPos;
 		}
 
