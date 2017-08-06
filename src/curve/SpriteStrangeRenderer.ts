@@ -3,7 +3,7 @@ namespace pixi_projection {
 
 	class SpriteStrangeRenderer extends MultiTextureSpriteRenderer {
 		size = 100;
-		MAX_TEXTURES = 1;
+		MAX_TEXTURES_LOCAL = 1;
 
 		shaderVert = `precision highp float;
 attribute vec2 aVertexPosition;
@@ -60,26 +60,28 @@ float A = params.z;
 float B = params.w;
 
 if (aleph == 0.0) {
-	surface.x = vx / (1.0 + vy * bet);
-	surface.y = vy;
+	surface.y = vy / (1.0 + vx * bet);
+	surface.x = vx;
 }
 else if (bet == 0.0) {
-	surface.y = vy / (1.0 + vx * aleph);
-	surface.x = vx;
+	surface.x = vx / (1.0 + vy * aleph);
+	surface.y = vy;
 } else {
-	surface.x = vx * (aleph + 1.0) / (aleph + 1.0 + vy * bet);
-	surface.y = vy * (bet + 1.0) / (bet + 1.0 + vx * aleph);
+	surface.x = vx * (bet + 1.0) / (bet + 1.0 + vy * aleph);
+	surface.y = vy * (aleph + 1.0) / (aleph + 1.0 + vx * bet);
 }
 
 vec2 uv;
 uv.x = vTrans1.x * surface.x + vTrans1.y * surface.y + vTrans1.z;
 uv.y = vTrans2.x * surface.x + vTrans2.y * surface.y + vTrans2.z;
 
-vec4 edge;
-edge.xy = clamp(uv - vFrame.xy + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));
-edge.zw = clamp(vFrame.zw - uv + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));
+vec2 pixels = uv * samplerSize[0];
 
-float alpha = 1.0; //edge.x * edge.y * edge.z * edge.w;
+vec4 edge;
+edge.xy = clamp(pixels - vFrame.xy + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));
+edge.zw = clamp(vFrame.zw - pixels + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));
+
+float alpha = edge.x * edge.y * edge.z * edge.w;
 vec4 rColor = vColor * alpha;
 
 float textureId = floor(vTextureId+0.5);
@@ -136,7 +138,7 @@ gl_FragColor = color * rColor;
 			const h = tex.orig.height;
 			const ax = sprite._anchor._x;
 			const ay = sprite._anchor._y;
-			const uvs = tex._uvs;
+			const frame = tex._frame;
 			const aTrans = sprite.aTrans;
 
 			for (let i = 0; i < 4; i++) {
@@ -150,10 +152,10 @@ gl_FragColor = color * rColor;
 				float32View[index + 6] = aTrans.d;
 				float32View[index + 7] = aTrans.ty;
 
-				float32View[index + 8] = uvs.x0;
-				float32View[index + 9] = uvs.y0;
-				float32View[index + 10] = uvs.x1;
-				float32View[index + 11] = uvs.y1;
+				float32View[index + 8] = frame.x;
+				float32View[index + 9] = frame.y;
+				float32View[index + 10] = frame.x + frame.width;
+				float32View[index + 11] = frame.y + frame.height;
 
 				uint32View[index + 12] = argb;
 				float32View[index + 13] = textureId;

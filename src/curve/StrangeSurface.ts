@@ -32,14 +32,14 @@ namespace pixi_projection {
                 outTransform.skew._y += rot;
                 outTransform.rotation = 0;
             }
-            outTransform.skew.x = Math.atan2(y, x);
+            outTransform.skew.y = Math.atan2(y, x);
 
             let p = this.params;
 
             if (factor !== 0) {
                 p[2] = -d * factor;
             } else {
-                p[2] = 0;
+                p[2] = NaN;
             }
             this._calc01();
         }
@@ -56,14 +56,14 @@ namespace pixi_projection {
                 outTransform.skew._y += rot;
                 outTransform.rotation = 0;
             }
-            outTransform.skew.y = Math.atan2(y, x) - Math.PI / 2;
+            outTransform.skew.x = -Math.atan2(y, x) + Math.PI / 2;
 
             let p = this.params;
 
             if (factor !== 0) {
                 p[3] = -d * factor;
             } else {
-                p[3] = 0;
+                p[3] = NaN;
             }
             this._calc01();
         }
@@ -75,14 +75,14 @@ namespace pixi_projection {
                 if (isNaN(p[3])) {
                     p[0] = 0;
                 } else {
-                    p[0] = -1.0 / p[3];
+                    p[0] = 1.0 / p[3];
                 }
             } else {
                 if (isNaN(p[3])) {
                     p[0] = 0;
-                    p[1] = -1.0 / p[2];
+                    p[1] = 1.0 / p[2];
                 } else {
-                    const d = p[2] * p[3] - 1.0;
+                    const d = 1.0 - p[2] * p[3];
                     p[0] = (1.0 - p[2]) / d;
                     p[1] = (1.0 - p[3]) / d;
                 }
@@ -92,16 +92,16 @@ namespace pixi_projection {
         apply(pos: PointLike, newPos?: PointLike): PointLike {
             newPos = newPos || new PIXI.Point();
 
-            const alpha = this.params[0], beta = this.params[1], A = this.params[2], B = this.params[3];
+            const aleph = this.params[0], bet = this.params[1], A = this.params[2], B = this.params[3];
             const u = pos.x, v = pos.y;
 
-            if (alpha === 0.0) {
-                newPos.x = u * (1 + v * beta);
-                newPos.y = v;
-            }
-            else if (beta === 0.0) {
-                newPos.y = v * (1 + u * alpha);
+            if (aleph === 0.0) {
+                newPos.y = v * (1 + u * bet);
                 newPos.x = u;
+            }
+            else if (bet === 0.0) {
+                newPos.x = u * (1 + v * aleph);
+                newPos.y = v;
             } else {
                 const D = A * B - v * u;
                 newPos.x = A * u * (B + v) / D;
@@ -113,19 +113,19 @@ namespace pixi_projection {
         applyInverse(pos: PointLike, newPos: PointLike): PointLike {
             newPos = newPos || new PIXI.Point();
 
-            const alpha = this.params[0], beta = this.params[1], A = this.params[2], B = this.params[3];
+            const aleph = this.params[0], bet = this.params[1], A = this.params[2], B = this.params[3];
             const x = pos.x, y = pos.y;
 
-            if (alpha === 0.0) {
-                newPos.x = x / (1 + y * beta);
-                newPos.y = y;
-            }
-            else if (beta === 0.0) {
-                newPos.y = y / (1 + x * alpha);
+            if (aleph === 0.0) {
+                newPos.y = y / (1 + x * bet);
                 newPos.x = x;
+            }
+            else if (bet === 0.0) {
+                newPos.x = x * (1 + y * aleph);
+                newPos.y = y;
             } else {
-                newPos.x = x * (alpha + 1) / (alpha + 1 + y * beta);
-                newPos.y = y * (beta + 1) / (beta + 1 + x * alpha);
+                newPos.x = x * (bet + 1) / (bet + 1 + y * aleph);
+                newPos.y = y * (aleph + 1) / (aleph + 1 + x * bet);
             }
             return newPos;
         }

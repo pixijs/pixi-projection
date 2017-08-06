@@ -650,7 +650,7 @@ var pixi_projection;
         function SpriteBilinearRenderer() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
             _this.size = 100;
-            _this.MAX_TEXTURES = 1;
+            _this.MAX_TEXTURES_LOCAL = 1;
             _this.shaderVert = "precision highp float;\nattribute vec2 aVertexPosition;\nattribute vec3 aTrans1;\nattribute vec3 aTrans2;\nattribute vec4 aFrame;\nattribute vec4 aColor;\nattribute float aTextureId;\n\nuniform mat3 projectionMatrix;\nuniform mat3 worldTransform;\n\nvarying vec2 vTextureCoord;\nvarying vec3 vTrans1;\nvarying vec3 vTrans2;\nvarying vec4 vFrame;\nvarying vec4 vColor;\nvarying float vTextureId;\n\nvoid main(void){\n    gl_Position.xyw = projectionMatrix * worldTransform * vec3(aVertexPosition, 1.0);\n    gl_Position.z = 0.0;\n    \n    vTextureCoord = aVertexPosition;\n    vTrans1 = aTrans1;\n    vTrans2 = aTrans2;\n    vTextureId = aTextureId;\n    vColor = aColor;\n    vFrame = aFrame;\n}\n";
             _this.shaderFrag = "precision highp float;\nvarying vec2 vTextureCoord;\nvarying vec3 vTrans1;\nvarying vec3 vTrans2;\nvarying vec4 vFrame;\nvarying vec4 vColor;\nvarying float vTextureId;\n\nuniform sampler2D uSamplers[%count%];\nuniform vec2 samplerSize[%count%]; \nuniform vec2 distortion;\n\nvoid main(void){\nvec2 surface;\n\nfloat vx = vTextureCoord.x;\nfloat vy = vTextureCoord.y;\nfloat dx = distortion.x;\nfloat dy = distortion.y;\n\nif (distortion.x == 0.0) {\n    surface.x = vx;\n    surface.y = vy / (1.0 + dy * vx);\n} else\nif (distortion.y == 0.0) {\n    surface.y = vy;\n    surface.x = vx/ (1.0 + dx * vy);\n} else {\n    float b = (vy * dx - vx * dy + 1.0) * 0.5 / dy;\n    float d = b * b + vx / dy;\n\n    if (d <= 0.00001) {\n        discard;\n    }\n    if (dy > 0.0) {\n    \tsurface.x = - b + sqrt(d);\n    } else {\n    \tsurface.x = - b - sqrt(d);\n    }\n    surface.y = (vx / surface.x - 1.0) / dx;\n}\n\nvec2 uv;\nuv.x = vTrans1.x * surface.x + vTrans1.y * surface.y + vTrans1.z;\nuv.y = vTrans2.x * surface.x + vTrans2.y * surface.y + vTrans2.z;\n\nvec4 edge;\nedge.xy = clamp(uv - vFrame.xy + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));\nedge.zw = clamp(vFrame.zw - uv + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));\n\nfloat alpha = 1.0; //edge.x * edge.y * edge.z * edge.w;\nvec4 rColor = vColor * alpha;\n\nfloat textureId = floor(vTextureId+0.5);\nvec4 color;\nvec2 textureCoord = uv;\n%forloop%\ngl_FragColor = color * rColor;\n}";
             _this.defUniforms = {
@@ -921,9 +921,9 @@ var pixi_projection;
         function SpriteStrangeRenderer() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
             _this.size = 100;
-            _this.MAX_TEXTURES = 1;
+            _this.MAX_TEXTURES_LOCAL = 1;
             _this.shaderVert = "precision highp float;\nattribute vec2 aVertexPosition;\nattribute vec3 aTrans1;\nattribute vec3 aTrans2;\nattribute vec4 aFrame;\nattribute vec4 aColor;\nattribute float aTextureId;\n\nuniform mat3 projectionMatrix;\nuniform mat3 worldTransform;\n\nvarying vec2 vTextureCoord;\nvarying vec3 vTrans1;\nvarying vec3 vTrans2;\nvarying vec4 vFrame;\nvarying vec4 vColor;\nvarying float vTextureId;\n\nvoid main(void){\n    gl_Position.xyw = projectionMatrix * worldTransform * vec3(aVertexPosition, 1.0);\n    gl_Position.z = 0.0;\n    \n    vTextureCoord = aVertexPosition;\n    vTrans1 = aTrans1;\n    vTrans2 = aTrans2;\n    vTextureId = aTextureId;\n    vColor = aColor;\n    vFrame = aFrame;\n}\n";
-            _this.shaderFrag = "precision highp float;\nvarying vec2 vTextureCoord;\nvarying vec3 vTrans1;\nvarying vec3 vTrans2;\nvarying vec4 vFrame;\nvarying vec4 vColor;\nvarying float vTextureId;\n\nuniform sampler2D uSamplers[%count%];\nuniform vec2 samplerSize[%count%]; \nuniform vec4 params;\n\nvoid main(void){\nvec2 surface;\n\nfloat vx = vTextureCoord.x;\nfloat vy = vTextureCoord.y;\nfloat aleph = params.x;\nfloat bet = params.y;\nfloat A = params.z;\nfloat B = params.w;\n\nif (aleph == 0.0) {\n\tsurface.x = vx / (1.0 + vy * bet);\n\tsurface.y = vy;\n}\nelse if (bet == 0.0) {\n\tsurface.y = vy / (1.0 + vx * aleph);\n\tsurface.x = vx;\n} else {\n\tsurface.x = vx * (aleph + 1.0) / (aleph + 1.0 + vy * bet);\n\tsurface.y = vy * (bet + 1.0) / (bet + 1.0 + vx * aleph);\n}\n\nvec2 uv;\nuv.x = vTrans1.x * surface.x + vTrans1.y * surface.y + vTrans1.z;\nuv.y = vTrans2.x * surface.x + vTrans2.y * surface.y + vTrans2.z;\n\nvec4 edge;\nedge.xy = clamp(uv - vFrame.xy + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));\nedge.zw = clamp(vFrame.zw - uv + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));\n\nfloat alpha = 1.0; //edge.x * edge.y * edge.z * edge.w;\nvec4 rColor = vColor * alpha;\n\nfloat textureId = floor(vTextureId+0.5);\nvec4 color;\nvec2 textureCoord = uv;\n%forloop%\ngl_FragColor = color * rColor;\n}";
+            _this.shaderFrag = "precision highp float;\nvarying vec2 vTextureCoord;\nvarying vec3 vTrans1;\nvarying vec3 vTrans2;\nvarying vec4 vFrame;\nvarying vec4 vColor;\nvarying float vTextureId;\n\nuniform sampler2D uSamplers[%count%];\nuniform vec2 samplerSize[%count%]; \nuniform vec4 params;\n\nvoid main(void){\nvec2 surface;\n\nfloat vx = vTextureCoord.x;\nfloat vy = vTextureCoord.y;\nfloat aleph = params.x;\nfloat bet = params.y;\nfloat A = params.z;\nfloat B = params.w;\n\nif (aleph == 0.0) {\n\tsurface.y = vy / (1.0 + vx * bet);\n\tsurface.x = vx;\n}\nelse if (bet == 0.0) {\n\tsurface.x = vx / (1.0 + vy * aleph);\n\tsurface.y = vy;\n} else {\n\tsurface.x = vx * (bet + 1.0) / (bet + 1.0 + vy * aleph);\n\tsurface.y = vy * (aleph + 1.0) / (aleph + 1.0 + vx * bet);\n}\n\nvec2 uv;\nuv.x = vTrans1.x * surface.x + vTrans1.y * surface.y + vTrans1.z;\nuv.y = vTrans2.x * surface.x + vTrans2.y * surface.y + vTrans2.z;\n\nvec2 pixels = uv * samplerSize[0];\n\nvec4 edge;\nedge.xy = clamp(pixels - vFrame.xy + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));\nedge.zw = clamp(vFrame.zw - pixels + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));\n\nfloat alpha = edge.x * edge.y * edge.z * edge.w;\nvec4 rColor = vColor * alpha;\n\nfloat textureId = floor(vTextureId+0.5);\nvec4 color;\nvec2 textureCoord = uv;\n%forloop%\ngl_FragColor = color * rColor;\n}";
             _this.defUniforms = {
                 worldTransform: new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]),
                 distortion: new Float32Array([0, 0])
@@ -965,7 +965,7 @@ var pixi_projection;
             var h = tex.orig.height;
             var ax = sprite._anchor._x;
             var ay = sprite._anchor._y;
-            var uvs = tex._uvs;
+            var frame = tex._frame;
             var aTrans = sprite.aTrans;
             for (var i = 0; i < 4; i++) {
                 float32View[index] = vertexData[i * 2];
@@ -976,10 +976,10 @@ var pixi_projection;
                 float32View[index + 5] = aTrans.b;
                 float32View[index + 6] = aTrans.d;
                 float32View[index + 7] = aTrans.ty;
-                float32View[index + 8] = uvs.x0;
-                float32View[index + 9] = uvs.y0;
-                float32View[index + 10] = uvs.x1;
-                float32View[index + 11] = uvs.y1;
+                float32View[index + 8] = frame.x;
+                float32View[index + 9] = frame.y;
+                float32View[index + 10] = frame.x + frame.width;
+                float32View[index + 11] = frame.y + frame.height;
                 uint32View[index + 12] = argb;
                 float32View[index + 13] = textureId;
                 index += 14;
@@ -1016,13 +1016,13 @@ var pixi_projection;
                 outTransform.skew._y += rot;
                 outTransform.rotation = 0;
             }
-            outTransform.skew.x = Math.atan2(y, x);
+            outTransform.skew.y = Math.atan2(y, x);
             var p = this.params;
             if (factor !== 0) {
                 p[2] = -d * factor;
             }
             else {
-                p[2] = 0;
+                p[2] = NaN;
             }
             this._calc01();
         };
@@ -1035,13 +1035,13 @@ var pixi_projection;
                 outTransform.skew._y += rot;
                 outTransform.rotation = 0;
             }
-            outTransform.skew.y = Math.atan2(y, x) - Math.PI / 2;
+            outTransform.skew.x = -Math.atan2(y, x) + Math.PI / 2;
             var p = this.params;
             if (factor !== 0) {
                 p[3] = -d * factor;
             }
             else {
-                p[3] = 0;
+                p[3] = NaN;
             }
             this._calc01();
         };
@@ -1053,16 +1053,16 @@ var pixi_projection;
                     p[0] = 0;
                 }
                 else {
-                    p[0] = -1.0 / p[3];
+                    p[0] = 1.0 / p[3];
                 }
             }
             else {
                 if (isNaN(p[3])) {
                     p[0] = 0;
-                    p[1] = -1.0 / p[2];
+                    p[1] = 1.0 / p[2];
                 }
                 else {
-                    var d = p[2] * p[3] - 1.0;
+                    var d = 1.0 - p[2] * p[3];
                     p[0] = (1.0 - p[2]) / d;
                     p[1] = (1.0 - p[3]) / d;
                 }
@@ -1070,15 +1070,15 @@ var pixi_projection;
         };
         StrangeSurface.prototype.apply = function (pos, newPos) {
             newPos = newPos || new PIXI.Point();
-            var alpha = this.params[0], beta = this.params[1], A = this.params[2], B = this.params[3];
+            var aleph = this.params[0], bet = this.params[1], A = this.params[2], B = this.params[3];
             var u = pos.x, v = pos.y;
-            if (alpha === 0.0) {
-                newPos.x = u * (1 + v * beta);
-                newPos.y = v;
-            }
-            else if (beta === 0.0) {
-                newPos.y = v * (1 + u * alpha);
+            if (aleph === 0.0) {
+                newPos.y = v * (1 + u * bet);
                 newPos.x = u;
+            }
+            else if (bet === 0.0) {
+                newPos.x = u * (1 + v * aleph);
+                newPos.y = v;
             }
             else {
                 var D = A * B - v * u;
@@ -1089,19 +1089,19 @@ var pixi_projection;
         };
         StrangeSurface.prototype.applyInverse = function (pos, newPos) {
             newPos = newPos || new PIXI.Point();
-            var alpha = this.params[0], beta = this.params[1], A = this.params[2], B = this.params[3];
+            var aleph = this.params[0], bet = this.params[1], A = this.params[2], B = this.params[3];
             var x = pos.x, y = pos.y;
-            if (alpha === 0.0) {
-                newPos.x = x / (1 + y * beta);
-                newPos.y = y;
-            }
-            else if (beta === 0.0) {
-                newPos.y = y / (1 + x * alpha);
+            if (aleph === 0.0) {
+                newPos.y = y / (1 + x * bet);
                 newPos.x = x;
             }
+            else if (bet === 0.0) {
+                newPos.x = x * (1 + y * aleph);
+                newPos.y = y;
+            }
             else {
-                newPos.x = x * (alpha + 1) / (alpha + 1 + y * beta);
-                newPos.y = y * (beta + 1) / (beta + 1 + x * alpha);
+                newPos.x = x * (bet + 1) / (bet + 1 + y * aleph);
+                newPos.y = y * (aleph + 1) / (aleph + 1 + x * bet);
             }
             return newPos;
         };

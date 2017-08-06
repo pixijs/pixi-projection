@@ -3,7 +3,7 @@ namespace pixi_projection {
 
 	class SpriteBilinearRenderer extends MultiTextureSpriteRenderer {
 		size = 100;
-		MAX_TEXTURES = 1;
+		MAX_TEXTURES_LOCAL = 1;
 
 		shaderVert = `precision highp float;
 attribute vec2 aVertexPosition;
