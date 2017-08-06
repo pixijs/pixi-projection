@@ -126,6 +126,12 @@ namespace pixi_projection {
 		_currentLegacyID = -1;
 		_lastUniforms = null;
 
+		clear() {
+			if (this.surface) {
+				this.surface.clear();
+			}
+		}
+
 		get uniforms(): any {
 			if (this._currentLegacyID === (this.legacy as any)._worldID &&
 				this._currentSurfaceID === this.surface._updateID) {

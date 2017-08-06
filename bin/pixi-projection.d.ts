@@ -98,6 +98,7 @@ declare module PIXI.projection {
         vertexSrc: string;
         fragmentSrc: string;
         fillUniforms(uniforms: any): void;
+        clear(): void;
         boundsQuad(v: ArrayLike<number>, out: any, after?: PIXI.Matrix): void;
         abstract apply(pos: PointLike, newPos: PointLike): PointLike;
         abstract applyInverse(pos: PointLike, newPos: PointLike): PointLike;
@@ -108,11 +109,19 @@ declare module PIXI.projection {
     class BilinearSurface extends Surface {
         distortion: PIXI.Point;
         constructor();
+        clear(): void;
         apply(pos: PointLike, newPos?: PointLike): PointLike;
         applyInverse(pos: PointLike, newPos: PointLike): PointLike;
         mapSprite(sprite: PIXI.Sprite, quad: Array<PointLike>, outTransform?: PIXI.TransformStatic): this;
         mapQuad(rect: PIXI.Rectangle, quad: Array<PointLike>, outTransform: PIXI.TransformStatic): this;
         fillUniforms(uniforms: any): void;
+    }
+}
+declare module PIXI.projection {
+    class Container2s extends PIXI.Sprite {
+        constructor(texture: PIXI.Texture);
+        proj: ProjectionSurface;
+        readonly worldTransform: any;
     }
 }
 declare namespace PIXI {
@@ -140,6 +149,7 @@ declare module PIXI.projection {
         _currentSurfaceID: number;
         _currentLegacyID: number;
         _lastUniforms: any;
+        clear(): void;
         readonly uniforms: any;
     }
 }
@@ -172,6 +182,24 @@ declare module PIXI.projection {
         proj: ProjectionSurface;
         aTrans: PIXI.Matrix;
         readonly worldTransform: any;
+    }
+}
+declare module PIXI.projection {
+}
+declare module PIXI.projection {
+    import PointLike = PIXI.PointLike;
+    class StrangeSurface extends Surface {
+        constructor();
+        params: number[];
+        clear(): void;
+        setAxisX(pos: PointLike, factor: number, outTransform: PIXI.TransformStatic): void;
+        setAxisY(pos: PointLike, factor: number, outTransform: PIXI.TransformStatic): void;
+        _calc01(): void;
+        apply(pos: PointLike, newPos?: PointLike): PointLike;
+        applyInverse(pos: PointLike, newPos: PointLike): PointLike;
+        mapSprite(sprite: PIXI.Sprite, quad: Array<PointLike>, outTransform?: PIXI.TransformStatic): this;
+        mapQuad(rect: PIXI.Rectangle, quad: Array<PointLike>, outTransform: PIXI.TransformStatic): this;
+        fillUniforms(uniforms: any): void;
     }
 }
 declare module PIXI.projection {

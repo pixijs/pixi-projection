@@ -14,6 +14,10 @@ namespace pixi_projection {
         fillUniforms(uniforms: any) {
 
         }
+        
+        clear() {
+
+        }
 
         /**
          * made for bilinear, other things will need adjustments, like test if (0) is inside

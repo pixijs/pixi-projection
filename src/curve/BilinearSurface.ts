@@ -12,6 +12,10 @@ namespace pixi_projection {
 			super();
 		}
 
+		clear() {
+			this.distortion.set(0, 0);
+		}
+
 		apply(pos: PointLike, newPos?: PointLike): PointLike {
 			newPos = newPos || new PIXI.Point();
 			const d = this.distortion;

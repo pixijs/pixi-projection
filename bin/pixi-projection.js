@@ -343,6 +343,8 @@ var pixi_projection;
         }
         Surface.prototype.fillUniforms = function (uniforms) {
         };
+        Surface.prototype.clear = function () {
+        };
         Surface.prototype.boundsQuad = function (v, out, after) {
             var minX = out[0], minY = out[1];
             var maxX = out[0], maxY = out[1];
@@ -400,6 +402,9 @@ var pixi_projection;
             _this.distortion = new PIXI.Point();
             return _this;
         }
+        BilinearSurface.prototype.clear = function () {
+            this.distortion.set(0, 0);
+        };
         BilinearSurface.prototype.apply = function (pos, newPos) {
             newPos = newPos || new PIXI.Point();
             var d = this.distortion;
@@ -489,6 +494,25 @@ var pixi_projection;
         return BilinearSurface;
     }(pixi_projection.Surface));
     pixi_projection.BilinearSurface = BilinearSurface;
+})(pixi_projection || (pixi_projection = {}));
+(function (pixi_projection) {
+    var Container2s = (function (_super) {
+        __extends(Container2s, _super);
+        function Container2s(texture) {
+            var _this = _super.call(this, texture) || this;
+            _this.proj = new pixi_projection.ProjectionSurface(_this.transform);
+            return _this;
+        }
+        Object.defineProperty(Container2s.prototype, "worldTransform", {
+            get: function () {
+                return this.proj;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return Container2s;
+    }(PIXI.Sprite));
+    pixi_projection.Container2s = Container2s;
 })(pixi_projection || (pixi_projection = {}));
 (function (pixi_projection) {
     var fun = PIXI.TransformStatic.prototype.updateTransform;
@@ -595,6 +619,11 @@ var pixi_projection;
                 this.surface = new pixi_projection.BilinearSurface();
             }
             this.surface.mapSprite(sprite, quad, this.legacy);
+        };
+        ProjectionSurface.prototype.clear = function () {
+            if (this.surface) {
+                this.surface.clear();
+            }
         };
         Object.defineProperty(ProjectionSurface.prototype, "uniforms", {
             get: function () {
@@ -884,6 +913,251 @@ var pixi_projection;
     pixi_projection.Text2s = Text2s;
     Text2s.prototype.calculateVertices = pixi_projection.Sprite2s.prototype.calculateVertices;
     Text2s.prototype.calculateTrimmedVertices = pixi_projection.Sprite2s.prototype.calculateTrimmedVertices;
+})(pixi_projection || (pixi_projection = {}));
+(function (pixi_projection) {
+    var MultiTextureSpriteRenderer = pixi_projection.webgl.MultiTextureSpriteRenderer;
+    var SpriteStrangeRenderer = (function (_super) {
+        __extends(SpriteStrangeRenderer, _super);
+        function SpriteStrangeRenderer() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.size = 100;
+            _this.MAX_TEXTURES = 1;
+            _this.shaderVert = "precision highp float;\nattribute vec2 aVertexPosition;\nattribute vec3 aTrans1;\nattribute vec3 aTrans2;\nattribute vec4 aFrame;\nattribute vec4 aColor;\nattribute float aTextureId;\n\nuniform mat3 projectionMatrix;\nuniform mat3 worldTransform;\n\nvarying vec2 vTextureCoord;\nvarying vec3 vTrans1;\nvarying vec3 vTrans2;\nvarying vec4 vFrame;\nvarying vec4 vColor;\nvarying float vTextureId;\n\nvoid main(void){\n    gl_Position.xyw = projectionMatrix * worldTransform * vec3(aVertexPosition, 1.0);\n    gl_Position.z = 0.0;\n    \n    vTextureCoord = aVertexPosition;\n    vTrans1 = aTrans1;\n    vTrans2 = aTrans2;\n    vTextureId = aTextureId;\n    vColor = aColor;\n    vFrame = aFrame;\n}\n";
+            _this.shaderFrag = "precision highp float;\nvarying vec2 vTextureCoord;\nvarying vec3 vTrans1;\nvarying vec3 vTrans2;\nvarying vec4 vFrame;\nvarying vec4 vColor;\nvarying float vTextureId;\n\nuniform sampler2D uSamplers[%count%];\nuniform vec2 samplerSize[%count%]; \nuniform vec4 params;\n\nvoid main(void){\nvec2 surface;\n\nfloat vx = vTextureCoord.x;\nfloat vy = vTextureCoord.y;\nfloat aleph = params.x;\nfloat bet = params.y;\nfloat A = params.z;\nfloat B = params.w;\n\nif (aleph == 0.0) {\n\tsurface.x = vx / (1.0 + vy * bet);\n\tsurface.y = vy;\n}\nelse if (bet == 0.0) {\n\tsurface.y = vy / (1.0 + vx * aleph);\n\tsurface.x = vx;\n} else {\n\tsurface.x = vx * (aleph + 1.0) / (aleph + 1.0 + vy * bet);\n\tsurface.y = vy * (bet + 1.0) / (bet + 1.0 + vx * aleph);\n}\n\nvec2 uv;\nuv.x = vTrans1.x * surface.x + vTrans1.y * surface.y + vTrans1.z;\nuv.y = vTrans2.x * surface.x + vTrans2.y * surface.y + vTrans2.z;\n\nvec4 edge;\nedge.xy = clamp(uv - vFrame.xy + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));\nedge.zw = clamp(vFrame.zw - uv + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));\n\nfloat alpha = 1.0; //edge.x * edge.y * edge.z * edge.w;\nvec4 rColor = vColor * alpha;\n\nfloat textureId = floor(vTextureId+0.5);\nvec4 color;\nvec2 textureCoord = uv;\n%forloop%\ngl_FragColor = color * rColor;\n}";
+            _this.defUniforms = {
+                worldTransform: new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]),
+                distortion: new Float32Array([0, 0])
+            };
+            return _this;
+        }
+        SpriteStrangeRenderer.prototype.getUniforms = function (sprite) {
+            var proj = sprite.proj;
+            var shader = this.shader;
+            if (proj.surface !== null) {
+                return proj.uniforms;
+            }
+            if (proj._activeProjection !== null) {
+                return proj._activeProjection.uniforms;
+            }
+            return this.defUniforms;
+        };
+        SpriteStrangeRenderer.prototype.createVao = function (vertexBuffer) {
+            var attrs = this.shader.attributes;
+            this.vertSize = 14;
+            this.vertByteSize = this.vertSize * 4;
+            var gl = this.renderer.gl;
+            var vao = this.renderer.createVao()
+                .addIndex(this.indexBuffer)
+                .addAttribute(vertexBuffer, attrs.aVertexPosition, gl.FLOAT, false, this.vertByteSize, 0)
+                .addAttribute(vertexBuffer, attrs.aTrans1, gl.FLOAT, false, this.vertByteSize, 2 * 4)
+                .addAttribute(vertexBuffer, attrs.aTrans2, gl.FLOAT, false, this.vertByteSize, 5 * 4)
+                .addAttribute(vertexBuffer, attrs.aFrame, gl.FLOAT, false, this.vertByteSize, 8 * 4)
+                .addAttribute(vertexBuffer, attrs.aColor, gl.UNSIGNED_BYTE, true, this.vertByteSize, 12 * 4);
+            if (attrs.aTextureId) {
+                vao.addAttribute(vertexBuffer, attrs.aTextureId, gl.FLOAT, false, this.vertByteSize, 13 * 4);
+            }
+            return vao;
+        };
+        SpriteStrangeRenderer.prototype.fillVertices = function (float32View, uint32View, index, sprite, argb, textureId) {
+            var vertexData = sprite.vertexData;
+            var tex = sprite._texture;
+            var w = tex.orig.width;
+            var h = tex.orig.height;
+            var ax = sprite._anchor._x;
+            var ay = sprite._anchor._y;
+            var uvs = tex._uvs;
+            var aTrans = sprite.aTrans;
+            for (var i = 0; i < 4; i++) {
+                float32View[index] = vertexData[i * 2];
+                float32View[index + 1] = vertexData[i * 2 + 1];
+                float32View[index + 2] = aTrans.a;
+                float32View[index + 3] = aTrans.c;
+                float32View[index + 4] = aTrans.tx;
+                float32View[index + 5] = aTrans.b;
+                float32View[index + 6] = aTrans.d;
+                float32View[index + 7] = aTrans.ty;
+                float32View[index + 8] = uvs.x0;
+                float32View[index + 9] = uvs.y0;
+                float32View[index + 10] = uvs.x1;
+                float32View[index + 11] = uvs.y1;
+                uint32View[index + 12] = argb;
+                float32View[index + 13] = textureId;
+                index += 14;
+            }
+        };
+        return SpriteStrangeRenderer;
+    }(MultiTextureSpriteRenderer));
+    PIXI.WebGLRenderer.registerPlugin('sprite_strange', SpriteStrangeRenderer);
+})(pixi_projection || (pixi_projection = {}));
+(function (pixi_projection) {
+    var tempMat = new PIXI.Matrix();
+    var tempRect = new PIXI.Rectangle();
+    var tempPoint = new PIXI.Point();
+    var StrangeSurface = (function (_super) {
+        __extends(StrangeSurface, _super);
+        function StrangeSurface() {
+            var _this = _super.call(this) || this;
+            _this.params = [0, 0, NaN, NaN];
+            return _this;
+        }
+        StrangeSurface.prototype.clear = function () {
+            var p = this.params;
+            p[0] = 0;
+            p[1] = 0;
+            p[2] = NaN;
+            p[3] = NaN;
+        };
+        StrangeSurface.prototype.setAxisX = function (pos, factor, outTransform) {
+            var x = pos.x, y = pos.y;
+            var d = Math.sqrt(x * x + y * y);
+            var rot = outTransform.rotation;
+            if (rot !== 0) {
+                outTransform.skew._x -= rot;
+                outTransform.skew._y += rot;
+                outTransform.rotation = 0;
+            }
+            outTransform.skew.x = Math.atan2(y, x);
+            var p = this.params;
+            if (factor !== 0) {
+                p[2] = -d * factor;
+            }
+            else {
+                p[2] = 0;
+            }
+            this._calc01();
+        };
+        StrangeSurface.prototype.setAxisY = function (pos, factor, outTransform) {
+            var x = pos.x, y = pos.y;
+            var d = Math.sqrt(x * x + y * y);
+            var rot = outTransform.rotation;
+            if (rot !== 0) {
+                outTransform.skew._x -= rot;
+                outTransform.skew._y += rot;
+                outTransform.rotation = 0;
+            }
+            outTransform.skew.y = Math.atan2(y, x) - Math.PI / 2;
+            var p = this.params;
+            if (factor !== 0) {
+                p[3] = -d * factor;
+            }
+            else {
+                p[3] = 0;
+            }
+            this._calc01();
+        };
+        StrangeSurface.prototype._calc01 = function () {
+            var p = this.params;
+            if (isNaN(p[2])) {
+                p[1] = 0;
+                if (isNaN(p[3])) {
+                    p[0] = 0;
+                }
+                else {
+                    p[0] = -1.0 / p[3];
+                }
+            }
+            else {
+                if (isNaN(p[3])) {
+                    p[0] = 0;
+                    p[1] = -1.0 / p[2];
+                }
+                else {
+                    var d = p[2] * p[3] - 1.0;
+                    p[0] = (1.0 - p[2]) / d;
+                    p[1] = (1.0 - p[3]) / d;
+                }
+            }
+        };
+        StrangeSurface.prototype.apply = function (pos, newPos) {
+            newPos = newPos || new PIXI.Point();
+            var alpha = this.params[0], beta = this.params[1], A = this.params[2], B = this.params[3];
+            var u = pos.x, v = pos.y;
+            if (alpha === 0.0) {
+                newPos.x = u * (1 + v * beta);
+                newPos.y = v;
+            }
+            else if (beta === 0.0) {
+                newPos.y = v * (1 + u * alpha);
+                newPos.x = u;
+            }
+            else {
+                var D = A * B - v * u;
+                newPos.x = A * u * (B + v) / D;
+                newPos.y = B * v * (A + u) / D;
+            }
+            return newPos;
+        };
+        StrangeSurface.prototype.applyInverse = function (pos, newPos) {
+            newPos = newPos || new PIXI.Point();
+            var alpha = this.params[0], beta = this.params[1], A = this.params[2], B = this.params[3];
+            var x = pos.x, y = pos.y;
+            if (alpha === 0.0) {
+                newPos.x = x / (1 + y * beta);
+                newPos.y = y;
+            }
+            else if (beta === 0.0) {
+                newPos.y = y / (1 + x * alpha);
+                newPos.x = x;
+            }
+            else {
+                newPos.x = x * (alpha + 1) / (alpha + 1 + y * beta);
+                newPos.y = y * (beta + 1) / (beta + 1 + x * alpha);
+            }
+            return newPos;
+        };
+        StrangeSurface.prototype.mapSprite = function (sprite, quad, outTransform) {
+            var tex = sprite.texture;
+            tempRect.x = -sprite.anchor.x * tex.orig.width;
+            tempRect.y = -sprite.anchor.y * tex.orig.height;
+            tempRect.width = tex.orig.width;
+            tempRect.height = tex.orig.height;
+            return this.mapQuad(tempRect, quad, outTransform || sprite.transform);
+        };
+        StrangeSurface.prototype.mapQuad = function (rect, quad, outTransform) {
+            var ax = -rect.x / rect.width;
+            var ay = -rect.y / rect.height;
+            var ax2 = (1.0 - rect.x) / rect.width;
+            var ay2 = (1.0 - rect.y) / rect.height;
+            var up1x = (quad[0].x * (1.0 - ax) + quad[1].x * ax);
+            var up1y = (quad[0].y * (1.0 - ax) + quad[1].y * ax);
+            var up2x = (quad[0].x * (1.0 - ax2) + quad[1].x * ax2);
+            var up2y = (quad[0].y * (1.0 - ax2) + quad[1].y * ax2);
+            var down1x = (quad[3].x * (1.0 - ax) + quad[2].x * ax);
+            var down1y = (quad[3].y * (1.0 - ax) + quad[2].y * ax);
+            var down2x = (quad[3].x * (1.0 - ax2) + quad[2].x * ax2);
+            var down2y = (quad[3].y * (1.0 - ax2) + quad[2].y * ax2);
+            var x00 = up1x * (1.0 - ay) + down1x * ay;
+            var y00 = up1y * (1.0 - ay) + down1y * ay;
+            var x10 = up2x * (1.0 - ay) + down2x * ay;
+            var y10 = up2y * (1.0 - ay) + down2y * ay;
+            var x01 = up1x * (1.0 - ay2) + down1x * ay2;
+            var y01 = up1y * (1.0 - ay2) + down1y * ay2;
+            var x11 = up2x * (1.0 - ay2) + down2x * ay2;
+            var y11 = up2y * (1.0 - ay2) + down2y * ay2;
+            var mat = tempMat;
+            mat.tx = x00;
+            mat.ty = y00;
+            mat.a = x10 - x00;
+            mat.b = y10 - y00;
+            mat.c = x01 - x00;
+            mat.d = y01 - y00;
+            tempPoint.set(x11, y11);
+            mat.applyInverse(tempPoint, tempPoint);
+            outTransform.setFromMatrix(mat);
+            return this;
+        };
+        StrangeSurface.prototype.fillUniforms = function (uniforms) {
+            var params = this.params;
+            var distortion = uniforms.params || new Float32Array([0, 0, 0, 0]);
+            uniforms.params = distortion;
+            distortion[0] = params[0];
+            distortion[1] = params[1];
+            distortion[2] = params[2];
+            distortion[3] = params[3];
+        };
+        return StrangeSurface;
+    }(pixi_projection.Surface));
+    pixi_projection.StrangeSurface = StrangeSurface;
 })(pixi_projection || (pixi_projection = {}));
 (function (pixi_projection) {
     var Container2d = (function (_super) {
