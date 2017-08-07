@@ -51,6 +51,7 @@ uniform vec2 distortion;
 
 void main(void){
 vec2 surface;
+vec2 surface2;
 
 float vx = vTextureCoord.x;
 float vy = vTextureCoord.y;
@@ -60,10 +61,12 @@ float dy = distortion.y;
 if (distortion.x == 0.0) {
     surface.x = vx;
     surface.y = vy / (1.0 + dy * vx);
+    surface2 = surface;
 } else
 if (distortion.y == 0.0) {
     surface.y = vy;
     surface.x = vx/ (1.0 + dx * vy);
+    surface2 = surface;
 } else {
     float b = (vy * dx - vx * dy + 1.0) * 0.5 / dy;
     float d = b * b + vx / dy;
@@ -71,21 +74,33 @@ if (distortion.y == 0.0) {
     if (d <= 0.00001) {
         discard;
     }
-    if (dy > 0.0) {
-    	surface.x = - b + sqrt(d);
-    } else {
-    	surface.x = - b - sqrt(d);
-    }
-    surface.y = (vx / surface.x - 1.0) / dx;
+  	surface.x = - b + sqrt(d);
+  	surface.y = (vx / surface.x - 1.0) / dx;
+   	surface2.x = - b - sqrt(d);
+    surface2.y = (vx / surface2.x - 1.0) / dx;
 }
 
 vec2 uv;
 uv.x = vTrans1.x * surface.x + vTrans1.y * surface.y + vTrans1.z;
 uv.y = vTrans2.x * surface.x + vTrans2.y * surface.y + vTrans2.z;
 
+vec2 pixels = uv * samplerSize[0];
+
+if (pixels.x < vFrame.x || pixels.x > vFrame.z ||
+    pixels.y < vFrame.y || pixels.y > vFrame.w) {
+	uv.x = vTrans1.x * surface2.x + vTrans1.y * surface2.y + vTrans1.z;
+	uv.y = vTrans2.x * surface2.x + vTrans2.y * surface2.y + vTrans2.z;
+	pixels = uv * samplerSize[0];
+	
+	if (pixels.x < vFrame.x || pixels.x > vFrame.z ||
+        pixels.y < vFrame.y || pixels.y > vFrame.w) {
+        discard;
+    }
+}
+
 vec4 edge;
-edge.xy = clamp(uv - vFrame.xy + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));
-edge.zw = clamp(vFrame.zw - uv + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));
+edge.xy = clamp(pixels - vFrame.xy + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));
+edge.zw = clamp(vFrame.zw - pixels + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));
 
 float alpha = 1.0; //edge.x * edge.y * edge.z * edge.w;
 vec4 rColor = vColor * alpha;
@@ -144,7 +159,7 @@ gl_FragColor = color * rColor;
 			const h = tex.orig.height;
 			const ax = sprite._anchor._x;
 			const ay = sprite._anchor._y;
-			const uvs = tex._uvs;
+			const frame = tex._frame;
 			const aTrans = sprite.aTrans;
 
 			for (let i = 0; i < 4; i++) {
@@ -158,10 +173,10 @@ gl_FragColor = color * rColor;
 				float32View[index + 6] = aTrans.d;
 				float32View[index + 7] = aTrans.ty;
 
-				float32View[index + 8] = uvs.x0;
-				float32View[index + 9] = uvs.y0;
-				float32View[index + 10] = uvs.x1;
-				float32View[index + 11] = uvs.y1;
+				float32View[index + 8] = frame.x;
+				float32View[index + 9] = frame.y;
+				float32View[index + 10] = frame.x + frame.width;
+				float32View[index + 11] = frame.y + frame.height;
 
 				uint32View[index + 12] = argb;
 				float32View[index + 13] = textureId;
