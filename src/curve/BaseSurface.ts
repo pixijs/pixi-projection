@@ -1,7 +1,8 @@
 namespace pixi_projection {
     import PointLike = PIXI.PointLike;
 
-    const tempPoint = new PIXI.Point();
+    const p = [new PIXI.Point(), new PIXI.Point(), new PIXI.Point(), new PIXI.Point()];
+    const a = [0, 0, 0, 0];
 
     export abstract class Surface implements IWorldTransform {
         surfaceID = "default";
@@ -14,7 +15,7 @@ namespace pixi_projection {
         fillUniforms(uniforms: any) {
 
         }
-        
+
         clear() {
 
         }
@@ -35,37 +36,69 @@ namespace pixi_projection {
                 if (maxY < out[i + 1]) maxY = out[i + 1];
             }
 
-            tempPoint.set(minX, minY);
-            this.apply(tempPoint, tempPoint);
-            if (after) {
-                after.apply(tempPoint, tempPoint);
-            }
-            out[0] = tempPoint.x;
-            out[1] = tempPoint.y;
+            p[0].set(minX, minY);
+            this.apply(p[0], p[0]);
+            p[1].set(maxX, minY);
+            this.apply(p[1], p[1]);
+            p[2].set(maxX, maxY);
+            this.apply(p[2], p[2]);
+            p[3].set(minX, maxY);
+            this.apply(p[3], p[3]);
 
-            tempPoint.set(maxX, minY);
-            this.apply(tempPoint, tempPoint);
             if (after) {
-                after.apply(tempPoint, tempPoint);
-            }
-            out[2] = tempPoint.x;
-            out[3] = tempPoint.y;
+                after.apply(p[0], p[0]);
+                after.apply(p[1], p[1]);
+                after.apply(p[2], p[2]);
+                after.apply(p[3], p[3]);
+                out[0] = p[0].x;
+                out[1] = p[0].y;
+                out[2] = p[1].x;
+                out[3] = p[1].y;
+                out[4] = p[2].x;
+                out[5] = p[2].y;
+                out[6] = p[3].x;
+                out[7] = p[3].y;
+            } else {
+                for (let i = 1; i <= 3; i++) {
+                    if (p[i].y < p[0].y || p[i].y == p[0].y && p[i].x < p[0].x) {
+                        let t = p[0];
+                        p[0] = p[i];
+                        p[i] = t;
+                    }
+                }
 
-            tempPoint.set(maxX, maxY);
-            this.apply(tempPoint, tempPoint);
-            if (after) {
-                after.apply(tempPoint, tempPoint);
-            }
-            out[4] = tempPoint.x;
-            out[5] = tempPoint.y;
+                for (let i = 1; i <= 3; i++) {
+                    a[i] = Math.atan2(p[i].y - p[0].y, p[i].x - p[0].x);
+                }
+                for (let i = 1; i <= 3; i++) {
+                    for (let j = i + 1; j <= 3; j++) {
+                        if (a[i] > a[j]) {
+                            let t = p[i];
+                            p[i] = p[j];
+                            p[j] = t;
+                            let t2 = a[i];
+                            a[i] = a[j];
+                            a[j] = t2;
+                        }
+                    }
+                }
 
-            tempPoint.set(minX, maxY);
-            this.apply(tempPoint, tempPoint);
-            if (after) {
-                after.apply(tempPoint, tempPoint);
+                out[0] = p[0].x;
+                out[1] = p[0].y;
+                out[2] = p[1].x;
+                out[3] = p[1].y;
+                out[4] = p[2].x;
+                out[5] = p[2].y;
+                out[6] = p[3].x;
+                out[7] = p[3].y;
+
+                if ((p[3].x - p[2].x) * (p[1].y - p[2].y) - (p[1].x - p[2].x) * (p[3].y - p[2].y) < 0) {
+                    //triangle!!!
+                    out[4] = p[3].x;
+                    out[5] = p[3].y;
+                    return;
+                }
             }
-            out[6] = tempPoint.x;
-            out[7] = tempPoint.y;
         }
 
         abstract apply(pos: PointLike, newPos: PointLike): PointLike;

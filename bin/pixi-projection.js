@@ -333,7 +333,8 @@ var pixi_projection;
     })(webgl = pixi_projection.webgl || (pixi_projection.webgl = {}));
 })(pixi_projection || (pixi_projection = {}));
 (function (pixi_projection) {
-    var tempPoint = new PIXI.Point();
+    var p = [new PIXI.Point(), new PIXI.Point(), new PIXI.Point(), new PIXI.Point()];
+    var a = [0, 0, 0, 0];
     var Surface = (function () {
         function Surface() {
             this.surfaceID = "default";
@@ -358,34 +359,65 @@ var pixi_projection;
                 if (maxY < out[i + 1])
                     maxY = out[i + 1];
             }
-            tempPoint.set(minX, minY);
-            this.apply(tempPoint, tempPoint);
+            p[0].set(minX, minY);
+            this.apply(p[0], p[0]);
+            p[1].set(maxX, minY);
+            this.apply(p[1], p[1]);
+            p[2].set(maxX, maxY);
+            this.apply(p[2], p[2]);
+            p[3].set(minX, maxY);
+            this.apply(p[3], p[3]);
             if (after) {
-                after.apply(tempPoint, tempPoint);
+                after.apply(p[0], p[0]);
+                after.apply(p[1], p[1]);
+                after.apply(p[2], p[2]);
+                after.apply(p[3], p[3]);
+                out[0] = p[0].x;
+                out[1] = p[0].y;
+                out[2] = p[1].x;
+                out[3] = p[1].y;
+                out[4] = p[2].x;
+                out[5] = p[2].y;
+                out[6] = p[3].x;
+                out[7] = p[3].y;
             }
-            out[0] = tempPoint.x;
-            out[1] = tempPoint.y;
-            tempPoint.set(maxX, minY);
-            this.apply(tempPoint, tempPoint);
-            if (after) {
-                after.apply(tempPoint, tempPoint);
+            else {
+                for (var i = 1; i <= 3; i++) {
+                    if (p[i].y < p[0].y || p[i].y == p[0].y && p[i].x < p[0].x) {
+                        var t = p[0];
+                        p[0] = p[i];
+                        p[i] = t;
+                    }
+                }
+                for (var i = 1; i <= 3; i++) {
+                    a[i] = Math.atan2(p[i].y - p[0].y, p[i].x - p[0].x);
+                }
+                for (var i = 1; i <= 3; i++) {
+                    for (var j = i + 1; j <= 3; j++) {
+                        if (a[i] > a[j]) {
+                            var t = p[i];
+                            p[i] = p[j];
+                            p[j] = t;
+                            var t2 = a[i];
+                            a[i] = a[j];
+                            a[j] = t2;
+                        }
+                    }
+                }
+                out[0] = p[0].x;
+                out[1] = p[0].y;
+                out[2] = p[1].x;
+                out[3] = p[1].y;
+                out[4] = p[2].x;
+                out[5] = p[2].y;
+                out[6] = p[3].x;
+                out[7] = p[3].y;
+                if ((p[3].x - p[2].x) * (p[1].y - p[2].y) - (p[1].x - p[2].x) * (p[3].y - p[2].y) < 0) {
+                    out[4] = p[3].x;
+                    out[5] = p[3].y;
+                    return;
+                }
             }
-            out[2] = tempPoint.x;
-            out[3] = tempPoint.y;
-            tempPoint.set(maxX, maxY);
-            this.apply(tempPoint, tempPoint);
-            if (after) {
-                after.apply(tempPoint, tempPoint);
-            }
-            out[4] = tempPoint.x;
-            out[5] = tempPoint.y;
-            tempPoint.set(minX, maxY);
-            this.apply(tempPoint, tempPoint);
-            if (after) {
-                after.apply(tempPoint, tempPoint);
-            }
-            out[6] = tempPoint.x;
-            out[7] = tempPoint.y;
         };
         return Surface;
     }());
@@ -652,7 +684,7 @@ var pixi_projection;
             _this.size = 100;
             _this.MAX_TEXTURES_LOCAL = 1;
             _this.shaderVert = "precision highp float;\nattribute vec2 aVertexPosition;\nattribute vec3 aTrans1;\nattribute vec3 aTrans2;\nattribute vec4 aFrame;\nattribute vec4 aColor;\nattribute float aTextureId;\n\nuniform mat3 projectionMatrix;\nuniform mat3 worldTransform;\n\nvarying vec2 vTextureCoord;\nvarying vec3 vTrans1;\nvarying vec3 vTrans2;\nvarying vec4 vFrame;\nvarying vec4 vColor;\nvarying float vTextureId;\n\nvoid main(void){\n    gl_Position.xyw = projectionMatrix * worldTransform * vec3(aVertexPosition, 1.0);\n    gl_Position.z = 0.0;\n    \n    vTextureCoord = aVertexPosition;\n    vTrans1 = aTrans1;\n    vTrans2 = aTrans2;\n    vTextureId = aTextureId;\n    vColor = aColor;\n    vFrame = aFrame;\n}\n";
-            _this.shaderFrag = "precision highp float;\nvarying vec2 vTextureCoord;\nvarying vec3 vTrans1;\nvarying vec3 vTrans2;\nvarying vec4 vFrame;\nvarying vec4 vColor;\nvarying float vTextureId;\n\nuniform sampler2D uSamplers[%count%];\nuniform vec2 samplerSize[%count%]; \nuniform vec2 distortion;\n\nvoid main(void){\nvec2 surface;\n\nfloat vx = vTextureCoord.x;\nfloat vy = vTextureCoord.y;\nfloat dx = distortion.x;\nfloat dy = distortion.y;\n\nif (distortion.x == 0.0) {\n    surface.x = vx;\n    surface.y = vy / (1.0 + dy * vx);\n} else\nif (distortion.y == 0.0) {\n    surface.y = vy;\n    surface.x = vx/ (1.0 + dx * vy);\n} else {\n    float b = (vy * dx - vx * dy + 1.0) * 0.5 / dy;\n    float d = b * b + vx / dy;\n\n    if (d <= 0.00001) {\n        discard;\n    }\n    if (dy > 0.0) {\n    \tsurface.x = - b + sqrt(d);\n    } else {\n    \tsurface.x = - b - sqrt(d);\n    }\n    surface.y = (vx / surface.x - 1.0) / dx;\n}\n\nvec2 uv;\nuv.x = vTrans1.x * surface.x + vTrans1.y * surface.y + vTrans1.z;\nuv.y = vTrans2.x * surface.x + vTrans2.y * surface.y + vTrans2.z;\n\nvec4 edge;\nedge.xy = clamp(uv - vFrame.xy + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));\nedge.zw = clamp(vFrame.zw - uv + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));\n\nfloat alpha = 1.0; //edge.x * edge.y * edge.z * edge.w;\nvec4 rColor = vColor * alpha;\n\nfloat textureId = floor(vTextureId+0.5);\nvec4 color;\nvec2 textureCoord = uv;\n%forloop%\ngl_FragColor = color * rColor;\n}";
+            _this.shaderFrag = "precision highp float;\nvarying vec2 vTextureCoord;\nvarying vec3 vTrans1;\nvarying vec3 vTrans2;\nvarying vec4 vFrame;\nvarying vec4 vColor;\nvarying float vTextureId;\n\nuniform sampler2D uSamplers[%count%];\nuniform vec2 samplerSize[%count%]; \nuniform vec2 distortion;\n\nvoid main(void){\nvec2 surface;\nvec2 surface2;\n\nfloat vx = vTextureCoord.x;\nfloat vy = vTextureCoord.y;\nfloat dx = distortion.x;\nfloat dy = distortion.y;\n\nif (distortion.x == 0.0) {\n    surface.x = vx;\n    surface.y = vy / (1.0 + dy * vx);\n    surface2 = surface;\n} else\nif (distortion.y == 0.0) {\n    surface.y = vy;\n    surface.x = vx/ (1.0 + dx * vy);\n    surface2 = surface;\n} else {\n    float b = (vy * dx - vx * dy + 1.0) * 0.5;\n    float d = b * b + vx * dy;\n\n    if (d < -0.00001) {\n        discard;\n    }\n    if (d < 0.0) {\n        d = 0.0;\n    }\n  \tsurface.x = (- b + sqrt(d)) / dy;\n   \tsurface2.x = (- b - sqrt(d)) / dy;\n    \n    float b2 = (vx * dy - vy * dx + 1.0) * 0.5;\n    float d2 = b2 * b2 + vy * dx;\n\n    if (d2 < -0.00001) {\n        discard;\n    }\n    if (d2 < 0.0) {\n        d2 = 0.0;\n    }\n  \tsurface.y = (- b2 + sqrt(d2)) / dx;\n   \tsurface2.y = (- b2 - sqrt(d2)) / dx;\n}\n\nvec2 uv;\nuv.x = vTrans1.x * surface.x + vTrans1.y * surface.y + vTrans1.z;\nuv.y = vTrans2.x * surface.x + vTrans2.y * surface.y + vTrans2.z;\n\nvec2 pixels = uv * samplerSize[0];\n\nif (pixels.x < vFrame.x || pixels.x > vFrame.z ||\n    pixels.y < vFrame.y || pixels.y > vFrame.w) {\n\tuv.x = vTrans1.x * surface2.x + vTrans1.y * surface2.y + vTrans1.z;\n\tuv.y = vTrans2.x * surface2.x + vTrans2.y * surface2.y + vTrans2.z;\n\tpixels = uv * samplerSize[0];\n\t\n\tif (pixels.x < vFrame.x || pixels.x > vFrame.z ||\n        pixels.y < vFrame.y || pixels.y > vFrame.w) {\n        discard;\n    }\n}\n\nvec4 edge;\nedge.xy = clamp(pixels - vFrame.xy + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));\nedge.zw = clamp(vFrame.zw - pixels + 0.5, vec2(0.0, 0.0), vec2(1.0, 1.0));\n\nfloat alpha = 1.0; //edge.x * edge.y * edge.z * edge.w;\nvec4 rColor = vColor * alpha;\n\nfloat textureId = floor(vTextureId+0.5);\nvec4 color;\nvec2 textureCoord = uv;\n%forloop%\ngl_FragColor = color * rColor;\n}";
             _this.defUniforms = {
                 worldTransform: new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]),
                 distortion: new Float32Array([0, 0])
@@ -694,7 +726,7 @@ var pixi_projection;
             var h = tex.orig.height;
             var ax = sprite._anchor._x;
             var ay = sprite._anchor._y;
-            var uvs = tex._uvs;
+            var frame = tex._frame;
             var aTrans = sprite.aTrans;
             for (var i = 0; i < 4; i++) {
                 float32View[index] = vertexData[i * 2];
@@ -705,10 +737,10 @@ var pixi_projection;
                 float32View[index + 5] = aTrans.b;
                 float32View[index + 6] = aTrans.d;
                 float32View[index + 7] = aTrans.ty;
-                float32View[index + 8] = uvs.x0;
-                float32View[index + 9] = uvs.y0;
-                float32View[index + 10] = uvs.x1;
-                float32View[index + 11] = uvs.y1;
+                float32View[index + 8] = frame.x;
+                float32View[index + 9] = frame.y;
+                float32View[index + 10] = frame.x + frame.width;
+                float32View[index + 11] = frame.y + frame.height;
                 uint32View[index + 12] = argb;
                 float32View[index + 13] = textureId;
                 index += 14;

@@ -68,16 +68,29 @@ if (distortion.y == 0.0) {
     surface.x = vx/ (1.0 + dx * vy);
     surface2 = surface;
 } else {
-    float b = (vy * dx - vx * dy + 1.0) * 0.5 / dy;
-    float d = b * b + vx / dy;
+    float b = (vy * dx - vx * dy + 1.0) * 0.5;
+    float d = b * b + vx * dy;
 
-    if (d <= 0.00001) {
+    if (d < -0.00001) {
         discard;
     }
-  	surface.x = - b + sqrt(d);
-  	surface.y = (vx / surface.x - 1.0) / dx;
-   	surface2.x = - b - sqrt(d);
-    surface2.y = (vx / surface2.x - 1.0) / dx;
+    if (d < 0.0) {
+        d = 0.0;
+    }
+  	surface.x = (- b + sqrt(d)) / dy;
+   	surface2.x = (- b - sqrt(d)) / dy;
+    
+    float b2 = (vx * dy - vy * dx + 1.0) * 0.5;
+    float d2 = b2 * b2 + vy * dx;
+
+    if (d2 < -0.00001) {
+        discard;
+    }
+    if (d2 < 0.0) {
+        d2 = 0.0;
+    }
+  	surface.y = (- b2 + sqrt(d2)) / dx;
+   	surface2.y = (- b2 - sqrt(d2)) / dx;
 }
 
 vec2 uv;
