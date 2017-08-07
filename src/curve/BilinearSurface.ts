@@ -112,12 +112,14 @@ namespace pixi_projection {
 		}
 
 		fillUniforms(uniforms: any) {
-			uniforms.distortion = uniforms.distortion || new Float32Array([0, 0]);
+			uniforms.distortion = uniforms.distortion || new Float32Array([0, 0, 0, 0]);
 			const ax = Math.abs(this.distortion.x);
 			const ay = Math.abs(this.distortion.y);
 
 			uniforms.distortion[0] = ax * 10000 <= ay ? 0 : this.distortion.x;
 			uniforms.distortion[1] = ay * 10000 <= ax ? 0 : this.distortion.y;
+			uniforms.distortion[2] = 1.0 / uniforms.distortion[0];
+			uniforms.distortion[3] = 1.0 / uniforms.distortion[1];
 		}
 	}
 }

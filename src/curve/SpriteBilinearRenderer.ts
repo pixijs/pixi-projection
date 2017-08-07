@@ -47,7 +47,7 @@ varying float vTextureId;
 
 uniform sampler2D uSamplers[%count%];
 uniform vec2 samplerSize[%count%]; 
-uniform vec2 distortion;
+uniform vec4 distortion;
 
 void main(void){
 vec2 surface;
@@ -57,6 +57,8 @@ float vx = vTextureCoord.x;
 float vy = vTextureCoord.y;
 float dx = distortion.x;
 float dy = distortion.y;
+float revx = distortion.z;
+float revy = distortion.w;
 
 if (distortion.x == 0.0) {
     surface.x = vx;
@@ -68,29 +70,18 @@ if (distortion.y == 0.0) {
     surface.x = vx/ (1.0 + dx * vy);
     surface2 = surface;
 } else {
-    float b = (vy * dx - vx * dy + 1.0) * 0.5;
+    float c = vy * dx - vx * dy;
+    float b = (c + 1.0) * 0.5;
+    float b2 = (-c + 1.0) * 0.5;
     float d = b * b + vx * dy;
-
     if (d < -0.00001) {
         discard;
     }
-    if (d < 0.0) {
-        d = 0.0;
-    }
-  	surface.x = (- b + sqrt(d)) / dy;
-   	surface2.x = (- b - sqrt(d)) / dy;
-    
-    float b2 = (vx * dy - vy * dx + 1.0) * 0.5;
-    float d2 = b2 * b2 + vy * dx;
-
-    if (d2 < -0.00001) {
-        discard;
-    }
-    if (d2 < 0.0) {
-        d2 = 0.0;
-    }
-  	surface.y = (- b2 + sqrt(d2)) / dx;
-   	surface2.y = (- b2 - sqrt(d2)) / dx;
+    d = sqrt(max(d, 0.0));
+  	surface.x = (- b + d) * revy;
+   	surface2.x = (- b - d) * revy;
+  	surface.y = (- b2 + d) * revx;
+   	surface2.y = (- b2 - d) * revx;
 }
 
 vec2 uv;
