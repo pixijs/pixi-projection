@@ -10,7 +10,7 @@ namespace pixi_projection {
         proj: Projection2d;
 
         get worldTransform() {
-            return this.proj.world as any;
+	        return this.proj.affine ? this.transform.worldTransform : this.proj.world as any;
         }
     }
 

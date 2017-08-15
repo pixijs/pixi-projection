@@ -6,6 +6,14 @@ namespace pixi_projection {
 
 	const mat3id = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 
+	export enum AFFINE {
+		NONE = 0,
+		FREE = 1,
+		AXIS_X = 2,
+		AXIS_Y = 3,
+		POINT = 4
+	}
+
 	export class Matrix2d {
 		/**
 		 * A default (identity) matrix
@@ -82,7 +90,7 @@ namespace pixi_projection {
 			this.mat3[7] = value;
 		}
 
-		set(a: number, b: number, c: number, d: number, tx: number, ty: number) {
+		set (a: number, b: number, c: number, d: number, tx: number, ty: number) {
 			let mat3 = this.mat3;
 			mat3[0] = a;
 			mat3[1] = b;
@@ -234,15 +242,31 @@ namespace pixi_projection {
 		 * @param matrix
 		 * @return
 		 */
-		copy(matrix: PIXI.Matrix) {
+		copy(matrix: PIXI.Matrix, affine?: AFFINE) {
 			const mat3 = this.mat3;
 			const d = 1.0 / mat3[8];
-			matrix.a = mat3[0] * d;
-			matrix.b = mat3[1] * d;
-			matrix.c = mat3[3] * d;
-			matrix.d = mat3[4] * d;
-			matrix.tx = mat3[6] * d;
-			matrix.ty = mat3[7] * d;
+			const tx = mat3[6] * d, ty = mat3[7] * d;
+			matrix.a = (mat3[0] - mat3[2] * tx) * d;
+			matrix.b = (mat3[1] - mat3[2] * ty) * d;
+			matrix.c = (mat3[3] - mat3[5] * tx) * d;
+			matrix.d = (mat3[4] - mat3[5] * ty) * d;
+			matrix.tx = tx;
+			matrix.ty = ty;
+
+			if (affine >= 2) {
+				if (affine === AFFINE.POINT) {
+					matrix.a = 1;
+					matrix.b = 0;
+					matrix.c = 0;
+					matrix.d = 1;
+				} else if (affine === AFFINE.AXIS_X) {
+					matrix.c = -matrix.b;
+					matrix.d = matrix.a;
+				} else if (affine === AFFINE.AXIS_Y) {
+					matrix.a = matrix.d;
+					matrix.c = -matrix.b;
+				}
+			}
 		}
 
 		/**

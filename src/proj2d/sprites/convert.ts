@@ -19,9 +19,7 @@ namespace pixi_projection {
         this.pluginName = 'sprite2d';
         this.vertexData = new Float32Array(12);
         Object.defineProperty(this, "worldTransform", {
-            get: function () {
-                return this.proj.world;
-            },
+            get: container2dWorldTransform,
             enumerable: true,
             configurable: true
         });
@@ -32,9 +30,7 @@ namespace pixi_projection {
         this.proj = new Projection2d(this.transform);
         this.pluginName = 'sprite2d';
         Object.defineProperty(this, "worldTransform", {
-            get: function () {
-                return this.proj.world;
-            },
+            get: container2dWorldTransform,
             enumerable: true,
             configurable: true
         });

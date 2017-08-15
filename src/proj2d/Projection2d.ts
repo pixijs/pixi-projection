@@ -41,12 +41,12 @@ namespace pixi_projection {
 
 		if (ta._parentID !== pwid) {
 			const pp = parentTransform.proj as Projection2d;
-			if (pp) {
+			if (pp && !pp.affine) {
 				proj.world.setToMult2d(pp.world, proj.local);
 			} else {
 				proj.world.setToMultLegacy(parentTransform.worldTransform, proj.local);
 			}
-			proj.world.copy(ta.worldTransform);
+			proj.world.copy(ta.worldTransform, proj._affine);
 			ta._parentID = pwid;
 			ta._worldID++;
 		}
@@ -69,6 +69,17 @@ namespace pixi_projection {
 
 		_projID = 0;
 		_currentProjID = -1;
+		_affine = AFFINE.NONE;
+
+		set affine(value: AFFINE) {
+			if (this._affine == value) return;
+			this._affine = value;
+			this._currentProjID = -1;
+		}
+
+		get affine() {
+			return this._affine;
+		}
 
 		set enabled(value: boolean) {
 			if (value === this._enabled) {

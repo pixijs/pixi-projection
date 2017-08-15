@@ -10,6 +10,18 @@ namespace pixi_projection {
 		proj: Projection2d;
 
 		calculateVertices() {
+			if (this.proj._affine) {
+				if (this.vertexData.length != 8) {
+					this.vertexData = new Float32Array(8);
+				}
+
+				super.calculateVertices();
+				return;
+			}
+			if (this.vertexData.length != 12) {
+				this.vertexData = new Float32Array(12);
+			}
+
 			const wid = (this.transform as any)._worldID;
 			const tuid = (this._texture as any)._updateID;
 			if (this._transformID === wid && this._textureID === tuid) {
@@ -64,6 +76,11 @@ namespace pixi_projection {
 		}
 
 		calculateTrimmedVertices() {
+			if (this.proj._affine) {
+				super.calculateTrimmedVertices();
+				return;
+			}
+
 			const wid = (this.transform as any)._worldID;
 			const tuid = (this._texture as any)._updateID;
 			if (!this.vertexTrimmedData) {
@@ -109,7 +126,7 @@ namespace pixi_projection {
 		}
 
 		get worldTransform() {
-			return this.proj.world as any;
+			return this.proj.affine ? this.transform.worldTransform : this.proj.world as any;
 		}
 	}
 }
