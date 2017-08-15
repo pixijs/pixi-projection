@@ -203,6 +203,7 @@ declare module PIXI.projection {
     }
 }
 declare module PIXI.projection {
+    function container2dWorldTransform(): any;
     class Container2d extends PIXI.Sprite {
         constructor(texture: PIXI.Texture);
         proj: Projection2d;
@@ -211,6 +212,13 @@ declare module PIXI.projection {
 }
 declare module PIXI.projection {
     import IPoint = PIXI.PointLike;
+    enum AFFINE {
+        NONE = 0,
+        FREE = 1,
+        AXIS_X = 2,
+        AXIS_Y = 3,
+        POINT = 4,
+    }
     class Matrix2d {
         static readonly IDENTITY: Matrix2d;
         static readonly TEMP_MATRIX: Matrix2d;
@@ -231,7 +239,7 @@ declare module PIXI.projection {
         identity(): Matrix2d;
         clone(): Matrix2d;
         copyTo(matrix: Matrix2d): Matrix2d;
-        copy(matrix: PIXI.Matrix): void;
+        copy(matrix: PIXI.Matrix, affine?: AFFINE): void;
         copyFrom(matrix: PIXI.Matrix): void;
         setToMultLegacy(pt: PIXI.Matrix, lt: Matrix2d): this;
         setToMult2d(pt: Matrix2d, lt: Matrix2d): this;
@@ -246,6 +254,8 @@ declare module PIXI.projection {
         world: Matrix2d;
         _projID: number;
         _currentProjID: number;
+        _affine: AFFINE;
+        affine: AFFINE;
         enabled: boolean;
         setAxisX(p: PointLike, factor?: number): void;
         setAxisY(p: PointLike, factor?: number): void;
