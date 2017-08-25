@@ -1302,10 +1302,13 @@ var pixi_projection;
             var mat3 = this.mat3;
             mat3[0] = a;
             mat3[1] = b;
+            mat3[2] = 0;
             mat3[3] = c;
             mat3[4] = d;
+            mat3[5] = 0;
             mat3[6] = tx;
             mat3[7] = ty;
+            mat3[8] = 1;
             return this;
         };
         Matrix2d.prototype.toArray = function (transpose, out) {
@@ -1349,19 +1352,33 @@ var pixi_projection;
             return newPos;
         };
         Matrix2d.prototype.translate = function (tx, ty) {
-            this.mat3[6] += tx;
-            this.mat3[7] += ty;
+            var mat3 = this.mat3;
+            mat3[0] += tx * mat3[2];
+            mat3[1] += ty * mat3[2];
+            mat3[3] += tx * mat3[5];
+            mat3[4] += ty * mat3[5];
+            mat3[6] += tx * mat3[8];
+            mat3[7] += ty * mat3[8];
             return this;
         };
         Matrix2d.prototype.scale = function (x, y) {
             var mat3 = this.mat3;
             mat3[0] *= x;
-            mat3[3] *= x;
-            mat3[6] *= x;
             mat3[1] *= y;
+            mat3[3] *= x;
             mat3[4] *= y;
+            mat3[6] *= x;
             mat3[7] *= y;
             return this;
+        };
+        Matrix2d.prototype.scaleAndTranslate = function (scaleX, scaleY, tx, ty) {
+            var mat3 = this.mat3;
+            mat3[0] = scaleX * mat3[0] + tx * mat3[2];
+            mat3[1] = scaleY * mat3[1] + ty * mat3[2];
+            mat3[3] = scaleX * mat3[3] + tx * mat3[5];
+            mat3[4] = scaleY * mat3[4] + ty * mat3[5];
+            mat3[6] = scaleX * mat3[6] + tx * mat3[8];
+            mat3[7] = scaleY * mat3[7] + ty * mat3[8];
         };
         Matrix2d.prototype.applyInverse = function (pos, newPos) {
             newPos = newPos || new Point();
@@ -1463,6 +1480,7 @@ var pixi_projection;
             mat3[6] = matrix.tx;
             mat3[7] = matrix.ty;
             mat3[8] = 1.0;
+            return this;
         };
         Matrix2d.prototype.setToMultLegacy = function (pt, lt) {
             var out = this.mat3;
@@ -1933,21 +1951,7 @@ var pixi_projection;
             var _this = this;
             this.onContextChange = function (gl) {
                 _this.gl = gl;
-                if (_this.renderer.filterManager) {
-                    oldCalculateSpriteMatrix = _this.renderer.filterManager.calculateSpriteMatrix;
-                    _this.renderer.filterManager.calculateSpriteMatrix = hackedCalculateSpriteMatrix;
-                }
-                else {
-                    var flag_1 = false;
-                    oldSpriteMaskApply = PIXI.SpriteMaskFilter.prototype.apply;
-                    PIXI.SpriteMaskFilter.prototype.apply = function (filterManager, input, output) {
-                        if (!flag_1) {
-                            oldCalculateSpriteMatrix = filterManager.calculateSpriteMatrix;
-                            filterManager.calculateSpriteMatrix = hackedCalculateSpriteMatrix;
-                        }
-                        oldSpriteMaskApply.call(this, filterManager, input, output);
-                    };
-                }
+                _this.renderer.maskManager.pushSpriteMask = pushSpriteMask;
             };
             this.renderer = renderer;
             renderer.on('context', this.onContextChange);
@@ -1958,39 +1962,54 @@ var pixi_projection;
         return ProjectionsManager;
     }());
     pixi_projection.ProjectionsManager = ProjectionsManager;
-    PIXI.WebGLRenderer.registerPlugin('projections', ProjectionsManager);
-    var oldSpriteMaskApply;
-    var oldCalculateSpriteMatrix;
-    var tempMat = new pixi_projection.Matrix2d();
-    var tempMat2 = new pixi_projection.Matrix2d();
-    function hackedCalculateSpriteMatrix(outputMatrix, sprite) {
-        var proj = sprite.proj;
-        if (!proj) {
-            return oldCalculateSpriteMatrix.call(this, outputMatrix, sprite);
+    function pushSpriteMask(target, maskData) {
+        var alphaMaskFilter = this.alphaMaskPool[this.alphaMaskIndex];
+        if (!alphaMaskFilter) {
+            alphaMaskFilter = this.alphaMaskPool[this.alphaMaskIndex] = [new pixi_projection.SpriteMaskFilter2d(maskData)];
         }
-        var currentState = this.filterData.stack[this.filterData.index];
-        var filterArea = currentState.sourceFrame;
-        var textureSize = currentState.renderTarget.size;
-        var worldTransform = proj.world.copyTo(tempMat);
-        var texture = sprite._texture.baseTexture;
-        outputMatrix.identity();
-        tempMat2.mat3 = outputMatrix.toArray(true);
-        var mappedMatrix = tempMat2;
-        var ratio = textureSize.height / textureSize.width;
-        mappedMatrix.translate(filterArea.x / textureSize.width, filterArea.y / textureSize.height);
-        mappedMatrix.scale(1, ratio);
-        var translateScaleX = (textureSize.width / texture.width);
-        var translateScaleY = (textureSize.height / texture.height);
-        worldTransform.tx /= texture.width * translateScaleX;
-        worldTransform.ty /= texture.width * translateScaleX;
-        worldTransform.invert();
-        mappedMatrix.setToMult2d(worldTransform, mappedMatrix);
-        mappedMatrix.scale(1, 1 / ratio);
-        mappedMatrix.scale(translateScaleX, translateScaleY);
-        mappedMatrix.translate(sprite.anchor.x, sprite.anchor.y);
-        return tempMat2.mat3;
+        alphaMaskFilter[0].resolution = this.renderer.resolution;
+        alphaMaskFilter[0].maskSprite = maskData;
+        target.filterArea = maskData.getBounds(true);
+        this.renderer.filterManager.pushFilter(target, alphaMaskFilter);
+        this.alphaMaskIndex++;
     }
-    pixi_projection.hackedCalculateSpriteMatrix = hackedCalculateSpriteMatrix;
+    PIXI.WebGLRenderer.registerPlugin('projections', ProjectionsManager);
+})(pixi_projection || (pixi_projection = {}));
+(function (pixi_projection) {
+    var spriteMaskVert = "\nattribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\n\nuniform mat3 projectionMatrix;\nuniform mat3 otherMatrix;\n\nvarying vec3 vMaskCoord;\nvarying vec2 vTextureCoord;\n\nvoid main(void)\n{\n\tgl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n\n\tvTextureCoord = aTextureCoord;\n\tvMaskCoord = otherMatrix * vec3( aTextureCoord, 1.0);\n}\n";
+    var spriteMaskFrag = "\nvarying vec3 vMaskCoord;\nvarying vec2 vTextureCoord;\n\nuniform sampler2D uSampler;\nuniform float alpha;\nuniform sampler2D mask;\n\nvoid main(void)\n{\n    vec2 uv = vMaskCoord.xy / vMaskCoord.z;\n    \n    vec2 text = abs( uv - 0.5 );\n    text = step(0.5, text);\n\n    float clip = 1.0 - max(text.y, text.x);\n    vec4 original = texture2D(uSampler, vTextureCoord);\n    vec4 masky = texture2D(mask, uv);\n\n    original *= (masky.r * masky.a * alpha * clip);\n\n    gl_FragColor = original;\n}\n";
+    var tempMat = new pixi_projection.Matrix2d();
+    var SpriteMaskFilter2d = (function (_super) {
+        __extends(SpriteMaskFilter2d, _super);
+        function SpriteMaskFilter2d(sprite) {
+            var _this = _super.call(this, spriteMaskVert, spriteMaskFrag) || this;
+            _this.maskMatrix = new pixi_projection.Matrix2d();
+            sprite.renderable = false;
+            _this.maskSprite = sprite;
+            return _this;
+        }
+        SpriteMaskFilter2d.prototype.apply = function (filterManager, input, output, clear, currentState) {
+            var maskSprite = this.maskSprite;
+            this.uniforms.mask = maskSprite.texture;
+            this.uniforms.otherMatrix = SpriteMaskFilter2d.calculateSpriteMatrix(currentState, this.maskMatrix, maskSprite);
+            this.uniforms.alpha = maskSprite.worldAlpha;
+            filterManager.applyFilter(this, input, output);
+        };
+        SpriteMaskFilter2d.calculateSpriteMatrix = function (currentState, mappedMatrix, sprite) {
+            var proj = sprite.proj;
+            var filterArea = currentState.sourceFrame;
+            var textureSize = currentState.renderTarget.size;
+            var worldTransform = proj && !proj._affine ? proj.world.copyTo(tempMat) : tempMat.copyFrom(sprite.transform.worldTransform);
+            var texture = sprite.texture.orig;
+            mappedMatrix.set(textureSize.width, 0, 0, textureSize.height, filterArea.x, filterArea.y);
+            worldTransform.invert();
+            mappedMatrix.setToMult2d(worldTransform, mappedMatrix);
+            mappedMatrix.scaleAndTranslate(1.0 / texture.width, 1.0 / texture.height, sprite.anchor.x, sprite.anchor.y);
+            return mappedMatrix;
+        };
+        return SpriteMaskFilter2d;
+    }(PIXI.Filter));
+    pixi_projection.SpriteMaskFilter2d = SpriteMaskFilter2d;
 })(pixi_projection || (pixi_projection = {}));
 (function (pixi_projection) {
     var utils;

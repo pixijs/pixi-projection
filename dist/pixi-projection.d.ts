@@ -237,13 +237,14 @@ declare module PIXI.projection {
         apply(pos: IPoint, newPos: IPoint): IPoint;
         translate(tx: number, ty: number): this;
         scale(x: any, y: any): this;
+        scaleAndTranslate(scaleX: number, scaleY: number, tx: number, ty: number): void;
         applyInverse(pos: IPoint, newPos: IPoint): IPoint;
         invert(): Matrix2d;
         identity(): Matrix2d;
         clone(): Matrix2d;
         copyTo(matrix: Matrix2d): Matrix2d;
         copy(matrix: PIXI.Matrix, affine?: AFFINE): void;
-        copyFrom(matrix: PIXI.Matrix): void;
+        copyFrom(matrix: PIXI.Matrix): this;
         setToMultLegacy(pt: PIXI.Matrix, lt: Matrix2d): this;
         setToMult2d(pt: Matrix2d, lt: Matrix2d): this;
     }
@@ -305,7 +306,15 @@ declare module PIXI.projection {
         onContextChange: (gl: WebGLRenderingContext) => void;
         destroy(): void;
     }
-    function hackedCalculateSpriteMatrix(outputMatrix: any, sprite: any): any;
+}
+declare module PIXI.projection {
+    class SpriteMaskFilter2d extends PIXI.Filter {
+        constructor(sprite: any);
+        maskSprite: PIXI.Sprite;
+        maskMatrix: Matrix2d;
+        apply(filterManager: PIXI.FilterManager, input: PIXI.RenderTarget, output: PIXI.RenderTarget, clear?: boolean, currentState?: any): void;
+        static calculateSpriteMatrix(currentState: any, mappedMatrix: Matrix2d, sprite: PIXI.Sprite): Matrix2d;
+    }
 }
 declare module PIXI.projection.utils {
     function createIndicesForQuads(size: number): Uint16Array;
