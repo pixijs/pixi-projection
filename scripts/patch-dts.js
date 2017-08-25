@@ -1,6 +1,6 @@
 var fs = require('fs');
 var path = require('path');
-var dtsPath = path.resolve(__dirname, '../bin/pixi-projection.d.ts');
+var dtsPath = path.resolve(__dirname, '../dist/pixi-projection.d.ts');
 
 fs.readFile(dtsPath, 'utf8', function (err,data) {
   if (err) {

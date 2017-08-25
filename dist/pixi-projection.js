@@ -760,6 +760,7 @@ var pixi_projection;
         this.aTrans = new PIXI.Matrix();
         this.calculateVertices = pixi_projection.Sprite2s.prototype.calculateVertices;
         this.calculateTrimmedVertices = pixi_projection.Sprite2s.prototype.calculateTrimmedVertices;
+        this._calculateBounds = pixi_projection.Sprite2s.prototype._calculateBounds;
         PIXI.Container.prototype.convertTo2s.call(this);
     };
     PIXI.Container.prototype.convertTo2s = function () {
@@ -791,6 +792,10 @@ var pixi_projection;
             _this.pluginName = 'sprite_bilinear';
             return _this;
         }
+        Sprite2s.prototype._calculateBounds = function () {
+            this.calculateTrimmedVertices();
+            this._bounds.addQuad(this.vertexTrimmedData);
+        };
         Sprite2s.prototype.calculateVertices = function () {
             var wid = this.transform._worldID;
             var tuid = this._texture._updateID;
@@ -947,6 +952,7 @@ var pixi_projection;
     pixi_projection.Text2s = Text2s;
     Text2s.prototype.calculateVertices = pixi_projection.Sprite2s.prototype.calculateVertices;
     Text2s.prototype.calculateTrimmedVertices = pixi_projection.Sprite2s.prototype.calculateTrimmedVertices;
+    Text2s.prototype._calculateBounds = pixi_projection.Sprite2s.prototype._calculateBounds;
 })(pixi_projection || (pixi_projection = {}));
 (function (pixi_projection) {
     var MultiTextureSpriteRenderer = pixi_projection.webgl.MultiTextureSpriteRenderer;
@@ -1342,6 +1348,21 @@ var pixi_projection;
             newPos.y = z * (mat3[1] * x + mat3[4] * y + mat3[7]);
             return newPos;
         };
+        Matrix2d.prototype.translate = function (tx, ty) {
+            this.mat3[6] += tx;
+            this.mat3[7] += ty;
+            return this;
+        };
+        Matrix2d.prototype.scale = function (x, y) {
+            var mat3 = this.mat3;
+            mat3[0] *= x;
+            mat3[3] *= x;
+            mat3[6] *= x;
+            mat3[1] *= y;
+            mat3[4] *= y;
+            mat3[7] *= y;
+            return this;
+        };
         Matrix2d.prototype.applyInverse = function (pos, newPos) {
             newPos = newPos || new Point();
             var a = this.mat3;
@@ -1655,6 +1676,7 @@ var pixi_projection;
             return;
         this.calculateVertices = pixi_projection.Sprite2d.prototype.calculateVertices;
         this.calculateTrimmedVertices = pixi_projection.Sprite2d.prototype.calculateTrimmedVertices;
+        this._calculateBounds = pixi_projection.Sprite2d.prototype._calculateBounds;
         this.proj = new pixi_projection.Projection2d(this.transform);
         this.pluginName = 'sprite2d';
         this.vertexData = new Float32Array(12);
@@ -1692,6 +1714,10 @@ var pixi_projection;
             _this.vertexData = new Float32Array(12);
             return _this;
         }
+        Sprite2d.prototype._calculateBounds = function () {
+            this.calculateTrimmedVertices();
+            this._bounds.addQuad(this.vertexTrimmedData);
+        };
         Sprite2d.prototype.calculateVertices = function () {
             if (this.proj._affine) {
                 if (this.vertexData.length != 8) {
@@ -1899,6 +1925,72 @@ var pixi_projection;
     pixi_projection.Text2d = Text2d;
     Text2d.prototype.calculateVertices = pixi_projection.Sprite2d.prototype.calculateVertices;
     Text2d.prototype.calculateTrimmedVertices = pixi_projection.Sprite2d.prototype.calculateTrimmedVertices;
+    Text2d.prototype._calculateBounds = pixi_projection.Sprite2d.prototype._calculateBounds;
+})(pixi_projection || (pixi_projection = {}));
+(function (pixi_projection) {
+    var ProjectionsManager = (function () {
+        function ProjectionsManager(renderer) {
+            var _this = this;
+            this.onContextChange = function (gl) {
+                _this.gl = gl;
+                if (_this.renderer.filterManager) {
+                    oldCalculateSpriteMatrix = _this.renderer.filterManager.calculateSpriteMatrix;
+                    _this.renderer.filterManager.calculateSpriteMatrix = hackedCalculateSpriteMatrix;
+                }
+                else {
+                    var flag_1 = false;
+                    oldSpriteMaskApply = PIXI.SpriteMaskFilter.prototype.apply;
+                    PIXI.SpriteMaskFilter.prototype.apply = function (filterManager, input, output) {
+                        if (!flag_1) {
+                            oldCalculateSpriteMatrix = filterManager.calculateSpriteMatrix;
+                            filterManager.calculateSpriteMatrix = hackedCalculateSpriteMatrix;
+                        }
+                        oldSpriteMaskApply.call(this, filterManager, input, output);
+                    };
+                }
+            };
+            this.renderer = renderer;
+            renderer.on('context', this.onContextChange);
+        }
+        ProjectionsManager.prototype.destroy = function () {
+            this.renderer.off('context', this.onContextChange);
+        };
+        return ProjectionsManager;
+    }());
+    pixi_projection.ProjectionsManager = ProjectionsManager;
+    PIXI.WebGLRenderer.registerPlugin('projections', ProjectionsManager);
+    var oldSpriteMaskApply;
+    var oldCalculateSpriteMatrix;
+    var tempMat = new pixi_projection.Matrix2d();
+    var tempMat2 = new pixi_projection.Matrix2d();
+    function hackedCalculateSpriteMatrix(outputMatrix, sprite) {
+        var proj = sprite.proj;
+        if (!proj) {
+            return oldCalculateSpriteMatrix.call(this, outputMatrix, sprite);
+        }
+        var currentState = this.filterData.stack[this.filterData.index];
+        var filterArea = currentState.sourceFrame;
+        var textureSize = currentState.renderTarget.size;
+        var worldTransform = proj.world.copyTo(tempMat);
+        var texture = sprite._texture.baseTexture;
+        outputMatrix.identity();
+        tempMat2.mat3 = outputMatrix.toArray(true);
+        var mappedMatrix = tempMat2;
+        var ratio = textureSize.height / textureSize.width;
+        mappedMatrix.translate(filterArea.x / textureSize.width, filterArea.y / textureSize.height);
+        mappedMatrix.scale(1, ratio);
+        var translateScaleX = (textureSize.width / texture.width);
+        var translateScaleY = (textureSize.height / texture.height);
+        worldTransform.tx /= texture.width * translateScaleX;
+        worldTransform.ty /= texture.width * translateScaleX;
+        worldTransform.invert();
+        mappedMatrix.setToMult2d(worldTransform, mappedMatrix);
+        mappedMatrix.scale(1, 1 / ratio);
+        mappedMatrix.scale(translateScaleX, translateScaleY);
+        mappedMatrix.translate(sprite.anchor.x, sprite.anchor.y);
+        return tempMat2.mat3;
+    }
+    pixi_projection.hackedCalculateSpriteMatrix = hackedCalculateSpriteMatrix;
 })(pixi_projection || (pixi_projection = {}));
 (function (pixi_projection) {
     var utils;

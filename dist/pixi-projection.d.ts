@@ -171,6 +171,7 @@ declare module PIXI.projection {
         constructor(texture: PIXI.Texture);
         proj: ProjectionSurface;
         aTrans: PIXI.Matrix;
+        _calculateBounds(): void;
         calculateVertices(): void;
         calculateTrimmedVertices(): void;
         readonly worldTransform: any;
@@ -234,6 +235,8 @@ declare module PIXI.projection {
         set(a: number, b: number, c: number, d: number, tx: number, ty: number): this;
         toArray(transpose?: boolean, out?: Float32Array): Float32Array;
         apply(pos: IPoint, newPos: IPoint): IPoint;
+        translate(tx: number, ty: number): this;
+        scale(x: any, y: any): this;
         applyInverse(pos: IPoint, newPos: IPoint): IPoint;
         invert(): Matrix2d;
         identity(): Matrix2d;
@@ -279,6 +282,7 @@ declare module PIXI.projection {
     class Sprite2d extends PIXI.Sprite {
         constructor(texture: PIXI.Texture);
         proj: Projection2d;
+        _calculateBounds(): void;
         calculateVertices(): void;
         calculateTrimmedVertices(): void;
         readonly worldTransform: any;
@@ -292,6 +296,16 @@ declare module PIXI.projection {
         proj: Projection2d;
         readonly worldTransform: any;
     }
+}
+declare module PIXI.projection {
+    class ProjectionsManager {
+        renderer: PIXI.WebGLRenderer;
+        gl: WebGLRenderingContext;
+        constructor(renderer: PIXI.WebGLRenderer);
+        onContextChange: (gl: WebGLRenderingContext) => void;
+        destroy(): void;
+    }
+    function hackedCalculateSpriteMatrix(outputMatrix: any, sprite: any): any;
 }
 declare module PIXI.projection.utils {
     function createIndicesForQuads(size: number): Uint16Array;
