@@ -90,14 +90,17 @@ namespace pixi_projection {
 			this.mat3[7] = value;
 		}
 
-		set (a: number, b: number, c: number, d: number, tx: number, ty: number) {
+		set(a: number, b: number, c: number, d: number, tx: number, ty: number) {
 			let mat3 = this.mat3;
 			mat3[0] = a;
 			mat3[1] = b;
+			mat3[2] = 0;
 			mat3[3] = c;
 			mat3[4] = d;
+			mat3[5] = 0;
 			mat3[6] = tx;
 			mat3[7] = ty;
+			mat3[8] = 1;
 			return this;
 		}
 
@@ -152,20 +155,35 @@ namespace pixi_projection {
 		}
 
 		translate(tx: number, ty: number) {
-			this.mat3[6] += tx;
-			this.mat3[7] += ty;
+			const mat3 = this.mat3;
+			mat3[0] += tx * mat3[2];
+			mat3[1] += ty * mat3[2];
+			mat3[3] += tx * mat3[5];
+			mat3[4] += ty * mat3[5];
+			mat3[6] += tx * mat3[8];
+			mat3[7] += ty * mat3[8];
 			return this;
 		}
 
 		scale(x, y) {
 			const mat3 = this.mat3;
 			mat3[0] *= x;
-			mat3[3] *= x;
-			mat3[6] *= x;
 			mat3[1] *= y;
+			mat3[3] *= x;
 			mat3[4] *= y;
+			mat3[6] *= x;
 			mat3[7] *= y;
 			return this;
+		}
+
+		scaleAndTranslate(scaleX: number, scaleY: number, tx: number, ty: number) {
+			const mat3 = this.mat3;
+			mat3[0] = scaleX * mat3[0] + tx * mat3[2];
+			mat3[1] = scaleY * mat3[1] + ty * mat3[2];
+			mat3[3] = scaleX * mat3[3] + tx * mat3[5];
+			mat3[4] = scaleY * mat3[4] + ty * mat3[5];
+			mat3[6] = scaleX * mat3[6] + tx * mat3[8];
+			mat3[7] = scaleY * mat3[7] + ty * mat3[8];
 		}
 
 		//TODO: remove props
@@ -302,6 +320,7 @@ namespace pixi_projection {
 			mat3[6] = matrix.tx;
 			mat3[7] = matrix.ty;
 			mat3[8] = 1.0;
+			return this;
 		}
 
 		setToMultLegacy(pt: PIXI.Matrix, lt: Matrix2d) {
