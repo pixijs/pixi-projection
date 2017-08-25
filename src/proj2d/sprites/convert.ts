@@ -14,6 +14,7 @@ namespace pixi_projection {
         if (this.proj) return;
         this.calculateVertices = Sprite2d.prototype.calculateVertices;
         this.calculateTrimmedVertices = Sprite2d.prototype.calculateTrimmedVertices;
+	    this._calculateBounds = Sprite2d.prototype._calculateBounds;
         //cointainer
         this.proj = new Projection2d(this.transform);
         this.pluginName = 'sprite2d';

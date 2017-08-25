@@ -151,6 +151,23 @@ namespace pixi_projection {
 			return newPos;
 		}
 
+		translate(tx: number, ty: number) {
+			this.mat3[6] += tx;
+			this.mat3[7] += ty;
+			return this;
+		}
+
+		scale(x, y) {
+			const mat3 = this.mat3;
+			mat3[0] *= x;
+			mat3[3] *= x;
+			mat3[6] *= x;
+			mat3[1] *= y;
+			mat3[4] *= y;
+			mat3[7] *= y;
+			return this;
+		}
+
 		//TODO: remove props
 		applyInverse(pos: IPoint, newPos: IPoint): IPoint {
 			newPos = newPos || new Point();

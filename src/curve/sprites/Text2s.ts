@@ -17,4 +17,5 @@ namespace pixi_projection {
 
 	(Text2s.prototype as any).calculateVertices = Sprite2s.prototype.calculateVertices;
 	(Text2s.prototype as any).calculateTrimmedVertices = Sprite2s.prototype.calculateTrimmedVertices;
+	(Text2s.prototype as any)._calculateBounds = Sprite2s.prototype._calculateBounds;
 }

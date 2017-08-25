@@ -22,8 +22,23 @@ namespace pixi_projection {
 
 		onContextChange = (gl: WebGLRenderingContext) => {
 			this.gl = gl;
-			oldCalculateSpriteMatrix = this.renderer.filterManager.calculateSpriteMatrix;
-			this.renderer.filterManager.calculateSpriteMatrix = hackedCalculateSpriteMatrix;
+
+			if (this.renderer.filterManager) {
+				oldCalculateSpriteMatrix = this.renderer.filterManager.calculateSpriteMatrix;
+				this.renderer.filterManager.calculateSpriteMatrix = hackedCalculateSpriteMatrix;
+			} else {
+				let flag = false;
+
+				//pixi 4.5.4 has a bug with filterManager
+				oldSpriteMaskApply = PIXI.SpriteMaskFilter.prototype.apply;
+				PIXI.SpriteMaskFilter.prototype.apply = function (filterManager: any, input: any, output: any) {
+					if (!flag) {
+						oldCalculateSpriteMatrix = filterManager.calculateSpriteMatrix;
+						filterManager.calculateSpriteMatrix = hackedCalculateSpriteMatrix;
+					}
+					oldSpriteMaskApply.call(this, filterManager, input, output);
+				};
+			}
 		};
 
 		destroy() {
@@ -33,7 +48,9 @@ namespace pixi_projection {
 
 	PIXI.WebGLRenderer.registerPlugin('projections', ProjectionsManager);
 
+	let oldSpriteMaskApply: any;
 	let oldCalculateSpriteMatrix: any;
+
 	let tempMat = new Matrix2d();
 	let tempMat2 = new Matrix2d();
 
@@ -50,7 +67,9 @@ namespace pixi_projection {
 		const worldTransform = proj.world.copyTo(tempMat);
 		const texture = sprite._texture.baseTexture;
 
-		const mappedMatrix = outputMatrix.identity();
+		outputMatrix.identity();
+		tempMat2.mat3 = outputMatrix.toArray(true);
+		const mappedMatrix = tempMat2;
 
 		// scale..
 		const ratio = textureSize.height / textureSize.width;
@@ -60,13 +79,19 @@ namespace pixi_projection {
 		mappedMatrix.scale(1, ratio);
 
 		const translateScaleX = (textureSize.width / texture.width);
+		const translateScaleY = (textureSize.height / texture.height);
 
 		worldTransform.tx /= texture.width * translateScaleX;
 		worldTransform.ty /= texture.width * translateScaleX;
 
 		worldTransform.invert();
-		tempMat2.mat3 = mappedMatrix.toArray(true);
-		tempMat2.setToMult2d(worldTransform, tempMat2);
+		mappedMatrix.setToMult2d(worldTransform, mappedMatrix);
+
+		mappedMatrix.scale(1, 1 / ratio);
+
+		mappedMatrix.scale(translateScaleX, translateScaleY);
+
+		mappedMatrix.translate(sprite.anchor.x, sprite.anchor.y);
 
 		return tempMat2.mat3;
 	}

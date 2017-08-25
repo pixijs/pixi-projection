@@ -9,6 +9,11 @@ namespace pixi_projection {
 
 		proj: Projection2d;
 
+		_calculateBounds() {
+			this.calculateTrimmedVertices();
+			this._bounds.addQuad(this.vertexTrimmedData as any);
+		}
+
 		calculateVertices() {
 			if (this.proj._affine) {
 				if (this.vertexData.length != 8) {

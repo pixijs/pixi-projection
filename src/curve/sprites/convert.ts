@@ -18,6 +18,7 @@ namespace pixi_projection {
 		this.aTrans = new PIXI.Matrix();
 		this.calculateVertices = Sprite2s.prototype.calculateVertices;
 		this.calculateTrimmedVertices = Sprite2s.prototype.calculateTrimmedVertices;
+		this._calculateBounds = Sprite2s.prototype._calculateBounds;
 		PIXI.Container.prototype.convertTo2s.call(this);
 	};
 

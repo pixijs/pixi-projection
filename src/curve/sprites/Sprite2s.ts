@@ -9,6 +9,11 @@ namespace pixi_projection {
 		proj: ProjectionSurface;
 		aTrans = new PIXI.Matrix();
 
+		_calculateBounds() {
+			this.calculateTrimmedVertices();
+			this._bounds.addQuad(this.vertexTrimmedData as any);
+		}
+
 		calculateVertices() {
 			const wid = (this.transform as any)._worldID;
 			const tuid = (this._texture as any)._updateID;
