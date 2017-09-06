@@ -44,7 +44,13 @@ void main(void)
 
 	const tempMat = new Matrix2d();
 
-	export class SpriteMaskFilter2d extends PIXI.Filter {
+	export interface SpriteMaskFilter2dUniforms {
+		mask: PIXI.Texture;
+		otherMatrix: PIXI.Matrix | Matrix2d;
+		alpha: number;
+	}
+
+	export class SpriteMaskFilter2d extends PIXI.Filter<SpriteMaskFilter2dUniforms> {
 		constructor(sprite) {
 			super(spriteMaskVert, spriteMaskFrag);
 

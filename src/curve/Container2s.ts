@@ -1,7 +1,7 @@
 namespace pixi_projection {
-    export class Container2s extends PIXI.Sprite {
-        constructor(texture: PIXI.Texture) {
-            super(texture);
+    export class Container2s extends PIXI.Container {
+        constructor() {
+            super();
             this.proj = new ProjectionSurface(this.transform);
         }
 

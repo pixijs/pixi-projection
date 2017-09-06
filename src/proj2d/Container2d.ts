@@ -3,9 +3,9 @@ namespace pixi_projection {
 		return this.proj.affine ? this.transform.worldTransform : this.proj.world as any;
 	}
 
-	export class Container2d extends PIXI.Sprite {
-		constructor(texture: PIXI.Texture) {
-			super(texture);
+	export class Container2d extends PIXI.Container {
+		constructor() {
+			super();
 			this.proj = new Projection2d(this.transform);
 		}
 
