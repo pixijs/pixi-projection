@@ -165,7 +165,7 @@ namespace pixi_projection {
 			return this;
 		}
 
-		scale(x, y) {
+		scale(x: number, y: number) {
 			const mat3 = this.mat3;
 			mat3[0] *= x;
 			mat3[1] *= y;

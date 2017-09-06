@@ -51,7 +51,7 @@ void main(void)
 	}
 
 	export class SpriteMaskFilter2d extends PIXI.Filter<SpriteMaskFilter2dUniforms> {
-		constructor(sprite) {
+		constructor(sprite: PIXI.Sprite) {
 			super(spriteMaskVert, spriteMaskFrag);
 
 			sprite.renderable = false;

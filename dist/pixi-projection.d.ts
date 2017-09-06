@@ -236,7 +236,7 @@ declare module PIXI.projection {
         toArray(transpose?: boolean, out?: Float32Array): Float32Array;
         apply(pos: IPoint, newPos: IPoint): IPoint;
         translate(tx: number, ty: number): this;
-        scale(x: any, y: any): this;
+        scale(x: number, y: number): this;
         scaleAndTranslate(scaleX: number, scaleY: number, tx: number, ty: number): void;
         applyInverse(pos: IPoint, newPos: IPoint): IPoint;
         invert(): Matrix2d;
@@ -314,7 +314,7 @@ declare module PIXI.projection {
         alpha: number;
     }
     class SpriteMaskFilter2d extends PIXI.Filter<SpriteMaskFilter2dUniforms> {
-        constructor(sprite: any);
+        constructor(sprite: PIXI.Sprite);
         maskSprite: PIXI.Sprite;
         maskMatrix: Matrix2d;
         apply(filterManager: PIXI.FilterManager, input: PIXI.RenderTarget, output: PIXI.RenderTarget, clear?: boolean, currentState?: any): void;
