@@ -38,7 +38,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "checkpack": "^0.2.5",
+    "checkpack": "^0.2.7",
     "del": "~2.2.0",
     "glob": "~7.1.1",
     "jaguarjs-jsdoc": "~1.0.1",
