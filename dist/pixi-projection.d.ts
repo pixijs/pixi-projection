@@ -1,14 +1,14 @@
 /// <reference types="pixi.js" />
 declare namespace PIXI {
     interface TransformBase {
-        proj: pixi_projection.Projection;
+        proj: PIXI.projection.Projection;
     }
     interface ObservablePoint {
         _x: number;
         _y: number;
     }
     interface TransformStatic {
-        proj: pixi_projection.Projection;
+        proj: PIXI.projection.Projection;
     }
 }
 declare module PIXI.projection {
@@ -118,14 +118,14 @@ declare module PIXI.projection {
     }
 }
 declare module PIXI.projection {
-    class Container2s extends PIXI.Sprite {
-        constructor(texture: PIXI.Texture);
+    class Container2s extends PIXI.Container {
+        constructor();
         proj: ProjectionSurface;
         readonly worldTransform: any;
     }
 }
 declare namespace PIXI {
-    interface Matrix extends pixi_projection.IWorldTransform {
+    interface Matrix extends PIXI.projection.IWorldTransform {
         apply(pos: PointLike, newPos?: PointLike): PointLike;
         applyInverse(pos: PointLike, newPos?: PointLike): PointLike;
     }
@@ -205,8 +205,8 @@ declare module PIXI.projection {
 }
 declare module PIXI.projection {
     function container2dWorldTransform(): any;
-    class Container2d extends PIXI.Sprite {
-        constructor(texture: PIXI.Texture);
+    class Container2d extends PIXI.Container {
+        constructor();
         proj: Projection2d;
         readonly worldTransform: any;
     }
@@ -308,7 +308,12 @@ declare module PIXI.projection {
     }
 }
 declare module PIXI.projection {
-    class SpriteMaskFilter2d extends PIXI.Filter {
+    interface SpriteMaskFilter2dUniforms {
+        mask: PIXI.Texture;
+        otherMatrix: PIXI.Matrix | Matrix2d;
+        alpha: number;
+    }
+    class SpriteMaskFilter2d extends PIXI.Filter<SpriteMaskFilter2dUniforms> {
         constructor(sprite: any);
         maskSprite: PIXI.Sprite;
         maskMatrix: Matrix2d;

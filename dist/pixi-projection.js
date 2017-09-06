@@ -1,13 +1,84 @@
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
+var pixi_projection;
+(function (pixi_projection) {
+    var utils;
+    (function (utils) {
+        function createIndicesForQuads(size) {
+            var totalIndices = size * 6;
+            var indices = new Uint16Array(totalIndices);
+            for (var i = 0, j = 0; i < totalIndices; i += 6, j += 4) {
+                indices[i + 0] = j + 0;
+                indices[i + 1] = j + 1;
+                indices[i + 2] = j + 2;
+                indices[i + 3] = j + 0;
+                indices[i + 4] = j + 2;
+                indices[i + 5] = j + 3;
+            }
+            return indices;
+        }
+        utils.createIndicesForQuads = createIndicesForQuads;
+        function isPow2(v) {
+            return !(v & (v - 1)) && (!!v);
+        }
+        utils.isPow2 = isPow2;
+        function nextPow2(v) {
+            v += +(v === 0);
+            --v;
+            v |= v >>> 1;
+            v |= v >>> 2;
+            v |= v >>> 4;
+            v |= v >>> 8;
+            v |= v >>> 16;
+            return v + 1;
+        }
+        utils.nextPow2 = nextPow2;
+        function log2(v) {
+            var r, shift;
+            r = +(v > 0xFFFF) << 4;
+            v >>>= r;
+            shift = +(v > 0xFF) << 3;
+            v >>>= shift;
+            r |= shift;
+            shift = +(v > 0xF) << 2;
+            v >>>= shift;
+            r |= shift;
+            shift = +(v > 0x3) << 1;
+            v >>>= shift;
+            r |= shift;
+            return r | (v >> 1);
+        }
+        utils.log2 = log2;
+        function getIntersectionFactor(p1, p2, p3, p4, out) {
+            var A1 = p2.x - p1.x, B1 = p3.x - p4.x, C1 = p3.x - p1.x;
+            var A2 = p2.y - p1.y, B2 = p3.y - p4.y, C2 = p3.y - p1.y;
+            var D = A1 * B2 - A2 * B1;
+            if (Math.abs(D) < 1e-7) {
+                out.x = A1;
+                out.y = A2;
+                return 0;
+            }
+            var T = C1 * B2 - C2 * B1;
+            var U = A1 * C2 - A2 * C1;
+            var t = T / D, u = U / D;
+            if (u < (1e-6) || u - 1 > -1e-6) {
+                return -1;
+            }
+            out.x = p1.x + t * (p2.x - p1.x);
+            out.y = p1.y + t * (p2.y - p1.y);
+            return 1;
+        }
+        utils.getIntersectionFactor = getIntersectionFactor;
+        function getPositionFromQuad(p, anchor, out) {
+            out = out || new PIXI.Point();
+            var a1 = 1.0 - anchor.x, a2 = 1.0 - a1;
+            var b1 = 1.0 - anchor.y, b2 = 1.0 - b1;
+            out.x = (p[0].x * a1 + p[1].x * a2) * b1 + (p[3].x * a1 + p[2].x * a2) * b2;
+            out.y = (p[0].y * a1 + p[1].y * a2) * b1 + (p[3].y * a1 + p[2].y * a2) * b2;
+            return out;
+        }
+        utils.getPositionFromQuad = getPositionFromQuad;
+    })(utils = pixi_projection.utils || (pixi_projection.utils = {}));
+})(pixi_projection || (pixi_projection = {}));
+PIXI.projection = pixi_projection;
 var pixi_projection;
 (function (pixi_projection) {
     var Projection = (function () {
@@ -36,6 +107,7 @@ var pixi_projection;
     }());
     pixi_projection.Projection = Projection;
 })(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
 (function (pixi_projection) {
     var webgl;
     (function (webgl) {
@@ -53,6 +125,7 @@ var pixi_projection;
         webgl.BatchBuffer = BatchBuffer;
     })(webgl = pixi_projection.webgl || (pixi_projection.webgl = {}));
 })(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
 (function (pixi_projection) {
     var webgl;
     (function (webgl) {
@@ -90,6 +163,17 @@ var pixi_projection;
         }
     })(webgl = pixi_projection.webgl || (pixi_projection.webgl = {}));
 })(pixi_projection || (pixi_projection = {}));
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var pixi_projection;
 (function (pixi_projection) {
     var webgl;
     (function (webgl) {
@@ -332,6 +416,7 @@ var pixi_projection;
         webgl.MultiTextureSpriteRenderer = MultiTextureSpriteRenderer;
     })(webgl = pixi_projection.webgl || (pixi_projection.webgl = {}));
 })(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
 (function (pixi_projection) {
     var p = [new PIXI.Point(), new PIXI.Point(), new PIXI.Point(), new PIXI.Point()];
     var a = [0, 0, 0, 0];
@@ -423,6 +508,7 @@ var pixi_projection;
     }());
     pixi_projection.Surface = Surface;
 })(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
 (function (pixi_projection) {
     var tempMat = new PIXI.Matrix();
     var tempRect = new PIXI.Rectangle();
@@ -529,11 +615,12 @@ var pixi_projection;
     }(pixi_projection.Surface));
     pixi_projection.BilinearSurface = BilinearSurface;
 })(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
 (function (pixi_projection) {
     var Container2s = (function (_super) {
         __extends(Container2s, _super);
-        function Container2s(texture) {
-            var _this = _super.call(this, texture) || this;
+        function Container2s() {
+            var _this = _super.call(this) || this;
             _this.proj = new pixi_projection.ProjectionSurface(_this.transform);
             return _this;
         }
@@ -545,9 +632,10 @@ var pixi_projection;
             configurable: true
         });
         return Container2s;
-    }(PIXI.Sprite));
+    }(PIXI.Container));
     pixi_projection.Container2s = Container2s;
 })(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
 (function (pixi_projection) {
     var fun = PIXI.TransformStatic.prototype.updateTransform;
     function transformHack(parentTransform) {
@@ -677,6 +765,7 @@ var pixi_projection;
     }(pixi_projection.Projection));
     pixi_projection.ProjectionSurface = ProjectionSurface;
 })(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
 (function (pixi_projection) {
     var MultiTextureSpriteRenderer = pixi_projection.webgl.MultiTextureSpriteRenderer;
     var SpriteBilinearRenderer = (function (_super) {
@@ -752,208 +841,7 @@ var pixi_projection;
     }(MultiTextureSpriteRenderer));
     PIXI.WebGLRenderer.registerPlugin('sprite_bilinear', SpriteBilinearRenderer);
 })(pixi_projection || (pixi_projection = {}));
-(function (pixi_projection) {
-    PIXI.Sprite.prototype.convertTo2s = function () {
-        if (this.proj)
-            return;
-        this.pluginName = 'sprite_bilinear';
-        this.aTrans = new PIXI.Matrix();
-        this.calculateVertices = pixi_projection.Sprite2s.prototype.calculateVertices;
-        this.calculateTrimmedVertices = pixi_projection.Sprite2s.prototype.calculateTrimmedVertices;
-        this._calculateBounds = pixi_projection.Sprite2s.prototype._calculateBounds;
-        PIXI.Container.prototype.convertTo2s.call(this);
-    };
-    PIXI.Container.prototype.convertTo2s = function () {
-        if (this.proj)
-            return;
-        this.proj = new pixi_projection.Projection2d(this.transform);
-        Object.defineProperty(this, "worldTransform", {
-            get: function () {
-                return this.proj;
-            },
-            enumerable: true,
-            configurable: true
-        });
-    };
-    PIXI.Container.prototype.convertSubtreeTo2s = function () {
-        this.convertTo2s();
-        for (var i = 0; i < this.children.length; i++) {
-            this.children[i].convertSubtreeTo2s();
-        }
-    };
-})(pixi_projection || (pixi_projection = {}));
-(function (pixi_projection) {
-    var Sprite2s = (function (_super) {
-        __extends(Sprite2s, _super);
-        function Sprite2s(texture) {
-            var _this = _super.call(this, texture) || this;
-            _this.aTrans = new PIXI.Matrix();
-            _this.proj = new pixi_projection.ProjectionSurface(_this.transform);
-            _this.pluginName = 'sprite_bilinear';
-            return _this;
-        }
-        Sprite2s.prototype._calculateBounds = function () {
-            this.calculateTrimmedVertices();
-            this._bounds.addQuad(this.vertexTrimmedData);
-        };
-        Sprite2s.prototype.calculateVertices = function () {
-            var wid = this.transform._worldID;
-            var tuid = this._texture._updateID;
-            if (this._transformID === wid && this._textureID === tuid) {
-                return;
-            }
-            this._transformID = wid;
-            this._textureID = tuid;
-            var texture = this._texture;
-            var vertexData = this.vertexData;
-            var trim = texture.trim;
-            var orig = texture.orig;
-            var anchor = this._anchor;
-            var w0 = 0;
-            var w1 = 0;
-            var h0 = 0;
-            var h1 = 0;
-            if (trim) {
-                w1 = trim.x - (anchor._x * orig.width);
-                w0 = w1 + trim.width;
-                h1 = trim.y - (anchor._y * orig.height);
-                h0 = h1 + trim.height;
-            }
-            else {
-                w1 = -anchor._x * orig.width;
-                w0 = w1 + orig.width;
-                h1 = -anchor._y * orig.height;
-                h0 = h1 + orig.height;
-            }
-            if (this.proj._surface) {
-                vertexData[0] = w1;
-                vertexData[1] = h1;
-                vertexData[2] = w0;
-                vertexData[3] = h1;
-                vertexData[4] = w0;
-                vertexData[5] = h0;
-                vertexData[6] = w1;
-                vertexData[7] = h0;
-                this.proj._surface.boundsQuad(vertexData, vertexData);
-            }
-            else {
-                var wt = this.transform.worldTransform;
-                var a = wt.a;
-                var b = wt.b;
-                var c = wt.c;
-                var d = wt.d;
-                var tx = wt.tx;
-                var ty = wt.ty;
-                vertexData[0] = (a * w1) + (c * h1) + tx;
-                vertexData[1] = (d * h1) + (b * w1) + ty;
-                vertexData[2] = (a * w0) + (c * h1) + tx;
-                vertexData[3] = (d * h1) + (b * w0) + ty;
-                vertexData[4] = (a * w0) + (c * h0) + tx;
-                vertexData[5] = (d * h0) + (b * w0) + ty;
-                vertexData[6] = (a * w1) + (c * h0) + tx;
-                vertexData[7] = (d * h0) + (b * w1) + ty;
-                if (this.proj._activeProjection) {
-                    this.proj._activeProjection.surface.boundsQuad(vertexData, vertexData);
-                }
-            }
-            if (!texture.transform) {
-                texture.transform = new PIXI.extras.TextureTransform(texture);
-            }
-            texture.transform.update();
-            var aTrans = this.aTrans;
-            aTrans.set(orig.width, 0, 0, orig.height, w1, h1);
-            if (this.proj._surface === null) {
-                aTrans.prepend(this.transform.worldTransform);
-            }
-            aTrans.invert();
-            aTrans.prepend(texture.transform.mapCoord);
-        };
-        Sprite2s.prototype.calculateTrimmedVertices = function () {
-            var wid = this.transform._worldID;
-            var tuid = this._texture._updateID;
-            if (!this.vertexTrimmedData) {
-                this.vertexTrimmedData = new Float32Array(8);
-            }
-            else if (this._transformTrimmedID === wid && this._textureTrimmedID === tuid) {
-                return;
-            }
-            this._transformTrimmedID = wid;
-            this._textureTrimmedID = tuid;
-            var texture = this._texture;
-            var vertexData = this.vertexTrimmedData;
-            var orig = texture.orig;
-            var anchor = this._anchor;
-            var w1 = -anchor._x * orig.width;
-            var w0 = w1 + orig.width;
-            var h1 = -anchor._y * orig.height;
-            var h0 = h1 + orig.height;
-            if (this.proj._surface) {
-                vertexData[0] = w1;
-                vertexData[1] = h1;
-                vertexData[2] = w0;
-                vertexData[3] = h1;
-                vertexData[4] = w0;
-                vertexData[5] = h0;
-                vertexData[6] = w1;
-                vertexData[7] = h0;
-                this.proj._surface.boundsQuad(vertexData, vertexData, this.transform.worldTransform);
-            }
-            else {
-                var wt = this.transform.worldTransform;
-                var a = wt.a;
-                var b = wt.b;
-                var c = wt.c;
-                var d = wt.d;
-                var tx = wt.tx;
-                var ty = wt.ty;
-                vertexData[0] = (a * w1) + (c * h1) + tx;
-                vertexData[1] = (d * h1) + (b * w1) + ty;
-                vertexData[2] = (a * w0) + (c * h1) + tx;
-                vertexData[3] = (d * h1) + (b * w0) + ty;
-                vertexData[4] = (a * w0) + (c * h0) + tx;
-                vertexData[5] = (d * h0) + (b * w0) + ty;
-                vertexData[6] = (a * w1) + (c * h0) + tx;
-                vertexData[7] = (d * h0) + (b * w1) + ty;
-                if (this.proj._activeProjection) {
-                    this.proj._activeProjection.surface.boundsQuad(vertexData, vertexData, this.proj._activeProjection.legacy.worldTransform);
-                }
-            }
-        };
-        Object.defineProperty(Sprite2s.prototype, "worldTransform", {
-            get: function () {
-                return this.proj;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        return Sprite2s;
-    }(PIXI.Sprite));
-    pixi_projection.Sprite2s = Sprite2s;
-})(pixi_projection || (pixi_projection = {}));
-(function (pixi_projection) {
-    var Text2s = (function (_super) {
-        __extends(Text2s, _super);
-        function Text2s(text, style, canvas) {
-            var _this = _super.call(this, text, style, canvas) || this;
-            _this.aTrans = new PIXI.Matrix();
-            _this.proj = new pixi_projection.ProjectionSurface(_this.transform);
-            _this.pluginName = 'sprite_bilinear';
-            return _this;
-        }
-        Object.defineProperty(Text2s.prototype, "worldTransform", {
-            get: function () {
-                return this.proj;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        return Text2s;
-    }(PIXI.Text));
-    pixi_projection.Text2s = Text2s;
-    Text2s.prototype.calculateVertices = pixi_projection.Sprite2s.prototype.calculateVertices;
-    Text2s.prototype.calculateTrimmedVertices = pixi_projection.Sprite2s.prototype.calculateTrimmedVertices;
-    Text2s.prototype._calculateBounds = pixi_projection.Sprite2s.prototype._calculateBounds;
-})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
 (function (pixi_projection) {
     var MultiTextureSpriteRenderer = pixi_projection.webgl.MultiTextureSpriteRenderer;
     var SpriteStrangeRenderer = (function (_super) {
@@ -1029,6 +917,7 @@ var pixi_projection;
     }(MultiTextureSpriteRenderer));
     PIXI.WebGLRenderer.registerPlugin('sprite_strange', SpriteStrangeRenderer);
 })(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
 (function (pixi_projection) {
     var tempMat = new PIXI.Matrix();
     var tempRect = new PIXI.Rectangle();
@@ -1199,6 +1088,212 @@ var pixi_projection;
     }(pixi_projection.Surface));
     pixi_projection.StrangeSurface = StrangeSurface;
 })(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
+    PIXI.Sprite.prototype.convertTo2s = function () {
+        if (this.proj)
+            return;
+        this.pluginName = 'sprite_bilinear';
+        this.aTrans = new PIXI.Matrix();
+        this.calculateVertices = pixi_projection.Sprite2s.prototype.calculateVertices;
+        this.calculateTrimmedVertices = pixi_projection.Sprite2s.prototype.calculateTrimmedVertices;
+        this._calculateBounds = pixi_projection.Sprite2s.prototype._calculateBounds;
+        PIXI.Container.prototype.convertTo2s.call(this);
+    };
+    PIXI.Container.prototype.convertTo2s = function () {
+        if (this.proj)
+            return;
+        this.proj = new pixi_projection.Projection2d(this.transform);
+        Object.defineProperty(this, "worldTransform", {
+            get: function () {
+                return this.proj;
+            },
+            enumerable: true,
+            configurable: true
+        });
+    };
+    PIXI.Container.prototype.convertSubtreeTo2s = function () {
+        this.convertTo2s();
+        for (var i = 0; i < this.children.length; i++) {
+            this.children[i].convertSubtreeTo2s();
+        }
+    };
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
+    var Sprite2s = (function (_super) {
+        __extends(Sprite2s, _super);
+        function Sprite2s(texture) {
+            var _this = _super.call(this, texture) || this;
+            _this.aTrans = new PIXI.Matrix();
+            _this.proj = new pixi_projection.ProjectionSurface(_this.transform);
+            _this.pluginName = 'sprite_bilinear';
+            return _this;
+        }
+        Sprite2s.prototype._calculateBounds = function () {
+            this.calculateTrimmedVertices();
+            this._bounds.addQuad(this.vertexTrimmedData);
+        };
+        Sprite2s.prototype.calculateVertices = function () {
+            var wid = this.transform._worldID;
+            var tuid = this._texture._updateID;
+            if (this._transformID === wid && this._textureID === tuid) {
+                return;
+            }
+            this._transformID = wid;
+            this._textureID = tuid;
+            var texture = this._texture;
+            var vertexData = this.vertexData;
+            var trim = texture.trim;
+            var orig = texture.orig;
+            var anchor = this._anchor;
+            var w0 = 0;
+            var w1 = 0;
+            var h0 = 0;
+            var h1 = 0;
+            if (trim) {
+                w1 = trim.x - (anchor._x * orig.width);
+                w0 = w1 + trim.width;
+                h1 = trim.y - (anchor._y * orig.height);
+                h0 = h1 + trim.height;
+            }
+            else {
+                w1 = -anchor._x * orig.width;
+                w0 = w1 + orig.width;
+                h1 = -anchor._y * orig.height;
+                h0 = h1 + orig.height;
+            }
+            if (this.proj._surface) {
+                vertexData[0] = w1;
+                vertexData[1] = h1;
+                vertexData[2] = w0;
+                vertexData[3] = h1;
+                vertexData[4] = w0;
+                vertexData[5] = h0;
+                vertexData[6] = w1;
+                vertexData[7] = h0;
+                this.proj._surface.boundsQuad(vertexData, vertexData);
+            }
+            else {
+                var wt = this.transform.worldTransform;
+                var a = wt.a;
+                var b = wt.b;
+                var c = wt.c;
+                var d = wt.d;
+                var tx = wt.tx;
+                var ty = wt.ty;
+                vertexData[0] = (a * w1) + (c * h1) + tx;
+                vertexData[1] = (d * h1) + (b * w1) + ty;
+                vertexData[2] = (a * w0) + (c * h1) + tx;
+                vertexData[3] = (d * h1) + (b * w0) + ty;
+                vertexData[4] = (a * w0) + (c * h0) + tx;
+                vertexData[5] = (d * h0) + (b * w0) + ty;
+                vertexData[6] = (a * w1) + (c * h0) + tx;
+                vertexData[7] = (d * h0) + (b * w1) + ty;
+                if (this.proj._activeProjection) {
+                    this.proj._activeProjection.surface.boundsQuad(vertexData, vertexData);
+                }
+            }
+            if (!texture.transform) {
+                texture.transform = new PIXI.extras.TextureTransform(texture);
+            }
+            texture.transform.update();
+            var aTrans = this.aTrans;
+            aTrans.set(orig.width, 0, 0, orig.height, w1, h1);
+            if (this.proj._surface === null) {
+                aTrans.prepend(this.transform.worldTransform);
+            }
+            aTrans.invert();
+            aTrans.prepend(texture.transform.mapCoord);
+        };
+        Sprite2s.prototype.calculateTrimmedVertices = function () {
+            var wid = this.transform._worldID;
+            var tuid = this._texture._updateID;
+            if (!this.vertexTrimmedData) {
+                this.vertexTrimmedData = new Float32Array(8);
+            }
+            else if (this._transformTrimmedID === wid && this._textureTrimmedID === tuid) {
+                return;
+            }
+            this._transformTrimmedID = wid;
+            this._textureTrimmedID = tuid;
+            var texture = this._texture;
+            var vertexData = this.vertexTrimmedData;
+            var orig = texture.orig;
+            var anchor = this._anchor;
+            var w1 = -anchor._x * orig.width;
+            var w0 = w1 + orig.width;
+            var h1 = -anchor._y * orig.height;
+            var h0 = h1 + orig.height;
+            if (this.proj._surface) {
+                vertexData[0] = w1;
+                vertexData[1] = h1;
+                vertexData[2] = w0;
+                vertexData[3] = h1;
+                vertexData[4] = w0;
+                vertexData[5] = h0;
+                vertexData[6] = w1;
+                vertexData[7] = h0;
+                this.proj._surface.boundsQuad(vertexData, vertexData, this.transform.worldTransform);
+            }
+            else {
+                var wt = this.transform.worldTransform;
+                var a = wt.a;
+                var b = wt.b;
+                var c = wt.c;
+                var d = wt.d;
+                var tx = wt.tx;
+                var ty = wt.ty;
+                vertexData[0] = (a * w1) + (c * h1) + tx;
+                vertexData[1] = (d * h1) + (b * w1) + ty;
+                vertexData[2] = (a * w0) + (c * h1) + tx;
+                vertexData[3] = (d * h1) + (b * w0) + ty;
+                vertexData[4] = (a * w0) + (c * h0) + tx;
+                vertexData[5] = (d * h0) + (b * w0) + ty;
+                vertexData[6] = (a * w1) + (c * h0) + tx;
+                vertexData[7] = (d * h0) + (b * w1) + ty;
+                if (this.proj._activeProjection) {
+                    this.proj._activeProjection.surface.boundsQuad(vertexData, vertexData, this.proj._activeProjection.legacy.worldTransform);
+                }
+            }
+        };
+        Object.defineProperty(Sprite2s.prototype, "worldTransform", {
+            get: function () {
+                return this.proj;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return Sprite2s;
+    }(PIXI.Sprite));
+    pixi_projection.Sprite2s = Sprite2s;
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
+    var Text2s = (function (_super) {
+        __extends(Text2s, _super);
+        function Text2s(text, style, canvas) {
+            var _this = _super.call(this, text, style, canvas) || this;
+            _this.aTrans = new PIXI.Matrix();
+            _this.proj = new pixi_projection.ProjectionSurface(_this.transform);
+            _this.pluginName = 'sprite_bilinear';
+            return _this;
+        }
+        Object.defineProperty(Text2s.prototype, "worldTransform", {
+            get: function () {
+                return this.proj;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return Text2s;
+    }(PIXI.Text));
+    pixi_projection.Text2s = Text2s;
+    Text2s.prototype.calculateVertices = pixi_projection.Sprite2s.prototype.calculateVertices;
+    Text2s.prototype.calculateTrimmedVertices = pixi_projection.Sprite2s.prototype.calculateTrimmedVertices;
+    Text2s.prototype._calculateBounds = pixi_projection.Sprite2s.prototype._calculateBounds;
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
 (function (pixi_projection) {
     function container2dWorldTransform() {
         return this.proj.affine ? this.transform.worldTransform : this.proj.world;
@@ -1206,8 +1301,8 @@ var pixi_projection;
     pixi_projection.container2dWorldTransform = container2dWorldTransform;
     var Container2d = (function (_super) {
         __extends(Container2d, _super);
-        function Container2d(texture) {
-            var _this = _super.call(this, texture) || this;
+        function Container2d() {
+            var _this = _super.call(this) || this;
             _this.proj = new pixi_projection.Projection2d(_this.transform);
             return _this;
         }
@@ -1219,9 +1314,10 @@ var pixi_projection;
             configurable: true
         });
         return Container2d;
-    }(PIXI.Sprite));
+    }(PIXI.Container));
     pixi_projection.Container2d = Container2d;
 })(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
 (function (pixi_projection) {
     var Point = PIXI.Point;
     var mat3id = [1, 0, 0, 0, 1, 0, 0, 0, 1];
@@ -1518,6 +1614,7 @@ var pixi_projection;
     }());
     pixi_projection.Matrix2d = Matrix2d;
 })(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
 (function (pixi_projection) {
     function transformHack(parentTransform) {
         var proj = this.proj;
@@ -1688,6 +1785,7 @@ var pixi_projection;
     }(pixi_projection.Projection));
     pixi_projection.Projection2d = Projection2d;
 })(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
 (function (pixi_projection) {
     PIXI.Sprite.prototype.convertTo2d = function () {
         if (this.proj)
@@ -1722,6 +1820,7 @@ var pixi_projection;
         }
     };
 })(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
 (function (pixi_projection) {
     var Sprite2d = (function (_super) {
         __extends(Sprite2d, _super);
@@ -1837,6 +1936,7 @@ var pixi_projection;
     }(PIXI.Sprite));
     pixi_projection.Sprite2d = Sprite2d;
 })(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
 (function (pixi_projection) {
     var MultiTextureSpriteRenderer = pixi_projection.webgl.MultiTextureSpriteRenderer;
     var Sprite2dRenderer = (function (_super) {
@@ -1921,6 +2021,7 @@ var pixi_projection;
     }(MultiTextureSpriteRenderer));
     PIXI.WebGLRenderer.registerPlugin('sprite2d', Sprite2dRenderer);
 })(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
 (function (pixi_projection) {
     var Text2d = (function (_super) {
         __extends(Text2d, _super);
@@ -1945,6 +2046,7 @@ var pixi_projection;
     Text2d.prototype.calculateTrimmedVertices = pixi_projection.Sprite2d.prototype.calculateTrimmedVertices;
     Text2d.prototype._calculateBounds = pixi_projection.Sprite2d.prototype._calculateBounds;
 })(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
 (function (pixi_projection) {
     var ProjectionsManager = (function () {
         function ProjectionsManager(renderer) {
@@ -1975,6 +2077,7 @@ var pixi_projection;
     }
     PIXI.WebGLRenderer.registerPlugin('projections', ProjectionsManager);
 })(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
 (function (pixi_projection) {
     var spriteMaskVert = "\nattribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\n\nuniform mat3 projectionMatrix;\nuniform mat3 otherMatrix;\n\nvarying vec3 vMaskCoord;\nvarying vec2 vTextureCoord;\n\nvoid main(void)\n{\n\tgl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n\n\tvTextureCoord = aTextureCoord;\n\tvMaskCoord = otherMatrix * vec3( aTextureCoord, 1.0);\n}\n";
     var spriteMaskFrag = "\nvarying vec3 vMaskCoord;\nvarying vec2 vTextureCoord;\n\nuniform sampler2D uSampler;\nuniform float alpha;\nuniform sampler2D mask;\n\nvoid main(void)\n{\n    vec2 uv = vMaskCoord.xy / vMaskCoord.z;\n    \n    vec2 text = abs( uv - 0.5 );\n    text = step(0.5, text);\n\n    float clip = 1.0 - max(text.y, text.x);\n    vec4 original = texture2D(uSampler, vTextureCoord);\n    vec4 masky = texture2D(mask, uv);\n\n    original *= (masky.r * masky.a * alpha * clip);\n\n    gl_FragColor = original;\n}\n";
@@ -2011,84 +2114,4 @@ var pixi_projection;
     }(PIXI.Filter));
     pixi_projection.SpriteMaskFilter2d = SpriteMaskFilter2d;
 })(pixi_projection || (pixi_projection = {}));
-(function (pixi_projection) {
-    var utils;
-    (function (utils) {
-        function createIndicesForQuads(size) {
-            var totalIndices = size * 6;
-            var indices = new Uint16Array(totalIndices);
-            for (var i = 0, j = 0; i < totalIndices; i += 6, j += 4) {
-                indices[i + 0] = j + 0;
-                indices[i + 1] = j + 1;
-                indices[i + 2] = j + 2;
-                indices[i + 3] = j + 0;
-                indices[i + 4] = j + 2;
-                indices[i + 5] = j + 3;
-            }
-            return indices;
-        }
-        utils.createIndicesForQuads = createIndicesForQuads;
-        function isPow2(v) {
-            return !(v & (v - 1)) && (!!v);
-        }
-        utils.isPow2 = isPow2;
-        function nextPow2(v) {
-            v += +(v === 0);
-            --v;
-            v |= v >>> 1;
-            v |= v >>> 2;
-            v |= v >>> 4;
-            v |= v >>> 8;
-            v |= v >>> 16;
-            return v + 1;
-        }
-        utils.nextPow2 = nextPow2;
-        function log2(v) {
-            var r, shift;
-            r = +(v > 0xFFFF) << 4;
-            v >>>= r;
-            shift = +(v > 0xFF) << 3;
-            v >>>= shift;
-            r |= shift;
-            shift = +(v > 0xF) << 2;
-            v >>>= shift;
-            r |= shift;
-            shift = +(v > 0x3) << 1;
-            v >>>= shift;
-            r |= shift;
-            return r | (v >> 1);
-        }
-        utils.log2 = log2;
-        function getIntersectionFactor(p1, p2, p3, p4, out) {
-            var A1 = p2.x - p1.x, B1 = p3.x - p4.x, C1 = p3.x - p1.x;
-            var A2 = p2.y - p1.y, B2 = p3.y - p4.y, C2 = p3.y - p1.y;
-            var D = A1 * B2 - A2 * B1;
-            if (Math.abs(D) < 1e-7) {
-                out.x = A1;
-                out.y = A2;
-                return 0;
-            }
-            var T = C1 * B2 - C2 * B1;
-            var U = A1 * C2 - A2 * C1;
-            var t = T / D, u = U / D;
-            if (u < (1e-6) || u - 1 > -1e-6) {
-                return -1;
-            }
-            out.x = p1.x + t * (p2.x - p1.x);
-            out.y = p1.y + t * (p2.y - p1.y);
-            return 1;
-        }
-        utils.getIntersectionFactor = getIntersectionFactor;
-        function getPositionFromQuad(p, anchor, out) {
-            out = out || new PIXI.Point();
-            var a1 = 1.0 - anchor.x, a2 = 1.0 - a1;
-            var b1 = 1.0 - anchor.y, b2 = 1.0 - b1;
-            out.x = (p[0].x * a1 + p[1].x * a2) * b1 + (p[3].x * a1 + p[2].x * a2) * b2;
-            out.y = (p[0].y * a1 + p[1].y * a2) * b1 + (p[3].y * a1 + p[2].y * a2) * b2;
-            return out;
-        }
-        utils.getPositionFromQuad = getPositionFromQuad;
-    })(utils = pixi_projection.utils || (pixi_projection.utils = {}));
-})(pixi_projection || (pixi_projection = {}));
-PIXI.projection = pixi_projection;
 //# sourceMappingURL=pixi-projection.js.map

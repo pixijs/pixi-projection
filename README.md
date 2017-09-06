@@ -1,5 +1,7 @@
 # pixi-projection
 
+[![Build Status](https://travis-ci.org/pixijs/pixi-projection.svg?branch=master)](https://travis-ci.org/pixijs/pixi-projection)
+
 Collection of projections, both 2d and 3d. 
 
 There are many ways to define projections even when we are using only 2 dimensions. 
