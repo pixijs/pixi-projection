@@ -61,7 +61,7 @@ declare module PIXI.projection.webgl {
         shaderFrag: string;
         MAX_TEXTURES_LOCAL: number;
         abstract createVao(vertexBuffer: GLBuffer): PIXI.glCore.VertexArrayObject;
-        abstract fillVertices(float32View: Float32Array, uint32View: Uint32Array, index: number, sprite: any, argb: number, textureId: number): any;
+        abstract fillVertices(float32View: Float32Array, uint32View: Uint32Array, index: number, sprite: any, argb: number, textureId: number): void;
         getUniforms(spr: PIXI.Sprite): any;
         syncUniforms(obj: any): void;
         vertSize: number;

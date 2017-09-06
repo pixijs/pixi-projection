@@ -40,7 +40,7 @@ namespace pixi_projection.webgl {
 
 		abstract createVao(vertexBuffer: GLBuffer): PIXI.glCore.VertexArrayObject;
 
-		abstract fillVertices(float32View: Float32Array, uint32View: Uint32Array, index: number, sprite: any, argb: number, textureId: number);
+		abstract fillVertices(float32View: Float32Array, uint32View: Uint32Array, index: number, sprite: any, argb: number, textureId: number): void;
 
 		getUniforms(spr: PIXI.Sprite): any {
 			return null;
