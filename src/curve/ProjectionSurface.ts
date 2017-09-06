@@ -124,7 +124,7 @@ namespace pixi_projection {
 
 		_currentSurfaceID = -1;
 		_currentLegacyID = -1;
-		_lastUniforms = null;
+		_lastUniforms : any = null;
 
 		clear() {
 			if (this.surface) {
