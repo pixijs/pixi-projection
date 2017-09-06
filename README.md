@@ -13,11 +13,11 @@ Done:
 - Projective 2d transform
 - Projective 2d quad mapping
 - Bilinear 2d quad mapping
+- Option to "drop" projection and go back to PIXI.Matrix in a child
 
 Backlog:
 
 - Projective 2d by euler angles
-- Option to "drop" projection and go back to PIXI.Matrix in a child
 
 To-do:
 
@@ -28,6 +28,7 @@ To-do:
 Projective sprites: Container2d, Sprite2d, Text2d
 
 [Two-point projection](http://pixijs.github.io/examples/#/projection/basic.js)
+[One-point with return to affine](http://pixijs.github.io/examples/#/projection/plane.js)
 [Projective transform of quad](http://pixijs.github.io/examples/#/projection/quad-homo.js)
 
 Surface sprites: Container2s, Sprite2s, Text2s for now only bilinear
