@@ -1,7 +1,7 @@
 import 'pixi.js';
 import '../dist/pixi-projection.js';
 
-//@../node_modules/pixi.js/dist/pixi.js
+//@../node_modules/pixi.js/dist/pixi.min.js
 //@../dist/pixi-projection.js
 
 let app = new PIXI.Application(800, 600, {backgroundColor: 0x103322});

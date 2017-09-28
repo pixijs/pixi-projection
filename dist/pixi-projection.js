@@ -1802,11 +1802,21 @@ var pixi_projection;
             configurable: true
         });
     };
+    PIXI.mesh.Mesh.prototype.convertTo2d = function () {
+        if (this.proj)
+            return;
+        this.proj = new pixi_projection.Projection2d(this.transform);
+        this.pluginName = 'mesh2d';
+        Object.defineProperty(this, "worldTransform", {
+            get: pixi_projection.container2dWorldTransform,
+            enumerable: true,
+            configurable: true
+        });
+    };
     PIXI.Container.prototype.convertTo2d = function () {
         if (this.proj)
             return;
         this.proj = new pixi_projection.Projection2d(this.transform);
-        this.pluginName = 'sprite2d';
         Object.defineProperty(this, "worldTransform", {
             get: pixi_projection.container2dWorldTransform,
             enumerable: true,
@@ -1819,6 +1829,24 @@ var pixi_projection;
             this.children[i].convertSubtreeTo2d();
         }
     };
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
+    var shaderVert = "precision highp float;\nattribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\n\nuniform mat3 projectionMatrix;\nuniform mat3 translationMatrix;\nuniform mat3 uTransform;\n\nvarying vec2 vTextureCoord;\n\nvoid main(void)\n{\n    gl_Position.xyw = projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0);\n    gl_Position.z = 0.0;\n\n    vTextureCoord = (uTransform * vec3(aTextureCoord, 1.0)).xy;\n}\n";
+    var shaderFrag = "\nvarying vec2 vTextureCoord;\nuniform vec4 uColor;\n\nuniform sampler2D uSampler;\n\nvoid main(void)\n{\n    gl_FragColor = texture2D(uSampler, vTextureCoord) * uColor;\n}";
+    var Mesh2dRenderer = (function (_super) {
+        __extends(Mesh2dRenderer, _super);
+        function Mesh2dRenderer() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        Mesh2dRenderer.prototype.onContextChange = function () {
+            var gl = this.renderer.gl;
+            this.shader = new PIXI.Shader(gl, shaderVert, shaderFrag);
+        };
+        return Mesh2dRenderer;
+    }(PIXI.mesh.MeshRenderer));
+    pixi_projection.Mesh2dRenderer = Mesh2dRenderer;
+    PIXI.WebGLRenderer.registerPlugin('mesh2d', Mesh2dRenderer);
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
 (function (pixi_projection) {

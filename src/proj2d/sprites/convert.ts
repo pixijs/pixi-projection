@@ -7,6 +7,12 @@ declare module PIXI {
         convertTo2d(): void;
         convertSubtreeTo2d(): void;
     }
+
+    namespace mesh {
+	    interface Mesh {
+		    convertTo2d(): void;
+	    }
+    }
 }
 
 namespace pixi_projection {
@@ -26,10 +32,20 @@ namespace pixi_projection {
         });
     };
 
+	(PIXI as any).mesh.Mesh.prototype.convertTo2d = function () {
+		if (this.proj) return;
+		this.proj = new Projection2d(this.transform);
+		this.pluginName = 'mesh2d';
+		Object.defineProperty(this, "worldTransform", {
+			get: container2dWorldTransform,
+			enumerable: true,
+			configurable: true
+		});
+	};
+
     (PIXI as any).Container.prototype.convertTo2d = function () {
         if (this.proj) return;
         this.proj = new Projection2d(this.transform);
-        this.pluginName = 'sprite2d';
         Object.defineProperty(this, "worldTransform", {
             get: container2dWorldTransform,
             enumerable: true,

@@ -276,8 +276,18 @@ declare module PIXI {
         convertTo2d(): void;
         convertSubtreeTo2d(): void;
     }
+    namespace mesh {
+        interface Mesh {
+            convertTo2d(): void;
+        }
+    }
 }
 declare module PIXI.projection {
+}
+declare module PIXI.projection {
+    class Mesh2dRenderer extends PIXI.mesh.MeshRenderer {
+        onContextChange(): void;
+    }
 }
 declare module PIXI.projection {
     class Sprite2d extends PIXI.Sprite {
