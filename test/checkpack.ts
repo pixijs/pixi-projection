@@ -4,7 +4,7 @@ import '../dist/pixi-projection.js';
 //@../node_modules/pixi.js/dist/pixi.min.js
 //@../dist/pixi-projection.js
 
-let app = new PIXI.Application(800, 600, {backgroundColor: 0x103322});
+let app = new PIXI.Application(800, 600, {backgroundColor: 0x103322, autoStart: false});
 document.body.appendChild(app.view);
 
 let loader = new PIXI.loaders.Loader("https://pixijs.github.io/examples/required/assets/");
@@ -24,6 +24,8 @@ let bunny: PIXI.projection.Sprite2d;
 let squarePlane: Square;
 
 loader.load(() => {
+	app.start();
+
 	let squareFar = new Square();
 	squareFar.tint = 0xff0000;
 	squareFar.factor = 1;
