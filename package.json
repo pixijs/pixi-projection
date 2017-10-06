@@ -1,6 +1,6 @@
 {
   "name": "pixi-projection",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Projections (2.5d and bilinear) for pixi v^4",
   "author": "Ivan Popelyshev",
   "contributors": [
@@ -23,8 +23,8 @@
     "start": "parallelshell \"yarn watch\"",
     "watch": "tsc -w",
     "prebuild": "yarn cleanup",
-    "make:dts": "node scripts/make_dts.js",
-    "build": "tsc && yarn make:dts",
+    "make:dts": "node scripts/make_dts.js && node scripts/make_dts_no_spine.js",
+    "build": "tsc && tsc -p tsconfig-no-spine.json && yarn make:dts",
     "docs": "jsdoc -c scripts/jsdoc.conf.json -R README.md",
     "check:browserify": "yarn checkpack -- browserify -e test/checkpack.ts",
     "check:webpack": "yarn checkpack -- webpack -e test/checkpack.ts",
@@ -46,6 +46,7 @@
     "mkdirp": "~0.5.1",
     "parallelshell": "~2.0.0",
     "pixi.js": "~4.5",
+    "pixi-spine": "~1.5.7",
     "rimraf": "~2.5.3",
     "static-html-server": "~0.1.2",
     "tmp": "^0.0.33",

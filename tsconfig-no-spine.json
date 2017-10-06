@@ -2,7 +2,7 @@
     "compilerOptions": {
         "target": "es5",
         "module": "none",
-        "outFile": "dist/pixi-projection-spine.js",
+        "outFile": "dist/pixi-projection.js",
         "experimentalDecorators": true,
         "sourceMap": true,
         "preserveConstEnums": true,
@@ -18,10 +18,10 @@
         ]
     },
     "include": [
-        "src/**/*",
-        "spine/**/*"
+        "src/**/*"
     ],
     "exclude": [
+        "spine/**/*",
         "node_modules/**/*",
         "dist"
     ]

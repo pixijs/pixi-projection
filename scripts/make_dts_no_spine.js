@@ -15,16 +15,6 @@ for (var i in files) {
     filesCompilation += fileContents;
 }
 
-var sourcePath2 = path.resolve(__dirname, '../spine');
-var files2 = glob.sync(sourcePath2 + '/**/*.ts');
-
-for (var i in files2) {
-    var filePath = files2[i];
-    var fileContents = fs.readFileSync(filePath);
-
-    filesCompilation += fileContents;
-}
-
 var tmp = require('tmp');
 var process = require('child_process');
 
@@ -36,7 +26,7 @@ tmp.file(function (err, filename) {
         var dtsContent = '' + fs.readFileSync(dtsPath);
 
         fs.writeFileSync(
-            path.resolve('dist/pixi-projection-spine.d.ts'),
+            path.resolve('dist/pixi-projection.d.ts'),
             dtsContent.replace(/namespace pixi_projection/g, 'module PIXI.projection')
                 .replace(/pixi_projection/g, 'PIXI.projection')
         );

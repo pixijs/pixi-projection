@@ -347,3 +347,20 @@ declare module PIXI.projection.utils {
     function getIntersectionFactor(p1: PointLike, p2: PointLike, p3: PointLike, p4: PointLike, out: PointLike): number;
     function getPositionFromQuad(p: Array<PointLike>, anchor: PointLike, out: PointLike): PointLike;
 }
+declare module PIXI.projection {
+    interface Sprite2d {
+        region: PIXI.spine.core.TextureRegion;
+    }
+    interface Mesh2d {
+        region: PIXI.spine.core.TextureRegion;
+    }
+    class Spine2d extends PIXI.spine.Spine {
+        constructor(spineData: PIXI.spine.core.SkeletonData);
+        proj: Projection2d;
+        newContainer(): Container2d;
+        newSprite(tex: PIXI.Texture): Sprite2d;
+        newGraphics(): PIXI.Graphics;
+        newMesh(texture: PIXI.Texture, vertices?: Float32Array, uvs?: Float32Array, indices?: Uint16Array, drawMode?: number): Mesh2d;
+        transformHack(): boolean;
+    }
+}

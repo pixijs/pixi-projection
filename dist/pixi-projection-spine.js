@@ -2163,4 +2163,32 @@ var pixi_projection;
     }(PIXI.Filter));
     pixi_projection.SpriteMaskFilter2d = SpriteMaskFilter2d;
 })(pixi_projection || (pixi_projection = {}));
-//# sourceMappingURL=pixi-projection.js.map
+var pixi_projection;
+(function (pixi_projection) {
+    var Spine2d = (function (_super) {
+        __extends(Spine2d, _super);
+        function Spine2d(spineData) {
+            var _this = _super.call(this, spineData) || this;
+            _this.convertTo2d();
+            return _this;
+        }
+        Spine2d.prototype.newContainer = function () {
+            return new pixi_projection.Container2d();
+        };
+        Spine2d.prototype.newSprite = function (tex) {
+            return new pixi_projection.Sprite2d(tex);
+        };
+        Spine2d.prototype.newGraphics = function () {
+            return new PIXI.Graphics();
+        };
+        Spine2d.prototype.newMesh = function (texture, vertices, uvs, indices, drawMode) {
+            return new pixi_projection.Mesh2d(texture, vertices, uvs, indices, drawMode);
+        };
+        Spine2d.prototype.transformHack = function () {
+            return false;
+        };
+        return Spine2d;
+    }(PIXI.spine.Spine));
+    pixi_projection.Spine2d = Spine2d;
+})(pixi_projection || (pixi_projection = {}));
+//# sourceMappingURL=pixi-projection-spine.js.map
