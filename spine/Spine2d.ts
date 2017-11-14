@@ -35,7 +35,7 @@ module pixi_projection {
 		}
 
 		transformHack() {
-			return false;
+			return 2;
 		}
 	}
 }

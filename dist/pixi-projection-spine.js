@@ -2186,7 +2186,7 @@ var pixi_projection;
             return new pixi_projection.Mesh2d(texture, vertices, uvs, indices, drawMode);
         };
         Spine2d.prototype.transformHack = function () {
-            return false;
+            return 2;
         };
         return Spine2d;
     }(PIXI.spine.Spine));

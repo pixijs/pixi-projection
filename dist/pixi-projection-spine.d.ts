@@ -361,6 +361,6 @@ declare module PIXI.projection {
         newSprite(tex: PIXI.Texture): Sprite2d;
         newGraphics(): PIXI.Graphics;
         newMesh(texture: PIXI.Texture, vertices?: Float32Array, uvs?: Float32Array, indices?: Uint16Array, drawMode?: number): Mesh2d;
-        transformHack(): boolean;
+        transformHack(): number;
     }
 }
