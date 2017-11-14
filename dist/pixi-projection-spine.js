@@ -362,6 +362,7 @@ var pixi_projection;
                     }
                     for (var j = 0; j < groupTextureCount; j++) {
                         this.renderer.bindTexture(group.textures[j], j, true);
+                        group.textures[j]._virtalBoundId = -1;
                         var v = this.shader.uniforms.samplerSize;
                         if (v) {
                             v[0] = group.textures[j].realWidth;

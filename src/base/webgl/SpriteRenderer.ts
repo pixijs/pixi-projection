@@ -324,6 +324,7 @@ namespace pixi_projection.webgl {
 
 				for (let j = 0; j < groupTextureCount; j++) {
 					this.renderer.bindTexture(group.textures[j], j, true);
+					group.textures[j]._virtalBoundId = -1;
 
 					const v = this.shader.uniforms.samplerSize;
 					if (v) {
