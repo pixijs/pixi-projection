@@ -1196,7 +1196,7 @@ var pixi_projection;
                 }
             }
             if (!texture.transform) {
-                texture.transform = new PIXI.extras.TextureTransform(texture);
+                texture.transform = new PIXI.TextureMatrix(texture);
             }
             texture.transform.update();
             var aTrans = this.aTrans;
@@ -1608,6 +1608,14 @@ var pixi_projection;
             out[7] = b20 * a01 + b21 * a11 + b22 * a21;
             out[8] = b20 * a02 + b21 * a12 + b22 * a22;
             return this;
+        };
+        Matrix2d.prototype.prepend = function (lt) {
+            if (lt.mat3) {
+                this.setToMult2d(lt, this);
+            }
+            else {
+                this.setToMultLegacy(lt, this);
+            }
         };
         Matrix2d.IDENTITY = new Matrix2d();
         Matrix2d.TEMP_MATRIX = new Matrix2d();
@@ -2095,6 +2103,121 @@ var pixi_projection;
     Text2d.prototype.calculateVertices = pixi_projection.Sprite2d.prototype.calculateVertices;
     Text2d.prototype.calculateTrimmedVertices = pixi_projection.Sprite2d.prototype.calculateTrimmedVertices;
     Text2d.prototype._calculateBounds = pixi_projection.Sprite2d.prototype._calculateBounds;
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
+    var tempTransform = new PIXI.TransformStatic();
+    var TilingSprite2d = (function (_super) {
+        __extends(TilingSprite2d, _super);
+        function TilingSprite2d(texture, width, height) {
+            var _this = _super.call(this, texture, width, height) || this;
+            _this.tileProj = new pixi_projection.Projection2d(_this.tileTransform);
+            _this.proj = new pixi_projection.Projection2d(_this.transform);
+            _this.pluginName = 'tilingSprite2d';
+            _this.uvRespectAnchor = true;
+            return _this;
+        }
+        Object.defineProperty(TilingSprite2d.prototype, "worldTransform", {
+            get: function () {
+                return this.proj.affine ? this.transform.worldTransform : this.proj.world;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        TilingSprite2d.prototype._renderWebGL = function (renderer) {
+            var texture = this._texture;
+            if (!texture || !texture.valid) {
+                return;
+            }
+            this.tileTransform.updateTransform(tempTransform);
+            this.uvTransform.update();
+            renderer.setObjectRenderer(renderer.plugins[this.pluginName]);
+            renderer.plugins[this.pluginName].render(this);
+        };
+        return TilingSprite2d;
+    }(PIXI.extras.TilingSprite));
+    pixi_projection.TilingSprite2d = TilingSprite2d;
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
+    var shaderVert = "attribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\n\nuniform mat3 projectionMatrix;\nuniform mat3 translationMatrix;\nuniform mat3 uTransform;\n\nvarying vec3 vTextureCoord;\n\nvoid main(void)\n{\n    gl_Position.xyw = projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0);\n\n    vTextureCoord = uTransform * vec3(aTextureCoord, 1.0);\n}\n";
+    var shaderFrag = "\nvarying vec3 vTextureCoord;\n\nuniform sampler2D uSampler;\nuniform vec4 uColor;\nuniform mat3 uMapCoord;\nuniform vec4 uClampFrame;\nuniform vec2 uClampOffset;\n\nvoid main(void)\n{\n    vec2 coord = mod(vTextureCoord.xy / vTextureCoord.z - uClampOffset, vec2(1.0, 1.0)) + uClampOffset;\n    coord = (uMapCoord * vec3(coord, 1.0)).xy;\n    coord = clamp(coord, uClampFrame.xy, uClampFrame.zw);\n\n    vec4 sample = texture2D(uSampler, coord);\n    gl_FragColor = sample * uColor;\n}\n";
+    var shaderSimpleFrag = "\n\tvarying vec3 vTextureCoord;\n\nuniform sampler2D uSampler;\nuniform vec4 uColor;\n\nvoid main(void)\n{\n    vec4 sample = texture2D(uSampler, vTextureCoord.xy / vTextureCoord.z);\n    gl_FragColor = sample * uColor;\n}\n";
+    var tempMat = new pixi_projection.Matrix2d();
+    var WRAP_MODES = PIXI.WRAP_MODES;
+    var utils = PIXI.utils;
+    var TilingSprite2dRenderer = (function (_super) {
+        __extends(TilingSprite2dRenderer, _super);
+        function TilingSprite2dRenderer() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        TilingSprite2dRenderer.prototype.onContextChange = function () {
+            var gl = this.renderer.gl;
+            this.shader = new PIXI.Shader(gl, shaderVert, shaderFrag);
+            this.simpleShader = new PIXI.Shader(gl, shaderVert, shaderSimpleFrag);
+            this.renderer.bindVao(null);
+            this.quad = new PIXI.Quad(gl, this.renderer.state.attribState);
+            this.quad.initVao(this.shader);
+        };
+        TilingSprite2dRenderer.prototype.render = function (ts) {
+            var renderer = this.renderer;
+            var quad = this.quad;
+            renderer.bindVao(quad.vao);
+            var vertices = quad.vertices;
+            vertices[0] = vertices[6] = (ts._width) * -ts.anchor.x;
+            vertices[1] = vertices[3] = ts._height * -ts.anchor.y;
+            vertices[2] = vertices[4] = (ts._width) * (1.0 - ts.anchor.x);
+            vertices[5] = vertices[7] = ts._height * (1.0 - ts.anchor.y);
+            if (ts.uvRespectAnchor) {
+                vertices = quad.uvs;
+                vertices[0] = vertices[6] = -ts.anchor.x;
+                vertices[1] = vertices[3] = -ts.anchor.y;
+                vertices[2] = vertices[4] = 1.0 - ts.anchor.x;
+                vertices[5] = vertices[7] = 1.0 - ts.anchor.y;
+            }
+            quad.upload();
+            var tex = ts._texture;
+            var baseTex = tex.baseTexture;
+            var lt = ts.tileProj.world;
+            var uv = ts.uvTransform;
+            var isSimple = baseTex.isPowerOfTwo
+                && tex.frame.width === baseTex.width && tex.frame.height === baseTex.height;
+            if (isSimple) {
+                if (!baseTex._glTextures[renderer.CONTEXT_UID]) {
+                    if (baseTex.wrapMode === WRAP_MODES.CLAMP) {
+                        baseTex.wrapMode = WRAP_MODES.REPEAT;
+                    }
+                }
+                else {
+                    isSimple = baseTex.wrapMode !== WRAP_MODES.CLAMP;
+                }
+            }
+            var shader = isSimple ? this.simpleShader : this.shader;
+            renderer.bindShader(shader);
+            tempMat.identity();
+            tempMat.scale(tex.width, tex.height);
+            tempMat.prepend(lt);
+            tempMat.scale(1.0 / ts._width, 1.0 / ts._height);
+            tempMat.invert();
+            if (isSimple) {
+                tempMat.prepend(uv.mapCoord);
+            }
+            else {
+                shader.uniforms.uMapCoord = uv.mapCoord.toArray(true);
+                shader.uniforms.uClampFrame = uv.uClampFrame;
+                shader.uniforms.uClampOffset = uv.uClampOffset;
+            }
+            shader.uniforms.uTransform = tempMat.toArray(true);
+            shader.uniforms.uColor = utils.premultiplyTintToRgba(ts.tint, ts.worldAlpha, shader.uniforms.uColor, baseTex.premultipliedAlpha);
+            shader.uniforms.translationMatrix = ts.proj.world.toArray(true);
+            shader.uniforms.uSampler = renderer.bindTexture(tex);
+            renderer.setBlendMode(utils.correctBlendMode(ts.blendMode, baseTex.premultipliedAlpha));
+            quad.vao.draw(this.renderer.gl.TRIANGLES, 6, 0);
+        };
+        return TilingSprite2dRenderer;
+    }(PIXI.extras.TilingSpriteRenderer));
+    pixi_projection.TilingSprite2dRenderer = TilingSprite2dRenderer;
+    PIXI.WebGLRenderer.registerPlugin('tilingSprite2d', TilingSprite2dRenderer);
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
 (function (pixi_projection) {

@@ -247,6 +247,7 @@ declare module PIXI.projection {
         copyFrom(matrix: PIXI.Matrix): this;
         setToMultLegacy(pt: PIXI.Matrix, lt: Matrix2d): this;
         setToMult2d(pt: Matrix2d, lt: Matrix2d): this;
+        prepend(lt: any): void;
     }
 }
 declare module PIXI.projection {
@@ -313,6 +314,24 @@ declare module PIXI.projection {
         constructor(text?: string, style?: PIXI.TextStyle, canvas?: HTMLCanvasElement);
         proj: Projection2d;
         readonly worldTransform: any;
+    }
+}
+declare module PIXI.projection {
+    class TilingSprite2d extends PIXI.extras.TilingSprite {
+        constructor(texture: PIXI.Texture, width: number, height: number);
+        tileProj: Projection2d;
+        proj: Projection2d;
+        readonly worldTransform: any;
+        _renderWebGL(renderer: PIXI.WebGLRenderer): void;
+    }
+}
+declare module PIXI.projection {
+    class TilingSprite2dRenderer extends PIXI.extras.TilingSpriteRenderer {
+        shader: PIXI.Shader;
+        simpleShader: PIXI.Shader;
+        quad: PIXI.Quad;
+        onContextChange(): void;
+        render(ts: any): void;
     }
 }
 declare module PIXI.projection {
