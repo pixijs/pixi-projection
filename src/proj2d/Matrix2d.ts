@@ -379,8 +379,13 @@ namespace pixi_projection {
 			return this;
 		}
 
-		prepend(lt: PIXI.Matrix) {
-			this.setToMultLegacy(lt, this);
+		prepend(lt: any) {
+			if (lt.mat3) {
+				this.setToMult2d(lt, this);
+			} else
+			{
+				this.setToMultLegacy(lt, this);
+			}
 		}
 	}
 }
