@@ -48,7 +48,9 @@ void main(void)
 }
 `;
 
-	const tempMat = new PIXI.Matrix();
+	// changed
+	const tempMat = new Matrix2d();
+
 	import WRAP_MODES = PIXI.WRAP_MODES;
 	import utils = PIXI.utils;
 
@@ -100,7 +102,7 @@ void main(void)
 
 			const tex = ts._texture;
 			const baseTex = tex.baseTexture;
-			const lt = ts.tileTransform.localTransform;
+			const lt = ts.tileProj.world;
 			const uv = ts.uvTransform;
 			let isSimple = baseTex.isPowerOfTwo
 				&& tex.frame.width === baseTex.width && tex.frame.height === baseTex.height;
@@ -125,23 +127,11 @@ void main(void)
 
 			renderer.bindShader(shader);
 
-			const w = tex.width;
-			const h = tex.height;
-			const W = ts._width;
-			const H = ts._height;
-
-			tempMat.set(lt.a * w / W,
-				lt.b * w / H,
-				lt.c * h / W,
-				lt.d * h / H,
-				lt.tx / W,
-				lt.ty / H);
-
-			// that part is the same as above:
-			// tempMat.identity();
-			// tempMat.scale(tex.width, tex.height);
-			// tempMat.prepend(lt);
-			// tempMat.scale(1.0 / ts._width, 1.0 / ts._height);
+			// changed
+			tempMat.identity();
+			tempMat.scale(tex.width, tex.height);
+			tempMat.prepend(lt);
+			tempMat.scale(1.0 / ts._width, 1.0 / ts._height);
 
 			tempMat.invert();
 			if (isSimple)
@@ -158,7 +148,8 @@ void main(void)
 			shader.uniforms.uTransform = tempMat.toArray(true);
 			shader.uniforms.uColor = utils.premultiplyTintToRgba(ts.tint, ts.worldAlpha,
 				shader.uniforms.uColor, baseTex.premultipliedAlpha);
-			shader.uniforms.translationMatrix = ts.transform.worldTransform.toArray(true);
+			// changed
+			shader.uniforms.translationMatrix = ts.proj.world.toArray(true);
 
 			shader.uniforms.uSampler = renderer.bindTexture(tex);
 

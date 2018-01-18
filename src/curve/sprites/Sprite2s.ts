@@ -82,7 +82,7 @@ namespace pixi_projection {
 			}
 
 			if (!texture.transform) {
-				texture.transform = new PIXI.extras.TextureTransform(texture);
+				texture.transform = new PIXI.TextureMatrix(texture);
 			}
 			texture.transform.update();
 

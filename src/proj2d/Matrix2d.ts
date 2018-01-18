@@ -378,5 +378,9 @@ namespace pixi_projection {
 
 			return this;
 		}
+
+		prepend(lt: PIXI.Matrix) {
+			this.setToMultLegacy(lt, this);
+		}
 	}
 }

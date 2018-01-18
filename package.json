@@ -45,13 +45,13 @@
     "jsdoc": "~3.4.0",
     "mkdirp": "~0.5.1",
     "parallelshell": "~2.0.0",
-    "pixi.js": "~4.5",
     "pixi-spine": "~1.5.7",
+    "pixi.js": "~4.5",
     "rimraf": "~2.5.3",
     "static-html-server": "~0.1.2",
     "tmp": "^0.0.33",
     "ts-helpers": "~1.1.2",
-    "typescript": "~2.4"
+    "typescript": "^2.4.2"
   },
   "dependencies": {
     "@types/pixi.js": "^4.5.3"
