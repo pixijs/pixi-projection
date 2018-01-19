@@ -246,6 +246,7 @@ declare module PIXI.projection {
         copy(matrix: PIXI.Matrix, affine?: AFFINE): void;
         copyFrom(matrix: PIXI.Matrix): this;
         setToMultLegacy(pt: PIXI.Matrix, lt: Matrix2d): this;
+        setToMultLegacy2(pt: Matrix2d, lt: PIXI.Matrix): this;
         setToMult2d(pt: Matrix2d, lt: Matrix2d): this;
         prepend(lt: any): void;
     }
@@ -272,6 +273,7 @@ declare module PIXI.projection {
         _projID: number;
         _currentProjID: number;
         _affine: AFFINE;
+        reverseLocalOrder: boolean;
         affine: AFFINE;
         enabled: boolean;
         setAxisX(p: PointLike, factor?: number): void;
