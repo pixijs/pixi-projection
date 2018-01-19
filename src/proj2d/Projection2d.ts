@@ -32,7 +32,16 @@ namespace pixi_projection {
 		if (proj._currentProjID !== _matrixID) {
 			proj._currentProjID = _matrixID;
 			if (_matrixID !== 0) {
-				proj.local.setToMultLegacy(lt, proj.matrix);
+				if (proj.reverseLocalOrder)
+				{
+					// tilingSprite inside order
+					proj.local.setToMultLegacy2(proj.matrix, lt);
+				}
+				else
+				{
+					// good order
+					proj.local.setToMultLegacy(lt, proj.matrix);
+				}
 			} else {
 				proj.local.copyFrom(lt);
 			}
@@ -70,6 +79,7 @@ namespace pixi_projection {
 		_projID = 0;
 		_currentProjID = -1;
 		_affine = AFFINE.NONE;
+		reverseLocalOrder = false;
 
 		set affine(value: AFFINE) {
 			if (this._affine == value) return;

@@ -6,6 +6,7 @@ namespace pixi_projection {
 			super(texture, width, height);
 
 			this.tileProj = new Projection2d(this.tileTransform);
+			this.tileProj.reverseLocalOrder = true;
 			this.proj = new Projection2d(this.transform);
 
 			this.pluginName = 'tilingSprite2d';
