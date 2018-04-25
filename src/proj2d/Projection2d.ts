@@ -75,6 +75,7 @@ namespace pixi_projection {
 		matrix = new Matrix2d();
 		local = new Matrix2d();
 		world = new Matrix2d();
+		pivot = new ObservablePoint();
 
 		_projID = 0;
 		_currentProjID = -1;
