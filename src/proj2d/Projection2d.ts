@@ -75,12 +75,22 @@ namespace pixi_projection {
 		matrix = new Matrix2d();
 		local = new Matrix2d();
 		world = new Matrix2d();
-		pivot = new ObservablePoint();
+		pivot = new PIXI.ObservablePoint(this.onChange, this, 0, 0);
 
 		_projID = 0;
 		_currentProjID = -1;
 		_affine = AFFINE.NONE;
 		reverseLocalOrder = false;
+
+		onChange() {
+			const pivot = this.pivot;
+			const mat3 = this.matrix.mat3;
+
+			mat3[6] = - (pivot._x * mat3[0] + pivot._y * mat3[3]);
+			mat3[7] = - (pivot._x * mat3[1] + pivot._y * mat3[4]);
+
+			this._projID++;
+		}
 
 		set affine(value: AFFINE) {
 			if (this._affine == value) return;
@@ -113,7 +123,8 @@ namespace pixi_projection {
 			mat3[0] = x / d;
 			mat3[1] = y / d;
 			mat3[2] = factor / d;
-			this._projID++;
+
+			this.onChange();
 		}
 
 		setAxisY(p: PointLike, factor: number = 1) {
@@ -123,7 +134,7 @@ namespace pixi_projection {
 			mat3[3] = x / d;
 			mat3[4] = y / d;
 			mat3[5] = factor / d;
-			this._projID++;
+			this.onChange();
 		}
 
 		mapSprite(sprite: PIXI.Sprite, quad: Array<PointLike>) {
@@ -209,6 +220,7 @@ namespace pixi_projection {
 			this._currentProjID = -1;
 			this._projID = 0;
 			this.matrix.identity();
+			this.pivot.set(0, 0);
 		}
 	}
 }
