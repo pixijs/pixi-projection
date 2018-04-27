@@ -148,7 +148,7 @@ namespace pixi_projection {
 
 		//TODO: remove props
 		apply(pos: IPoint, newPos: IPoint): IPoint {
- 			newPos = newPos || new PIXI.Point();
+			newPos = newPos || new PIXI.Point();
 
 			const mat4 = this.mat4;
 			const x = pos.x;
@@ -376,30 +376,47 @@ namespace pixi_projection {
 			return this;
 		}
 
-		setToMultLegacy(pt: PIXI.Matrix, lt: Matrix2d) {
+		setToMultLegacy(pt: PIXI.Matrix, lt: Matrix3d) {
 			const out = this.mat4;
 			const b = lt.mat4;
 
 			const a00 = pt.a, a01 = pt.b,
 				a10 = pt.c, a11 = pt.d,
-				a20 = pt.tx, a21 = pt.ty,
+				a30 = pt.tx, a31 = pt.ty;
 
-				b00 = b[0], b01 = b[1], b02 = b[2],
-				b10 = b[3], b11 = b[4], b12 = b[5],
-				b20 = b[6], b21 = b[7], b22 = b[8];
+			let b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
 
+			out[0] = b0 * a00 + b1 * a10 + b3 * a30;
+			out[1] = b0 * a01 + b1 * a11 + b3 * a31;
+			out[2] = b2;
+			out[3] = b3;
 
-			out[0] = b00 * a00 + b01 * a10 + b02 * a20;
-			out[1] = b00 * a01 + b01 * a11 + b02 * a21;
-			out[2] = b02;
+			b0 = b[4];
+			b1 = b[5];
+			b2 = b[6];
+			b3 = b[7];
+			out[4] = b0 * a00 + b1 * a10 + b3 * a30;
+			out[5] = b0 * a01 + b1 * a11 + b3 * a31;
+			out[6] = b2;
+			out[7] = b3;
 
-			out[3] = b10 * a00 + b11 * a10 + b12 * a20;
-			out[4] = b10 * a01 + b11 * a11 + b12 * a21;
-			out[5] = b12;
+			b0 = b[8];
+			b1 = b[9];
+			b2 = b[10];
+			b3 = b[11];
+			out[8] = b0 * a00 + b1 * a10 + b3 * a30;
+			out[9] = b0 * a01 + b1 * a11 + b3 * a31;
+			out[10] = b2;
+			out[11] = b3;
 
-			out[6] = b20 * a00 + b21 * a10 + b22 * a20;
-			out[7] = b20 * a01 + b21 * a11 + b22 * a21;
-			out[8] = b22;
+			b0 = b[12];
+			b1 = b[13];
+			b2 = b[14];
+			b3 = b[15];
+			out[12] = b0 * a00 + b1 * a10 + b3 * a30;
+			out[13] = b0 * a01 + b1 * a11 + b3 * a31;
+			out[14] = b2;
+			out[15] = b3;
 
 			return this;
 		}
@@ -408,63 +425,47 @@ namespace pixi_projection {
 			const out = this.mat4;
 			const a = pt.mat4;
 
-			const a00 = a[0], a01 = a[1], a02 = a[2],
-				a10 = a[3], a11 = a[4], a12 = a[5],
-				a20 = a[6], a21 = a[7], a22 = a[8],
+			const a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3];
+			const a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7];
 
-				b00 = lt.a, b01 = lt.b,
+			const b00 = lt.a, b01 = lt.b,
 				b10 = lt.c, b11 = lt.d,
-				b20 = lt.tx, b21 = lt.ty;
-
+				b30 = lt.tx, b31 = lt.ty;
 
 			out[0] = b00 * a00 + b01 * a10;
 			out[1] = b00 * a01 + b01 * a11;
 			out[2] = b00 * a02 + b01 * a12;
+			out[3] = b00 * a03 + b01 * a13;
 
-			out[3] = b10 * a00 + b11 * a10;
-			out[4] = b10 * a01 + b11 * a11;
-			out[5] = b10 * a02 + b11 * a12;
+			out[4] = b10 * a00 + b11 * a10;
+			out[5] = b10 * a01 + b11 * a11;
+			out[6] = b10 * a02 + b11 * a12;
+			out[7] = b10 * a03 + b11 * a13;
 
-			out[6] = b20 * a00 + b21 * a10 + a20;
-			out[7] = b20 * a01 + b21 * a11 + a21;
-			out[8] = b20 * a02 + b21 * a12 + a22;
+			out[8] = a[8];
+			out[9] = a[9];
+			out[10] = a[10];
+			out[11] = a[11];
+
+			out[12] = b30 * a00 + b31 * a10 + a[12];
+			out[13] = b30 * a01 + b31 * a11 + a[13];
+			out[14] = b30 * a02 + b31 * a12 + a[14];
+			out[15] = b30 * a03 + b31 * a13 + a[15];
+
 
 			return this;
 		}
 
 		// that's transform multiplication we use
 		setToMult2d(pt: Matrix3d, lt: Matrix3d) {
-			const out = this.mat4;
-			const a = pt.mat4, b = lt.mat4;
-
-			const a00 = a[0], a01 = a[1], a02 = a[2],
-				a10 = a[3], a11 = a[4], a12 = a[5],
-				a20 = a[6], a21 = a[7], a22 = a[8],
-
-				b00 = b[0], b01 = b[1], b02 = b[2],
-				b10 = b[3], b11 = b[4], b12 = b[5],
-				b20 = b[6], b21 = b[7], b22 = b[8];
-
-			out[0] = b00 * a00 + b01 * a10 + b02 * a20;
-			out[1] = b00 * a01 + b01 * a11 + b02 * a21;
-			out[2] = b00 * a02 + b01 * a12 + b02 * a22;
-
-			out[3] = b10 * a00 + b11 * a10 + b12 * a20;
-			out[4] = b10 * a01 + b11 * a11 + b12 * a21;
-			out[5] = b10 * a02 + b11 * a12 + b12 * a22;
-
-			out[6] = b20 * a00 + b21 * a10 + b22 * a20;
-			out[7] = b20 * a01 + b21 * a11 + b22 * a21;
-			out[8] = b20 * a02 + b21 * a12 + b22 * a22;
-
+			Matrix3d.glMatrixMat4Multiply(this.mat4, pt.mat4, lt.mat4);
 			return this;
 		}
 
 		prepend(lt: any) {
 			if (lt.mat4) {
 				this.setToMult2d(lt, this);
-			} else
-			{
+			} else {
 				this.setToMultLegacy(lt, this);
 			}
 		}
@@ -513,6 +514,48 @@ namespace pixi_projection {
 			out[14] = (a31 * b01 - a30 * b03 - a32 * b00) * det;
 			out[15] = (a20 * b03 - a21 * b01 + a22 * b00) * det;
 
+			return out;
+		}
+
+		static glMatrixMat4Multiply(out: Float64Array, a: Float64Array, b: Float64Array) {
+			let a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3];
+			let a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7];
+			let a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11];
+			let a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
+
+			// Cache only the current line of the second matrix
+			let b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
+			out[0] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+			out[1] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+			out[2] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+			out[3] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+
+			b0 = b[4];
+			b1 = b[5];
+			b2 = b[6];
+			b3 = b[7];
+			out[4] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+			out[5] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+			out[6] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+			out[7] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+
+			b0 = b[8];
+			b1 = b[9];
+			b2 = b[10];
+			b3 = b[11];
+			out[8] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+			out[9] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+			out[10] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+			out[11] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+
+			b0 = b[12];
+			b1 = b[13];
+			b2 = b[14];
+			b3 = b[15];
+			out[12] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+			out[13] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+			out[14] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+			out[15] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
 			return out;
 		}
 	}
