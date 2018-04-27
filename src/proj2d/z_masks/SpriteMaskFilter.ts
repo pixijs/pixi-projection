@@ -84,7 +84,7 @@ void main(void)
 
 			mappedMatrix.set(textureSize.width, 0, 0, textureSize.height, filterArea.x, filterArea.y);
 			worldTransform.invert();
-			mappedMatrix.setToMult2d(worldTransform, mappedMatrix);
+			mappedMatrix.setToMult(worldTransform, mappedMatrix);
 			mappedMatrix.scaleAndTranslate(1.0 / texture.width, 1.0 / texture.height,
 				sprite.anchor.x, sprite.anchor.y);
 

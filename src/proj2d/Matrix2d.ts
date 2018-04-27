@@ -380,7 +380,7 @@ namespace pixi_projection {
 		}
 
 		// that's transform multiplication we use
-		setToMult2d(pt: Matrix2d, lt: Matrix2d) {
+		setToMult(pt: Matrix2d, lt: Matrix2d) {
 			const out = this.mat3;
 			const a = pt.mat3, b = lt.mat3;
 
@@ -409,7 +409,7 @@ namespace pixi_projection {
 
 		prepend(lt: any) {
 			if (lt.mat3) {
-				this.setToMult2d(lt, this);
+				this.setToMult(lt, this);
 			} else
 			{
 				this.setToMultLegacy(lt, this);

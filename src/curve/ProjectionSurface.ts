@@ -44,7 +44,7 @@ namespace pixi_projection {
 		proj._activeProjection = pp._activeProjection;
 	}
 
-	export class ProjectionSurface extends Projection {
+	export class ProjectionSurface extends AbstractProjection {
 		constructor(legacy: PIXI.TransformBase, enable?: boolean) {
 			super(legacy, enable);
 		}

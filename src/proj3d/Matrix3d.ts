@@ -146,7 +146,7 @@ namespace pixi_projection {
 			return array;
 		}
 
-		setTranslation(p: PIXI.PointLike) {
+		setToTranslation(p: PIXI.PointLike) {
 			const mat4 = this.mat4;
 
 			mat4[0] = 1;
@@ -170,7 +170,7 @@ namespace pixi_projection {
 			mat4[15] = 1;
 		}
 
-		setRotationTranslation(euler: Euler, p: PIXI.PointLike) {
+		setToRotationTranslation(euler: Euler, p: PIXI.PointLike) {
 			const out = this.mat4;
 			const q = euler.quaternion;
 
@@ -520,14 +520,14 @@ namespace pixi_projection {
 		}
 
 		// that's transform multiplication we use
-		setToMult2d(pt: Matrix3d, lt: Matrix3d) {
+		setToMult(pt: Matrix3d, lt: Matrix3d) {
 			Matrix3d.glMatrixMat4Multiply(this.mat4, pt.mat4, lt.mat4);
 			return this;
 		}
 
 		prepend(lt: any) {
 			if (lt.mat4) {
-				this.setToMult2d(lt, this);
+				this.setToMult(lt, this);
 			} else {
 				this.setToMultLegacy(lt, this);
 			}

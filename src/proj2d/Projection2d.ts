@@ -1,85 +1,22 @@
 namespace pixi_projection {
 	import PointLike = PIXI.PointLike;
 
-	function transformHack(this: PIXI.TransformStatic, parentTransform: PIXI.TransformBase) {
-		// implementation here
-		const proj = this.proj as Projection2d;
-		const ta = this as any;
-		const pwid = (parentTransform as any)._worldID;
-
-		const lt = ta.localTransform;
-
-		//this part is copied from
-		if (ta._localID !== ta._currentLocalID) {
-			// get the matrix values of the displayobject based on its transform properties..
-			lt.a = ta._cx * ta.scale._x;
-			lt.b = ta._sx * ta.scale._x;
-			lt.c = ta._cy * ta.scale._y;
-			lt.d = ta._sy * ta.scale._y;
-
-			//TODO: do something about pivot, it has to be applied after the projections
-			//TODO: add special pivot mode that user request for 2 years already
-
-			lt.tx = ta.position._x - ((ta.pivot._x * lt.a) + (ta.pivot._y * lt.c));
-			lt.ty = ta.position._y - ((ta.pivot._x * lt.b) + (ta.pivot._y * lt.d));
-			ta._currentLocalID = ta._localID;
-
-			// force an update..
-			proj._currentProjID = -1;
-		}
-
-		const _matrixID = proj._projID;
-		if (proj._currentProjID !== _matrixID) {
-			proj._currentProjID = _matrixID;
-			if (_matrixID !== 0) {
-				if (proj.reverseLocalOrder)
-				{
-					// tilingSprite inside order
-					proj.local.setToMultLegacy2(proj.matrix, lt);
-				}
-				else
-				{
-					// good order
-					proj.local.setToMultLegacy(lt, proj.matrix);
-				}
-			} else {
-				proj.local.copyFrom(lt);
-			}
-			ta._parentID = -1;
-		}
-
-		if (ta._parentID !== pwid) {
-			const pp = parentTransform.proj as Projection2d;
-			if (pp && !pp.affine) {
-				proj.world.setToMult2d(pp.world, proj.local);
-			} else {
-				proj.world.setToMultLegacy(parentTransform.worldTransform, proj.local);
-			}
-			proj.world.copy(ta.worldTransform, proj._affine);
-			ta._parentID = pwid;
-			ta._worldID++;
-		}
-	}
-
 	const t0 = new PIXI.Point();
 	const tt = [new PIXI.Point(), new PIXI.Point(), new PIXI.Point(), new PIXI.Point()];
 	const tempRect = new PIXI.Rectangle();
 	const tempMat = new Matrix2d();
 
-	export class Projection2d extends Projection {
+	export class Projection2d extends LinearProjection<Matrix2d> {
 
 		constructor(legacy: PIXI.TransformBase, enable?: boolean) {
 			super(legacy, enable);
+			this.local = new Matrix2d();
+			this.world = new Matrix2d();
 		}
 
 		matrix = new Matrix2d();
-		local = new Matrix2d();
-		world = new Matrix2d();
 		pivot = new PIXI.ObservablePoint(this.onChange, this, 0, 0);
 
-		_projID = 0;
-		_currentProjID = -1;
-		_affine = AFFINE.NONE;
 		reverseLocalOrder = false;
 
 		onChange() {
@@ -90,30 +27,6 @@ namespace pixi_projection {
 			mat3[7] = - (pivot._x * mat3[1] + pivot._y * mat3[4]);
 
 			this._projID++;
-		}
-
-		set affine(value: AFFINE) {
-			if (this._affine == value) return;
-			this._affine = value;
-			this._currentProjID = -1;
-		}
-
-		get affine() {
-			return this._affine;
-		}
-
-		set enabled(value: boolean) {
-			if (value === this._enabled) {
-				return;
-			}
-			this._enabled = value;
-			if (value) {
-				this.legacy.updateTransform = transformHack;
-				(this.legacy as any)._parentID = -1;
-			} else {
-				this.legacy.updateTransform = PIXI.TransformStatic.prototype.updateTransform;
-				(this.legacy as any)._parentID = -1;
-			}
 		}
 
 		setAxisX(p: PointLike, factor: number = 1): void {
@@ -212,13 +125,12 @@ namespace pixi_projection {
 			mat3[7] = p[k2].y;
 			mat3[8] = 1;
 
-			this.matrix.setToMult2d(tempMat, this.matrix);
+			this.matrix.setToMult(tempMat, this.matrix);
 			this._projID++;
 		}
 
 		clear() {
-			this._currentProjID = -1;
-			this._projID = 0;
+			super.clear();
 			this.matrix.identity();
 			this.pivot.set(0, 0);
 		}
