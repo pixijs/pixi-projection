@@ -43,51 +43,51 @@ namespace pixi_projection {
 		}
 
 		get a() {
-			return this.mat3[0];
+			return this.mat3[0] / this.mat3[8];
 		}
 
 		get b() {
-			return this.mat3[1];
+			return this.mat3[1] / this.mat3[8];
 		}
 
 		get c() {
-			return this.mat3[3];
+			return this.mat3[3] / this.mat3[8];
 		}
 
 		get d() {
-			return this.mat3[4];
+			return this.mat3[4] / this.mat3[8];
 		}
 
 		get tx() {
-			return this.mat3[6];
+			return this.mat3[6] / this.mat3[8];
 		}
 
 		get ty() {
-			return this.mat3[7];
+			return this.mat3[7] / this.mat3[8];
 		}
 
 		set a(value: number) {
-			this.mat3[0] = value;
+			this.mat3[0] = value * this.mat3[8];
 		}
 
 		set b(value: number) {
-			this.mat3[1] = value;
+			this.mat3[1] = value * this.mat3[8];
 		}
 
 		set c(value: number) {
-			this.mat3[3] = value;
+			this.mat3[3] = value * this.mat3[8];
 		}
 
 		set d(value: number) {
-			this.mat3[4] = value;
+			this.mat3[4] = value * this.mat3[8];
 		}
 
 		set tx(value: number) {
-			this.mat3[6] = value;
+			this.mat3[6] = value * this.mat3[8];
 		}
 
 		set ty(value: number) {
-			this.mat3[7] = value;
+			this.mat3[7] = value * this.mat3[8];
 		}
 
 		set(a: number, b: number, c: number, d: number, tx: number, ty: number) {

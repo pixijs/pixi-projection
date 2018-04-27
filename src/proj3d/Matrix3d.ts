@@ -39,64 +39,71 @@ namespace pixi_projection {
 		}
 
 		get a() {
-			return this.mat4[0];
+			return this.mat4[0] / this.mat4[15];
 		}
 
 		get b() {
-			return this.mat4[1];
+			return this.mat4[1] / this.mat4[15];
 		}
 
 		get c() {
-			return this.mat4[3];
+			return this.mat4[4] / this.mat4[15];
 		}
 
 		get d() {
-			return this.mat4[4];
+			return this.mat4[5] / this.mat4[15];
 		}
 
 		get tx() {
-			return this.mat4[6];
+			return this.mat4[12] / this.mat4[15];
 		}
 
 		get ty() {
-			return this.mat4[7];
+			return this.mat4[13] / this.mat4[15];
 		}
 
 		set a(value: number) {
-			this.mat4[0] = value;
+			this.mat4[0] = value * this.mat4[15];
 		}
 
 		set b(value: number) {
-			this.mat4[1] = value;
+			this.mat4[1] = value * this.mat4[15];
 		}
 
 		set c(value: number) {
-			this.mat4[3] = value;
+			this.mat4[4] = value * this.mat4[15];
 		}
 
 		set d(value: number) {
-			this.mat4[4] = value;
+			this.mat4[5] = value * this.mat4[15];
 		}
 
 		set tx(value: number) {
-			this.mat4[6] = value;
+			this.mat4[12] = value * this.mat4[15];
 		}
 
 		set ty(value: number) {
-			this.mat4[7] = value;
+			this.mat4[13] = value * this.mat4[15];
 		}
 
 		set(a: number, b: number, c: number, d: number, tx: number, ty: number) {
-			let mat3 = this.mat4;
-			mat3[0] = a;
-			mat3[1] = b;
-			mat3[2] = 0;
-			mat3[3] = c;
-			mat3[4] = d;
-			mat3[5] = 0;
-			mat3[6] = tx;
-			mat3[7] = ty;
-			mat3[8] = 1;
+			let mat4 = this.mat4;
+			mat4[0] = a;
+			mat4[1] = b;
+			mat4[2] = 0;
+			mat4[3] = 0;
+			mat4[4] = c;
+			mat4[5] = d;
+			mat4[6] = 0;
+			mat4[7] = 0;
+			mat4[8] = 0;
+			mat4[9] = 0;
+			mat4[10] = 1;
+			mat4[11] = 0;
+			mat4[12] = tx;
+			mat4[13] = ty;
+			mat4[14] = 0;
+			mat4[15] = 1;
 			return this;
 		}
 
@@ -111,25 +118,25 @@ namespace pixi_projection {
 			if (transpose) {
 				array[0] = mat3[0];
 				array[1] = mat3[1];
-				array[2] = mat3[2];
-				array[3] = mat3[3];
-				array[4] = mat3[4];
-				array[5] = mat3[5];
-				array[6] = mat3[6];
-				array[7] = mat3[7];
-				array[8] = mat3[8];
+				array[2] = mat3[3];
+				array[3] = mat3[4];
+				array[4] = mat3[5];
+				array[5] = mat3[7];
+				array[6] = mat3[12];
+				array[7] = mat3[13];
+				array[8] = mat3[15];
 			}
 			else {
 				//this branch is NEVER USED in pixi
 				array[0] = mat3[0];
-				array[1] = mat3[3];
-				array[2] = mat3[6];
-				array[3] = mat3[1];
-				array[4] = mat3[4];
-				array[5] = mat3[7];
-				array[6] = mat3[2];
-				array[7] = mat3[5];
-				array[8] = mat3[8];
+				array[1] = mat3[4];
+				array[2] = mat3[12];
+				array[3] = mat3[2];
+				array[4] = mat3[6];
+				array[5] = mat3[13];
+				array[6] = mat3[3];
+				array[7] = mat3[7];
+				array[8] = mat3[15];
 			}
 
 			return array;
