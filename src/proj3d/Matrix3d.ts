@@ -34,7 +34,7 @@ namespace pixi_projection {
 		floatArray: Float32Array = null;
 
 		_dirtyId: number = 0;
-		_currentId: number = -1;
+		_updateId: number = -1;
 		_mat4inv: Float64Array = null;
 		cacheInverse: boolean = false;
 
@@ -146,6 +146,69 @@ namespace pixi_projection {
 			return array;
 		}
 
+		setTranslation(p: PIXI.PointLike) {
+			const mat4 = this.mat4;
+
+			mat4[0] = 1;
+			mat4[1] = 0;
+			mat4[2] = 0;
+			mat4[3] = 0;
+
+			mat4[4] = 0;
+			mat4[5] = 1;
+			mat4[6] = 0;
+			mat4[7] = 0;
+
+			mat4[8] = 0;
+			mat4[9] = 0;
+			mat4[10] = 1;
+			mat4[11] = 0;
+
+			mat4[12] = p.x;
+			mat4[13] = p.y;
+			mat4[14] = p.z;
+			mat4[15] = 1;
+		}
+
+		setRotationTranslation(euler: Euler, p: PIXI.PointLike) {
+			const out = this.mat4;
+			const q = euler.quaternion;
+
+			let x = q[0], y = q[1], z = q[2], w = q[3];
+			let x2 = x + x;
+			let y2 = y + y;
+			let z2 = z + z;
+
+			let xx = x * x2;
+			let xy = x * y2;
+			let xz = x * z2;
+			let yy = y * y2;
+			let yz = y * z2;
+			let zz = z * z2;
+			let wx = w * x2;
+			let wy = w * y2;
+			let wz = w * z2;
+
+			out[0] = 1 - (yy + zz);
+			out[1] = xy + wz;
+			out[2] = xz - wy;
+			out[3] = 0;
+			out[4] = xy - wz;
+			out[5] = 1 - (xx + zz);
+			out[6] = yz + wx;
+			out[7] = 0;
+			out[8] = xz + wy;
+			out[9] = yz - wx;
+			out[10] = 1 - (xx + yy);
+			out[11] = 0;
+			out[12] = p.x;
+			out[13] = p.y;
+			out[14] = p.z;
+			out[15] = 1;
+
+			return out;
+		}
+
 		//TODO: remove props
 		apply(pos: IPoint, newPos: IPoint): IPoint {
 			newPos = newPos || new PIXI.Point();
@@ -239,8 +302,8 @@ namespace pixi_projection {
 			const y = pos.y;
 			const z = pos.z;
 
-			if (!this.cacheInverse || this._currentId !== this._dirtyId) {
-				this._currentId = this._dirtyId;
+			if (!this.cacheInverse || this._updateId !== this._dirtyId) {
+				this._updateId = this._dirtyId;
 				Matrix3d.glMatrixMat4Invert(mat4, a);
 			}
 
@@ -264,8 +327,8 @@ namespace pixi_projection {
 			const mat4 = this._mat4inv;
 			const a = this.mat4;
 
-			if (!this.cacheInverse || this._currentId !== this._dirtyId) {
-				this._currentId = this._dirtyId;
+			if (!this.cacheInverse || this._updateId !== this._dirtyId) {
+				this._updateId = this._dirtyId;
 				Matrix3d.glMatrixMat4Invert(mat4, a);
 			}
 
