@@ -1,7 +1,6 @@
 // according to https://jsperf.com/obj-vs-array-view-access/1 , Float64Array is the best here
 
 namespace pixi_projection {
-	import Point = PIXI.Point;
 	import IPoint = PIXI.PointLike;
 
 	const mat4id = [1, 0, 0, 0,
@@ -33,6 +32,11 @@ namespace pixi_projection {
 		mat4: Float64Array;
 
 		floatArray: Float32Array = null;
+
+		_dirtyId: number = 0;
+		_currentId: number = -1;
+		_mat4inv: Float64Array = null;
+		cacheInverse: boolean = false;
 
 		constructor(backingArray?: ArrayLike<number>) {
 			this.mat4 = new Float64Array(backingArray || mat4id);
@@ -144,102 +148,128 @@ namespace pixi_projection {
 
 		//TODO: remove props
 		apply(pos: IPoint, newPos: IPoint): IPoint {
-			newPos = newPos || new PIXI.Point();
+ 			newPos = newPos || new PIXI.Point();
 
-			const mat3 = this.mat4;
+			const mat4 = this.mat4;
 			const x = pos.x;
 			const y = pos.y;
+			const z = pos.z;
 
-			let z = 1.0 / (mat3[2] * x + mat3[5] * y + mat3[8]);
-			newPos.x = z * (mat3[0] * x + mat3[3] * y + mat3[6]);
-			newPos.y = z * (mat3[1] * x + mat3[4] * y + mat3[7]);
+			let w = 1.0 / (mat4[3] * x + mat4[7] * y + mat4[11] * z + mat4[15]);
+			newPos.x = w * (mat4[0] * x + mat4[4] * y + mat4[8] * z + mat4[12]);
+			newPos.y = w * (mat4[1] * x + mat4[5] * y + mat4[9] * z + mat4[13]);
+			newPos.z = w * (mat4[2] * x + mat4[6] * y + mat4[10] * z + mat4[14]);
 
 			return newPos;
 		}
 
-		translate(tx: number, ty: number) {
-			const mat3 = this.mat4;
-			mat3[0] += tx * mat3[2];
-			mat3[1] += ty * mat3[2];
-			mat3[3] += tx * mat3[5];
-			mat3[4] += ty * mat3[5];
-			mat3[6] += tx * mat3[8];
-			mat3[7] += ty * mat3[8];
+		translate(tx: number, ty: number, tz?: number) {
+			const mat4 = this.mat4;
+			mat4[0] += tx * mat4[3];
+			mat4[1] += ty * mat4[3];
+
+			mat4[4] += tx * mat4[7];
+			mat4[5] += ty * mat4[7];
+
+			mat4[8] += tx * mat4[11];
+			mat4[9] += ty * mat4[11];
+
+			mat4[12] += tx * mat4[15];
+			mat4[13] += ty * mat4[15];
+
+			if (tz !== undefined) {
+				mat4[2] += tz * mat4[3];
+				mat4[6] += tz * mat4[7];
+				mat4[10] += tz * mat4[11];
+				mat4[14] += tz * mat4[15];
+			}
+
 			return this;
 		}
 
-		scale(x: number, y: number) {
-			const mat3 = this.mat4;
-			mat3[0] *= x;
-			mat3[1] *= y;
-			mat3[3] *= x;
-			mat3[4] *= y;
-			mat3[6] *= x;
-			mat3[7] *= y;
+		scale(x: number, y: number, z?: number) {
+			const mat4 = this.mat4;
+			mat4[0] *= x;
+			mat4[1] *= y;
+
+			mat4[4] *= x;
+			mat4[5] *= y;
+
+			mat4[8] *= x;
+			mat4[9] *= y;
+
+			mat4[12] *= x;
+			mat4[13] *= y;
+
+			if (z !== undefined) {
+				mat4[2] *= z;
+				mat4[6] *= z;
+				mat4[10] *= z;
+				mat4[14] *= z;
+			}
+
 			return this;
 		}
 
 		scaleAndTranslate(scaleX: number, scaleY: number, tx: number, ty: number) {
 			const mat3 = this.mat4;
-			mat3[0] = scaleX * mat3[0] + tx * mat3[2];
-			mat3[1] = scaleY * mat3[1] + ty * mat3[2];
-			mat3[3] = scaleX * mat3[3] + tx * mat3[5];
-			mat3[4] = scaleY * mat3[4] + ty * mat3[5];
-			mat3[6] = scaleX * mat3[6] + tx * mat3[8];
-			mat3[7] = scaleY * mat3[7] + ty * mat3[8];
+			mat3[0] = scaleX * mat3[0] + tx * mat3[3];
+			mat3[1] = scaleY * mat3[1] + ty * mat3[3];
+
+			mat3[4] = scaleX * mat3[4] + tx * mat3[7];
+			mat3[5] = scaleY * mat3[5] + ty * mat3[7];
+
+			mat3[8] = scaleX * mat3[8] + tx * mat3[11];
+			mat3[9] = scaleY * mat3[9] + ty * mat3[11];
+
+			mat3[12] = scaleX * mat3[12] + tx * mat3[15];
+			mat3[13] = scaleY * mat3[13] + ty * mat3[15];
 		}
 
 		//TODO: remove props
 		applyInverse(pos: IPoint, newPos: IPoint): IPoint {
-			newPos = newPos || new Point();
+			newPos = newPos || new Point3d();
+			if (!this._mat4inv) {
+				this._mat4inv = new Float64Array(16);
+			}
 
+			const mat4 = this._mat4inv;
 			const a = this.mat4;
 			const x = pos.x;
 			const y = pos.y;
+			const z = pos.z;
 
-			const a00 = a[0], a01 = a[3], a02 = a[6],
-				a10 = a[1], a11 = a[4], a12 = a[7],
-				a20 = a[2], a21 = a[5], a22 = a[8];
+			if (!this.cacheInverse || this._currentId !== this._dirtyId) {
+				this._currentId = this._dirtyId;
+				Matrix3d.glMatrixMat4Invert(mat4, a);
+			}
 
-			let newX = (a22 * a11 - a12 * a21) * x + (-a22 * a01 + a02 * a21) * y + (a12 * a01 - a02 * a11);
-			let newY = (-a22 * a10 + a12 * a20) * x + (a22 * a00 - a02 * a20) * y + (-a12 * a00 + a02 * a10);
-			let newZ = (a21 * a10 - a11 * a20) * x + (-a21 * a00 + a01 * a20) * y + (a11 * a00 - a01 * a10);
-
-			newPos.x = newX / newZ;
-			newPos.y = newY / newZ;
-
+			let w = 1.0 / (mat4[3] * x + mat4[7] * y + mat4[11] * z + mat4[15]);
+			newPos.x = w * (mat4[0] * x + mat4[4] * y + mat4[8] * z + mat4[12]);
+			newPos.y = w * (mat4[1] * x + mat4[5] * y + mat4[9] * z + mat4[13]);
+			newPos.z = w * (mat4[2] * x + mat4[6] * y + mat4[10] * z + mat4[14]);
 			return newPos;
 		}
 
 		invert(): Matrix3d {
+			Matrix3d.glMatrixMat4Invert(this.mat4, this.mat4);
+			return this;
+		}
+
+		invertCopyTo(matrix: Matrix3d) {
+			if (!this._mat4inv) {
+				this._mat4inv = new Float64Array(16);
+			}
+
+			const mat4 = this._mat4inv;
 			const a = this.mat4;
 
-			const a00 = a[0], a01 = a[1], a02 = a[2],
-				a10 = a[3], a11 = a[4], a12 = a[5],
-				a20 = a[6], a21 = a[7], a22 = a[8],
-
-				b01 = a22 * a11 - a12 * a21,
-				b11 = -a22 * a10 + a12 * a20,
-				b21 = a21 * a10 - a11 * a20;
-
-			// Calculate the determinant
-			let det = a00 * b01 + a01 * b11 + a02 * b21;
-			if (!det) {
-				return this;
+			if (!this.cacheInverse || this._currentId !== this._dirtyId) {
+				this._currentId = this._dirtyId;
+				Matrix3d.glMatrixMat4Invert(mat4, a);
 			}
-			det = 1.0 / det;
 
-			a[0] = b01 * det;
-			a[1] = (-a22 * a01 + a02 * a21) * det;
-			a[2] = (a12 * a01 - a02 * a11) * det;
-			a[3] = b11 * det;
-			a[4] = (a22 * a00 - a02 * a20) * det;
-			a[5] = (-a12 * a00 + a02 * a10) * det;
-			a[6] = b21 * det;
-			a[7] = (-a21 * a00 + a01 * a20) * det;
-			a[8] = (a11 * a00 - a01 * a10) * det;
-
-			return this;
+			matrix.mat4.set(mat4);
 		}
 
 		identity(): Matrix3d {
@@ -248,11 +278,21 @@ namespace pixi_projection {
 			mat3[1] = 0;
 			mat3[2] = 0;
 			mat3[3] = 0;
-			mat3[4] = 1;
-			mat3[5] = 0;
+
+			mat3[4] = 0;
+			mat3[5] = 1;
 			mat3[6] = 0;
 			mat3[7] = 0;
-			mat3[8] = 1;
+
+			mat3[8] = 0;
+			mat3[9] = 0;
+			mat3[10] = 1;
+			mat3[11] = 0;
+
+			mat3[12] = 0;
+			mat3[13] = 0;
+			mat3[14] = 0;
+			mat3[15] = 1;
 			return this;
 		}
 
@@ -282,12 +322,12 @@ namespace pixi_projection {
 		 */
 		copy(matrix: PIXI.Matrix, affine?: AFFINE) {
 			const mat3 = this.mat4;
-			const d = 1.0 / mat3[8];
-			const tx = mat3[6] * d, ty = mat3[7] * d;
-			matrix.a = (mat3[0] - mat3[2] * tx) * d;
-			matrix.b = (mat3[1] - mat3[2] * ty) * d;
-			matrix.c = (mat3[3] - mat3[5] * tx) * d;
-			matrix.d = (mat3[4] - mat3[5] * ty) * d;
+			const d = 1.0 / mat3[15];
+			const tx = mat3[12] * d, ty = mat3[13] * d;
+			matrix.a = (mat3[0] - mat3[3] * tx) * d;
+			matrix.b = (mat3[1] - mat3[3] * ty) * d;
+			matrix.c = (mat3[4] - mat3[7] * tx) * d;
+			matrix.d = (mat3[5] - mat3[7] * ty) * d;
 			matrix.tx = tx;
 			matrix.ty = ty;
 
@@ -317,16 +357,26 @@ namespace pixi_projection {
 			mat3[0] = matrix.a;
 			mat3[1] = matrix.b;
 			mat3[2] = 0;
-			mat3[3] = matrix.c;
-			mat3[4] = matrix.d;
-			mat3[5] = 0;
-			mat3[6] = matrix.tx;
-			mat3[7] = matrix.ty;
-			mat3[8] = 1.0;
+			mat3[3] = 0;
+
+			mat3[4] = matrix.c;
+			mat3[5] = matrix.d;
+			mat3[6] = 0;
+			mat3[7] = 0;
+
+			mat3[8] = 0;
+			mat3[9] = 0;
+			mat3[10] = 1;
+			mat3[11] = 0;
+
+			mat3[12] = matrix.tx;
+			mat3[13] = matrix.ty;
+			mat3[14] = 0;
+			mat3[15] = 1;
 			return this;
 		}
 
-		setToMultLegacy(pt: PIXI.Matrix, lt: Matrix3d) {
+		setToMultLegacy(pt: PIXI.Matrix, lt: Matrix2d) {
 			const out = this.mat4;
 			const b = lt.mat4;
 
@@ -417,6 +467,53 @@ namespace pixi_projection {
 			{
 				this.setToMultLegacy(lt, this);
 			}
+		}
+
+		static glMatrixMat4Invert(out: Float64Array, a: Float64Array) {
+			let a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3];
+			let a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7];
+			let a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11];
+			let a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
+
+			let b00 = a00 * a11 - a01 * a10;
+			let b01 = a00 * a12 - a02 * a10;
+			let b02 = a00 * a13 - a03 * a10;
+			let b03 = a01 * a12 - a02 * a11;
+			let b04 = a01 * a13 - a03 * a11;
+			let b05 = a02 * a13 - a03 * a12;
+			let b06 = a20 * a31 - a21 * a30;
+			let b07 = a20 * a32 - a22 * a30;
+			let b08 = a20 * a33 - a23 * a30;
+			let b09 = a21 * a32 - a22 * a31;
+			let b10 = a21 * a33 - a23 * a31;
+			let b11 = a22 * a33 - a23 * a32;
+
+			// Calculate the determinant
+			let det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
+
+			if (!det) {
+				return null;
+			}
+			det = 1.0 / det;
+
+			out[0] = (a11 * b11 - a12 * b10 + a13 * b09) * det;
+			out[1] = (a02 * b10 - a01 * b11 - a03 * b09) * det;
+			out[2] = (a31 * b05 - a32 * b04 + a33 * b03) * det;
+			out[3] = (a22 * b04 - a21 * b05 - a23 * b03) * det;
+			out[4] = (a12 * b08 - a10 * b11 - a13 * b07) * det;
+			out[5] = (a00 * b11 - a02 * b08 + a03 * b07) * det;
+			out[6] = (a32 * b02 - a30 * b05 - a33 * b01) * det;
+			out[7] = (a20 * b05 - a22 * b02 + a23 * b01) * det;
+			out[8] = (a10 * b10 - a11 * b08 + a13 * b06) * det;
+			out[9] = (a01 * b08 - a00 * b10 - a03 * b06) * det;
+			out[10] = (a30 * b04 - a31 * b02 + a33 * b00) * det;
+			out[11] = (a21 * b02 - a20 * b04 - a23 * b00) * det;
+			out[12] = (a11 * b07 - a10 * b09 - a12 * b06) * det;
+			out[13] = (a00 * b09 - a01 * b07 + a02 * b06) * det;
+			out[14] = (a31 * b01 - a30 * b03 - a32 * b00) * det;
+			out[15] = (a20 * b03 - a21 * b01 + a22 * b00) * det;
+
+			return out;
 		}
 	}
 }
