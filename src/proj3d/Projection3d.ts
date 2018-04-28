@@ -73,7 +73,7 @@ namespace pixi_projection {
 
 			if (!this.cameraMode) {
 				matrix.setToRotationTranslation(euler.quaternion, pos._x, pos._y, pos._z);
-				matrix.scaleAndTranslate(scale._x, scale._y, scale._z, pivot._x, pivot._y, pivot._z);
+				matrix.scaleAndTranslate(scale._x, scale._y, scale._z, -pivot._x, -pivot._y, -pivot._z);
 				matrix.setToMultLegacy(lt, matrix);
 				return;
 			}

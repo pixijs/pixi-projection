@@ -275,22 +275,22 @@ namespace pixi_projection {
 		}
 
 		scaleAndTranslate(scaleX: number, scaleY: number, scaleZ: number, tx: number, ty: number, tz: number) {
-			const mat3 = this.mat4;
-			mat3[0] = scaleX * mat3[0] + tx * mat3[3];
-			mat3[1] = scaleY * mat3[1] + ty * mat3[3];
-			mat3[2] = scaleZ * mat3[2] + tz * mat3[3];
+			const mat4 = this.mat4;
+			mat4[0] = scaleX * mat4[0] + tx * mat4[3];
+			mat4[1] = scaleY * mat4[1] + ty * mat4[3];
+			mat4[2] = scaleZ * mat4[2] + tz * mat4[3];
 
-			mat3[4] = scaleX * mat3[4] + tx * mat3[7];
-			mat3[5] = scaleY * mat3[5] + ty * mat3[7];
-			mat3[6] = scaleZ * mat3[6] + tz * mat3[7];
+			mat4[4] = scaleX * mat4[4] + tx * mat4[7];
+			mat4[5] = scaleY * mat4[5] + ty * mat4[7];
+			mat4[6] = scaleZ * mat4[6] + tz * mat4[7];
 
-			mat3[8] = scaleX * mat3[8] + tx * mat3[11];
-			mat3[9] = scaleY * mat3[9] + ty * mat3[11];
-			mat3[10] = scaleZ * mat3[10] + tz * mat3[11];
+			mat4[8] = scaleX * mat4[8] + tx * mat4[11];
+			mat4[9] = scaleY * mat4[9] + ty * mat4[11];
+			mat4[10] = scaleZ * mat4[10] + tz * mat4[11];
 
-			mat3[12] = scaleX * mat3[12] + tx * mat3[15];
-			mat3[13] = scaleY * mat3[13] + ty * mat3[15];
-			mat3[14] = scaleZ * mat3[14] + tz * mat3[15];
+			mat4[12] = scaleX * mat4[12] + tx * mat4[15];
+			mat4[13] = scaleY * mat4[13] + ty * mat4[15];
+			mat4[14] = scaleZ * mat4[14] + tz * mat4[15];
 		}
 
 		//TODO: remove props
