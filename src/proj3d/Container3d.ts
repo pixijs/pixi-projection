@@ -11,7 +11,7 @@ namespace pixi_projection {
 
 		proj: Projection3d;
 
-		isFrontFace(forceUpdate: boolean = true) {
+		isFrontFace(forceUpdate: boolean = false) {
 			if (forceUpdate) {
 				this._recursivePostUpdateTransform();
 				this.displayObjectUpdateTransform();
@@ -19,6 +19,22 @@ namespace pixi_projection {
 
 			const mat4 = this.proj.world.mat4;
 			return mat4[10] * mat4[15] > 0;
+		}
+
+		/**
+		 * returns depth from 0 to 1
+		 *
+		 * @param {boolean} forceUpdate whether to force matrix updates
+		 * @returns {number} depth
+		 */
+		getDepth(forceUpdate: boolean = false) {
+			if (forceUpdate) {
+				this._recursivePostUpdateTransform();
+				this.displayObjectUpdateTransform();
+			}
+
+			const mat4 = this.proj.world.mat4;
+			return mat4[14] / mat4[15];
 		}
 
 		toLocal<T extends PIXI.PointLike>(position: PIXI.PointLike, from?: PIXI.DisplayObject,
