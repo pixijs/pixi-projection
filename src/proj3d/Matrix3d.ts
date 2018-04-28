@@ -277,7 +277,7 @@ namespace pixi_projection {
 			const mat3 = this.mat4;
 			mat3[0] = scaleX * mat3[0] + tx * mat3[3];
 			mat3[1] = scaleY * mat3[1] + ty * mat3[3];
-			mat3[2] = scaleZ * mat3[1] + tz * mat3[3];
+			mat3[2] = scaleZ * mat3[2] + tz * mat3[3];
 
 			mat3[4] = scaleX * mat3[4] + tx * mat3[7];
 			mat3[5] = scaleY * mat3[5] + ty * mat3[7];

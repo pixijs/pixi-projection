@@ -36,7 +36,7 @@ namespace pixi_projection {
 		}
 
 		position = new PIXI.ObservablePoint(this.onChange, this, 0, 0);
-		scale = new PIXI.ObservablePoint(this.onChange, this, 0, 0);
+		scale = new PIXI.ObservablePoint(this.onChange, this, 1, 1);
 		euler = new ObservableEuler(this.onChange, this, 0, 0, 0);
 		pivot = new PIXI.ObservablePoint(this.onChange, this, 0, 0);
 

@@ -43,7 +43,7 @@ namespace pixi_projection {
 		}
 	};
 
-	Object.defineProperty(PIXI.ObservablePoint, "z", {
+	Object.defineProperty(PIXI.ObservablePoint.prototype, "z", {
 		get: function() {
 			return this._z;
 		},

@@ -143,25 +143,25 @@ namespace pixi_projection {
 
 			let culled = false;
 
-			let w = 1.0 / (wt[3] * w1 + wt[7] * h1 + wt[11]);
+			let w = 1.0 / (wt[3] * w1 + wt[7] * h1 + wt[15]);
 			vertexData[0] = w * ((wt[0] * w1) + (wt[4] * h1) + wt[12]);
 			vertexData[1] = w * ((wt[1] * w1) + (wt[5] * h1) + wt[13]);
 			let z = (wt[2] * w1) + (wt[6] * h1) + wt[14];
 			culled = culled || z < 0;
 
-			w = 1.0 / (wt[3] * w0 + wt[7] * h1 + wt[11]);
+			w = 1.0 / (wt[3] * w0 + wt[7] * h1 + wt[15]);
 			vertexData[2] = w * ((wt[0] * w0) + (wt[4] * h1) + wt[12]);
 			vertexData[3] = w * ((wt[1] * w0) + (wt[5] * h1) + wt[13]);
 			z = (wt[2] * w0) + (wt[6] * h1) + wt[14];
 			culled = culled || z < 0;
 
-			w = 1.0 / (wt[3] * w0 + wt[7] * h0 + wt[11]);
+			w = 1.0 / (wt[3] * w0 + wt[7] * h0 + wt[15]);
 			vertexData[4] = w * ((wt[0] * w0) + (wt[4] * h0) + wt[12]);
 			vertexData[5] = w * ((wt[1] * w0) + (wt[5] * h0) + wt[13]);
 			z = (wt[2] * w0) + (wt[6] * h0) + wt[14];
 			culled = culled || z < 0;
 
-			w = 1.0 / (wt[3] * w1 + wt[7] * h0 + wt[11]);
+			w = 1.0 / (wt[3] * w1 + wt[7] * h0 + wt[15]);
 			vertexData[6] = w * ((wt[0] * w1) + (wt[4] * h0) + wt[12]);
 			vertexData[7] = w * ((wt[1] * w1) + (wt[5] * h0) + wt[13]);
 			z = (wt[2] * w1) + (wt[6] * h0) + wt[14];
