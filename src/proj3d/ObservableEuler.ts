@@ -9,8 +9,8 @@ namespace pixi_projection {
 	 * @constructor
 	 */
 
-	export class Euler implements PIXI.PointLike {
-		constructor(x?: number, y?: number, z?: number) {
+	export class ObservableEuler implements PIXI.PointLike, Euler {
+		constructor(public cb: any, public scope: any, x?: number, y?: number, z?: number) {
 			/**
 			 * @member {number}
 			 * @default 0
@@ -53,6 +53,7 @@ namespace pixi_projection {
 			if (this._x !== value) {
 				this._x = value;
 				this._quatDirtyId++;
+				this.cb.call(this.scope);
 			}
 		}
 
@@ -64,6 +65,7 @@ namespace pixi_projection {
 			if (this._y !== value) {
 				this._y = value;
 				this._quatDirtyId++;
+				this.cb.call(this.scope);
 			}
 		}
 
@@ -75,6 +77,7 @@ namespace pixi_projection {
 			if (this._z !== value) {
 				this._z = value;
 				this._quatDirtyId++;
+				this.cb.call(this.scope);
 			}
 		}
 
@@ -86,6 +89,7 @@ namespace pixi_projection {
 			if (this._x !== value) {
 				this._x = value;
 				this._quatDirtyId++;
+				this.cb.call(this.scope);
 			}
 		}
 
@@ -97,6 +101,7 @@ namespace pixi_projection {
 			if (this._y !== value) {
 				this._y = value;
 				this._quatDirtyId++;
+				this.cb.call(this.scope);
 			}
 		}
 
@@ -108,6 +113,7 @@ namespace pixi_projection {
 			if (this._z !== value) {
 				this._z = value;
 				this._quatDirtyId++;
+				this.cb.call(this.scope);
 			}
 		}
 
@@ -120,6 +126,7 @@ namespace pixi_projection {
 				this._y = _y;
 				this._z = _z;
 				this._quatDirtyId++;
+				this.cb.call(this.scope);
 			}
 		};
 
@@ -132,6 +139,7 @@ namespace pixi_projection {
 				this._y = _y;
 				this._z = _z;
 				this._quatDirtyId++;
+				this.cb.call(this.scope);
 			}
 		}
 

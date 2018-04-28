@@ -23,8 +23,8 @@ namespace pixi_projection {
 			const pivot = this.pivot;
 			const mat3 = this.matrix.mat3;
 
-			mat3[6] = - (pivot._x * mat3[0] + pivot._y * mat3[3]);
-			mat3[7] = - (pivot._x * mat3[1] + pivot._y * mat3[4]);
+			mat3[6] = -(pivot._x * mat3[0] + pivot._y * mat3[3]);
+			mat3[7] = -(pivot._x * mat3[1] + pivot._y * mat3[4]);
 
 			this._projID++;
 		}
@@ -127,6 +127,21 @@ namespace pixi_projection {
 
 			this.matrix.setToMult(tempMat, this.matrix);
 			this._projID++;
+		}
+
+		updateLocalTransform(lt: PIXI.Matrix) {
+			if (this._projID !== 0) {
+				if (this.reverseLocalOrder) {
+					// tilingSprite inside order
+					this.local.setToMultLegacy2(this.matrix, lt);
+				}
+				else {
+					// good order
+					this.local.setToMultLegacy(lt, this.matrix);
+				}
+			} else {
+				this.local.copyFrom(lt);
+			}
 		}
 
 		clear() {

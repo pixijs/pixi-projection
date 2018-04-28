@@ -45,16 +45,16 @@ namespace pixi_projection {
 
     export enum TRANSFORM_STEP {
         NONE = 0,
-        POS = 1,
-        ROT = 2,
-        SCALE = 3,
-        PIVOT = 4,
+        // POS = 1,
+        // ROT = 2,
+        // SCALE = 3,
+        // PIVOT = 4,
         BEFORE_PROJ = 4,
         PROJ = 5,
-        POS_2 = 6,
-        ROT_2 = 7,
-        SCALE_2 = 8,
-        PIVOT_2 = 9,
+        // POS_2 = 6,
+        // ROT_2 = 7,
+        // SCALE_2 = 8,
+        // PIVOT_2 = 9,
         ALL = 9
     }
 }

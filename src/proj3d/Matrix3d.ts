@@ -146,7 +146,7 @@ namespace pixi_projection {
 			return array;
 		}
 
-		setToTranslation(p: PIXI.PointLike) {
+		setToTranslation(tx: number, ty: number, tz: number) {
 			const mat4 = this.mat4;
 
 			mat4[0] = 1;
@@ -164,17 +164,16 @@ namespace pixi_projection {
 			mat4[10] = 1;
 			mat4[11] = 0;
 
-			mat4[12] = p.x;
-			mat4[13] = p.y;
-			mat4[14] = p.z;
+			mat4[12] = tx;
+			mat4[13] = ty;
+			mat4[14] = tz;
 			mat4[15] = 1;
 		}
 
-		setToRotationTranslation(euler: Euler, p: PIXI.PointLike) {
+		setToRotationTranslation(quat: Float64Array, tx: number, ty: number, tz: number) {
 			const out = this.mat4;
-			const q = euler.quaternion;
 
-			let x = q[0], y = q[1], z = q[2], w = q[3];
+			let x = quat[0], y = quat[1], z = quat[2], w = quat[3];
 			let x2 = x + x;
 			let y2 = y + y;
 			let z2 = z + z;
@@ -201,9 +200,9 @@ namespace pixi_projection {
 			out[9] = yz - wx;
 			out[10] = 1 - (xx + yy);
 			out[11] = 0;
-			out[12] = p.x;
-			out[13] = p.y;
-			out[14] = p.z;
+			out[12] = tx;
+			out[13] = ty;
+			out[14] = tz;
 			out[15] = 1;
 
 			return out;
@@ -274,19 +273,23 @@ namespace pixi_projection {
 			return this;
 		}
 
-		scaleAndTranslate(scaleX: number, scaleY: number, tx: number, ty: number) {
+		scaleAndTranslate(scaleX: number, scaleY: number, scaleZ: number, tx: number, ty: number, tz: number) {
 			const mat3 = this.mat4;
 			mat3[0] = scaleX * mat3[0] + tx * mat3[3];
 			mat3[1] = scaleY * mat3[1] + ty * mat3[3];
+			mat3[2] = scaleZ * mat3[1] + tz * mat3[3];
 
 			mat3[4] = scaleX * mat3[4] + tx * mat3[7];
 			mat3[5] = scaleY * mat3[5] + ty * mat3[7];
+			mat3[6] = scaleZ * mat3[6] + tz * mat3[7];
 
 			mat3[8] = scaleX * mat3[8] + tx * mat3[11];
 			mat3[9] = scaleY * mat3[9] + ty * mat3[11];
+			mat3[10] = scaleZ * mat3[10] + tz * mat3[11];
 
 			mat3[12] = scaleX * mat3[12] + tx * mat3[15];
 			mat3[13] = scaleY * mat3[13] + ty * mat3[15];
+			mat3[14] = scaleZ * mat3[14] + tz * mat3[15];
 		}
 
 		//TODO: remove props
