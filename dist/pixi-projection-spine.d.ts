@@ -1,21 +1,40 @@
 /// <reference types="pixi.js" />
 declare namespace PIXI {
     interface TransformBase {
-        proj: PIXI.projection.Projection;
+        proj: PIXI.projection.AbstractProjection;
     }
     interface ObservablePoint {
         _x: number;
         _y: number;
     }
     interface TransformStatic {
-        proj: PIXI.projection.Projection;
+        proj: PIXI.projection.AbstractProjection;
     }
 }
 declare module PIXI.projection {
-    class Projection {
+    class AbstractProjection {
         constructor(legacy: PIXI.TransformBase, enable?: boolean);
         legacy: PIXI.TransformStatic;
         _enabled: boolean;
+        enabled: boolean;
+        clear(): void;
+    }
+    enum TRANSFORM_STEP {
+        NONE = 0,
+        BEFORE_PROJ = 4,
+        PROJ = 5,
+        ALL = 9,
+    }
+}
+declare module PIXI.projection {
+    class LinearProjection<T> extends AbstractProjection {
+        updateLocalTransform(lt: PIXI.Matrix): void;
+        _projID: number;
+        _currentProjID: number;
+        _affine: AFFINE;
+        affine: AFFINE;
+        local: T;
+        world: T;
         enabled: boolean;
         clear(): void;
     }
@@ -136,7 +155,7 @@ declare module PIXI.projection {
         apply(pos: PointLike, newPos: PointLike): PointLike;
         applyInverse(pos: PointLike, newPos: PointLike): PointLike;
     }
-    class ProjectionSurface extends Projection {
+    class ProjectionSurface extends AbstractProjection {
         constructor(legacy: PIXI.TransformBase, enable?: boolean);
         _surface: Surface;
         _activeProjection: ProjectionSurface;
@@ -208,8 +227,10 @@ declare module PIXI.projection {
     class Container2d extends PIXI.Container {
         constructor();
         proj: Projection2d;
+        toLocal<T extends PIXI.PointLike>(position: PIXI.PointLike, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
         readonly worldTransform: any;
     }
+    let container2dToLocal: <T extends PIXI.PointLike>(position: PIXI.PointLike, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP) => T;
 }
 declare module PIXI.projection {
     import IPoint = PIXI.PointLike;
@@ -247,7 +268,7 @@ declare module PIXI.projection {
         copyFrom(matrix: PIXI.Matrix): this;
         setToMultLegacy(pt: PIXI.Matrix, lt: Matrix2d): this;
         setToMultLegacy2(pt: Matrix2d, lt: PIXI.Matrix): this;
-        setToMult2d(pt: Matrix2d, lt: Matrix2d): this;
+        setToMult(pt: Matrix2d, lt: Matrix2d): this;
         prepend(lt: any): void;
     }
 }
@@ -255,6 +276,7 @@ declare module PIXI.projection {
     class Mesh2d extends PIXI.mesh.Mesh {
         constructor(texture: PIXI.Texture, vertices?: Float32Array, uvs?: Float32Array, indices?: Uint16Array, drawMode?: number);
         proj: Projection2d;
+        toLocal<T extends PIXI.PointLike>(position: PIXI.PointLike, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
         readonly worldTransform: any;
     }
 }
@@ -265,21 +287,17 @@ declare module PIXI.projection {
 }
 declare module PIXI.projection {
     import PointLike = PIXI.PointLike;
-    class Projection2d extends Projection {
+    class Projection2d extends LinearProjection<Matrix2d> {
         constructor(legacy: PIXI.TransformBase, enable?: boolean);
         matrix: Matrix2d;
-        local: Matrix2d;
-        world: Matrix2d;
-        _projID: number;
-        _currentProjID: number;
-        _affine: AFFINE;
+        pivot: PIXI.ObservablePoint;
         reverseLocalOrder: boolean;
-        affine: AFFINE;
-        enabled: boolean;
+        onChange(): void;
         setAxisX(p: PointLike, factor?: number): void;
         setAxisY(p: PointLike, factor?: number): void;
         mapSprite(sprite: PIXI.Sprite, quad: Array<PointLike>): void;
         mapQuad(rect: PIXI.Rectangle, p: Array<PointLike>): void;
+        updateLocalTransform(lt: PIXI.Matrix): void;
         clear(): void;
     }
 }
@@ -306,6 +324,7 @@ declare module PIXI.projection {
         _calculateBounds(): void;
         calculateVertices(): void;
         calculateTrimmedVertices(): void;
+        toLocal<T extends PIXI.PointLike>(position: PIXI.PointLike, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
         readonly worldTransform: any;
     }
 }
@@ -324,6 +343,7 @@ declare module PIXI.projection {
         tileProj: Projection2d;
         proj: Projection2d;
         readonly worldTransform: any;
+        toLocal<T extends PIXI.PointLike>(position: PIXI.PointLike, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
         _renderWebGL(renderer: PIXI.WebGLRenderer): void;
     }
 }
@@ -359,6 +379,210 @@ declare module PIXI.projection {
         static calculateSpriteMatrix(currentState: any, mappedMatrix: Matrix2d, sprite: PIXI.Sprite): Matrix2d;
     }
 }
+declare module PIXI.projection {
+    class Camera3d extends Container3d {
+        constructor();
+        _far: number;
+        _near: number;
+        _focus: number;
+        _orthographic: boolean;
+        readonly far: number;
+        readonly near: number;
+        readonly focus: number;
+        readonly ortographic: boolean;
+        setPlanes(focus: number, near?: number, far?: number, orthographic?: boolean): void;
+    }
+}
+declare module PIXI.projection {
+    function container3dWorldTransform(): any;
+    class Container3d extends PIXI.Container {
+        constructor();
+        proj: Projection3d;
+        isFrontFace(forceUpdate?: boolean): boolean;
+        getDepth(forceUpdate?: boolean): number;
+        toLocal<T extends PIXI.PointLike>(position: PIXI.PointLike, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
+        readonly worldTransform: any;
+        position3d: PIXI.PointLike;
+        scale3d: PIXI.PointLike;
+        euler: Euler;
+        pivot3d: PIXI.PointLike;
+    }
+    let container3dToLocal: <T extends PIXI.PointLike>(position: PIXI.PointLike, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP) => T;
+}
+declare module PIXI.projection {
+    class Euler implements PIXI.PointLike {
+        constructor(x?: number, y?: number, z?: number);
+        _quatUpdateId: number;
+        _quatDirtyId: number;
+        quaternion: Float64Array;
+        _x: number;
+        _y: number;
+        _z: number;
+        _sign: number;
+        x: number;
+        y: number;
+        z: number;
+        pitch: number;
+        yaw: number;
+        roll: number;
+        set(x?: number, y?: number, z?: number): void;
+        copy(euler: PIXI.PointLike): void;
+        clone(): Euler;
+        update(): boolean;
+    }
+}
+declare module PIXI.projection {
+    import IPoint = PIXI.PointLike;
+    class Matrix3d {
+        static readonly IDENTITY: Matrix3d;
+        static readonly TEMP_MATRIX: Matrix3d;
+        mat4: Float64Array;
+        floatArray: Float32Array;
+        _dirtyId: number;
+        _updateId: number;
+        _mat4inv: Float64Array;
+        cacheInverse: boolean;
+        constructor(backingArray?: ArrayLike<number>);
+        a: number;
+        b: number;
+        c: number;
+        d: number;
+        tx: number;
+        ty: number;
+        set(a: number, b: number, c: number, d: number, tx: number, ty: number): this;
+        toArray(transpose?: boolean, out?: Float32Array): Float32Array;
+        setToTranslation(tx: number, ty: number, tz: number): void;
+        setToRotationTranslationScale(quat: Float64Array, tx: number, ty: number, tz: number, sx: number, sy: number, sz: number): Float64Array;
+        apply(pos: IPoint, newPos: IPoint): IPoint;
+        translate(tx: number, ty: number, tz: number): this;
+        scale(x: number, y: number, z?: number): this;
+        scaleAndTranslate(scaleX: number, scaleY: number, scaleZ: number, tx: number, ty: number, tz: number): void;
+        applyInverse(pos: IPoint, newPos: IPoint): IPoint;
+        invert(): Matrix3d;
+        invertCopyTo(matrix: Matrix3d): void;
+        identity(): Matrix3d;
+        clone(): Matrix3d;
+        copyTo(matrix: Matrix3d): Matrix3d;
+        copy(matrix: PIXI.Matrix, affine?: AFFINE): void;
+        copyFrom(matrix: PIXI.Matrix): this;
+        setToMultLegacy(pt: PIXI.Matrix, lt: Matrix3d): this;
+        setToMultLegacy2(pt: Matrix3d, lt: PIXI.Matrix): this;
+        setToMult(pt: Matrix3d, lt: Matrix3d): this;
+        prepend(lt: any): void;
+        static glMatrixMat4Invert(out: Float64Array, a: Float64Array): Float64Array;
+        static glMatrixMat4Multiply(out: Float64Array, a: Float64Array, b: Float64Array): Float64Array;
+    }
+}
+declare module PIXI.projection {
+    class Mesh3d extends PIXI.mesh.Mesh {
+        constructor(texture: PIXI.Texture, vertices?: Float32Array, uvs?: Float32Array, indices?: Uint16Array, drawMode?: number);
+        proj: Projection3d;
+        readonly worldTransform: any;
+        toLocal<T extends PIXI.PointLike>(position: PIXI.PointLike, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
+        position3d: PIXI.PointLike;
+        scale3d: PIXI.PointLike;
+        euler: Euler;
+        pivot3d: PIXI.PointLike;
+    }
+}
+declare module PIXI.projection {
+    class ObservableEuler implements PIXI.PointLike, Euler {
+        cb: any;
+        scope: any;
+        constructor(cb: any, scope: any, x?: number, y?: number, z?: number);
+        _quatUpdateId: number;
+        _quatDirtyId: number;
+        quaternion: Float64Array;
+        _x: number;
+        _y: number;
+        _z: number;
+        _sign: number;
+        x: number;
+        y: number;
+        z: number;
+        pitch: number;
+        yaw: number;
+        roll: number;
+        set(x?: number, y?: number, z?: number): void;
+        copy(euler: PIXI.PointLike): void;
+        clone(): Euler;
+        update(): boolean;
+    }
+}
+declare namespace PIXI {
+    interface PointLike {
+        z: number;
+        set(x?: number, y?: number, z?: number): void;
+    }
+    interface Point {
+        z: number;
+        set(x?: number, y?: number, z?: number): void;
+    }
+    interface ObservablePoint {
+        _z: number;
+        z: number;
+        set(x?: number, y?: number, z?: number): void;
+    }
+}
+declare module PIXI.projection {
+    class Point3d extends PIXI.Point {
+        constructor(x?: number, y?: number, z?: number);
+    }
+}
+declare module PIXI.projection {
+    class Projection3d extends LinearProjection<Matrix3d> {
+        constructor(legacy: PIXI.TransformBase, enable?: boolean);
+        cameraMatrix: Matrix3d;
+        _cameraMode: boolean;
+        cameraMode: boolean;
+        position: PIXI.ObservablePoint;
+        scale: PIXI.ObservablePoint;
+        euler: ObservableEuler;
+        pivot: PIXI.ObservablePoint;
+        onChange(): void;
+        clear(): void;
+        updateLocalTransform(lt: PIXI.Matrix): void;
+    }
+}
+declare module PIXI {
+    interface Container {
+        convertTo3d(): void;
+        convertSubtreeTo3d(): void;
+    }
+}
+declare module PIXI.projection {
+}
+declare module PIXI.projection {
+    class Sprite3d extends PIXI.Sprite {
+        constructor(texture: PIXI.Texture);
+        proj: Projection3d;
+        culledByFrustrum: boolean;
+        trimmedCulledByFrustrum: boolean;
+        _calculateBounds(): void;
+        calculateVertices(): void;
+        calculateTrimmedVertices(): void;
+        _renderWebGL(renderer: PIXI.WebGLRenderer): void;
+        containsPoint(point: PIXI.PointLike): boolean;
+        readonly worldTransform: any;
+        toLocal<T extends PIXI.PointLike>(position: PIXI.PointLike, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
+        position3d: PIXI.PointLike;
+        scale3d: PIXI.PointLike;
+        euler: Euler;
+        pivot3d: PIXI.PointLike;
+    }
+}
+declare module PIXI.projection {
+    class Text3d extends PIXI.Text {
+        constructor(text?: string, style?: PIXI.TextStyle, canvas?: HTMLCanvasElement);
+        proj: Projection3d;
+        readonly worldTransform: any;
+        toLocal<T extends PIXI.PointLike>(position: PIXI.PointLike, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
+        position3d: PIXI.PointLike;
+        scale3d: PIXI.PointLike;
+        euler: Euler;
+        pivot3d: PIXI.PointLike;
+    }
+}
 declare module PIXI.projection.utils {
     function createIndicesForQuads(size: number): Uint16Array;
     function isPow2(v: number): boolean;
@@ -382,6 +606,23 @@ declare module PIXI.projection {
         newSprite(tex: PIXI.Texture): Sprite2d;
         newGraphics(): PIXI.Graphics;
         newMesh(texture: PIXI.Texture, vertices?: Float32Array, uvs?: Float32Array, indices?: Uint16Array, drawMode?: number): Mesh2d;
+        transformHack(): number;
+    }
+}
+declare module PIXI.projection {
+    interface Sprite3d {
+        region: PIXI.spine.core.TextureRegion;
+    }
+    interface Mesh3d {
+        region: PIXI.spine.core.TextureRegion;
+    }
+    class Spine3d extends PIXI.spine.Spine {
+        constructor(spineData: PIXI.spine.core.SkeletonData);
+        proj: Projection2d;
+        newContainer(): Container3d;
+        newSprite(tex: PIXI.Texture): Sprite3d;
+        newGraphics(): PIXI.Graphics;
+        newMesh(texture: PIXI.Texture, vertices?: Float32Array, uvs?: Float32Array, indices?: Uint16Array, drawMode?: number): Mesh3d;
         transformHack(): number;
     }
 }

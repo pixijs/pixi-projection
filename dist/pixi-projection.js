@@ -81,8 +81,8 @@ var pixi_projection;
 PIXI.projection = pixi_projection;
 var pixi_projection;
 (function (pixi_projection) {
-    var Projection = (function () {
-        function Projection(legacy, enable) {
+    var AbstractProjection = (function () {
+        function AbstractProjection(legacy, enable) {
             if (enable === void 0) { enable = true; }
             this._enabled = false;
             this.legacy = legacy;
@@ -91,7 +91,7 @@ var pixi_projection;
             }
             this.legacy.proj = this;
         }
-        Object.defineProperty(Projection.prototype, "enabled", {
+        Object.defineProperty(AbstractProjection.prototype, "enabled", {
             get: function () {
                 return this._enabled;
             },
@@ -101,11 +101,114 @@ var pixi_projection;
             enumerable: true,
             configurable: true
         });
-        Projection.prototype.clear = function () {
+        AbstractProjection.prototype.clear = function () {
         };
-        return Projection;
+        return AbstractProjection;
     }());
-    pixi_projection.Projection = Projection;
+    pixi_projection.AbstractProjection = AbstractProjection;
+    var TRANSFORM_STEP;
+    (function (TRANSFORM_STEP) {
+        TRANSFORM_STEP[TRANSFORM_STEP["NONE"] = 0] = "NONE";
+        TRANSFORM_STEP[TRANSFORM_STEP["BEFORE_PROJ"] = 4] = "BEFORE_PROJ";
+        TRANSFORM_STEP[TRANSFORM_STEP["PROJ"] = 5] = "PROJ";
+        TRANSFORM_STEP[TRANSFORM_STEP["ALL"] = 9] = "ALL";
+    })(TRANSFORM_STEP = pixi_projection.TRANSFORM_STEP || (pixi_projection.TRANSFORM_STEP = {}));
+})(pixi_projection || (pixi_projection = {}));
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var pixi_projection;
+(function (pixi_projection) {
+    function transformHack(parentTransform) {
+        var proj = this.proj;
+        var ta = this;
+        var pwid = parentTransform._worldID;
+        var lt = ta.localTransform;
+        if (ta._localID !== ta._currentLocalID) {
+            lt.a = ta._cx * ta.scale._x;
+            lt.b = ta._sx * ta.scale._x;
+            lt.c = ta._cy * ta.scale._y;
+            lt.d = ta._sy * ta.scale._y;
+            lt.tx = ta.position._x - ((ta.pivot._x * lt.a) + (ta.pivot._y * lt.c));
+            lt.ty = ta.position._y - ((ta.pivot._x * lt.b) + (ta.pivot._y * lt.d));
+            ta._currentLocalID = ta._localID;
+            proj._currentProjID = -1;
+        }
+        var _matrixID = proj._projID;
+        if (proj._currentProjID !== _matrixID) {
+            proj._currentProjID = _matrixID;
+            proj.updateLocalTransform(lt);
+            ta._parentID = -1;
+        }
+        if (ta._parentID !== pwid) {
+            var pp = parentTransform.proj;
+            if (pp && !pp._affine) {
+                proj.world.setToMult(pp.world, proj.local);
+            }
+            else {
+                proj.world.setToMultLegacy(parentTransform.worldTransform, proj.local);
+            }
+            proj.world.copy(ta.worldTransform, proj._affine);
+            ta._parentID = pwid;
+            ta._worldID++;
+        }
+    }
+    var LinearProjection = (function (_super) {
+        __extends(LinearProjection, _super);
+        function LinearProjection() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this._projID = 0;
+            _this._currentProjID = -1;
+            _this._affine = pixi_projection.AFFINE.NONE;
+            return _this;
+        }
+        LinearProjection.prototype.updateLocalTransform = function (lt) {
+        };
+        Object.defineProperty(LinearProjection.prototype, "affine", {
+            get: function () {
+                return this._affine;
+            },
+            set: function (value) {
+                if (this._affine == value)
+                    return;
+                this._affine = value;
+                this._currentProjID = -1;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(LinearProjection.prototype, "enabled", {
+            set: function (value) {
+                if (value === this._enabled) {
+                    return;
+                }
+                this._enabled = value;
+                if (value) {
+                    this.legacy.updateTransform = transformHack;
+                    this.legacy._parentID = -1;
+                }
+                else {
+                    this.legacy.updateTransform = PIXI.TransformStatic.prototype.updateTransform;
+                    this.legacy._parentID = -1;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        LinearProjection.prototype.clear = function () {
+            this._currentProjID = -1;
+            this._projID = 0;
+        };
+        return LinearProjection;
+    }(pixi_projection.AbstractProjection));
+    pixi_projection.LinearProjection = LinearProjection;
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
 (function (pixi_projection) {
@@ -125,54 +228,6 @@ var pixi_projection;
         webgl.BatchBuffer = BatchBuffer;
     })(webgl = pixi_projection.webgl || (pixi_projection.webgl = {}));
 })(pixi_projection || (pixi_projection = {}));
-var pixi_projection;
-(function (pixi_projection) {
-    var webgl;
-    (function (webgl) {
-        function generateMultiTextureShader(vertexSrc, fragmentSrc, gl, maxTextures) {
-            fragmentSrc = fragmentSrc.replace(/%count%/gi, maxTextures + '');
-            fragmentSrc = fragmentSrc.replace(/%forloop%/gi, generateSampleSrc(maxTextures));
-            var shader = new PIXI.Shader(gl, vertexSrc, fragmentSrc);
-            var sampleValues = new Int32Array(maxTextures);
-            for (var i = 0; i < maxTextures; i++) {
-                sampleValues[i] = i;
-            }
-            shader.bind();
-            shader.uniforms.uSamplers = sampleValues;
-            return shader;
-        }
-        webgl.generateMultiTextureShader = generateMultiTextureShader;
-        function generateSampleSrc(maxTextures) {
-            var src = '';
-            src += '\n';
-            src += '\n';
-            for (var i = 0; i < maxTextures; i++) {
-                if (i > 0) {
-                    src += '\nelse ';
-                }
-                if (i < maxTextures - 1) {
-                    src += "if(textureId == " + i + ".0)";
-                }
-                src += '\n{';
-                src += "\n\tcolor = texture2D(uSamplers[" + i + "], textureCoord);";
-                src += '\n}';
-            }
-            src += '\n';
-            src += '\n';
-            return src;
-        }
-    })(webgl = pixi_projection.webgl || (pixi_projection.webgl = {}));
-})(pixi_projection || (pixi_projection = {}));
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 var pixi_projection;
 (function (pixi_projection) {
     var webgl;
@@ -415,6 +470,44 @@ var pixi_projection;
             return MultiTextureSpriteRenderer;
         }(ObjectRenderer));
         webgl.MultiTextureSpriteRenderer = MultiTextureSpriteRenderer;
+    })(webgl = pixi_projection.webgl || (pixi_projection.webgl = {}));
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
+    var webgl;
+    (function (webgl) {
+        function generateMultiTextureShader(vertexSrc, fragmentSrc, gl, maxTextures) {
+            fragmentSrc = fragmentSrc.replace(/%count%/gi, maxTextures + '');
+            fragmentSrc = fragmentSrc.replace(/%forloop%/gi, generateSampleSrc(maxTextures));
+            var shader = new PIXI.Shader(gl, vertexSrc, fragmentSrc);
+            var sampleValues = new Int32Array(maxTextures);
+            for (var i = 0; i < maxTextures; i++) {
+                sampleValues[i] = i;
+            }
+            shader.bind();
+            shader.uniforms.uSamplers = sampleValues;
+            return shader;
+        }
+        webgl.generateMultiTextureShader = generateMultiTextureShader;
+        function generateSampleSrc(maxTextures) {
+            var src = '';
+            src += '\n';
+            src += '\n';
+            for (var i = 0; i < maxTextures; i++) {
+                if (i > 0) {
+                    src += '\nelse ';
+                }
+                if (i < maxTextures - 1) {
+                    src += "if(textureId == " + i + ".0)";
+                }
+                src += '\n{';
+                src += "\n\tcolor = texture2D(uSamplers[" + i + "], textureCoord);";
+                src += '\n}';
+            }
+            src += '\n';
+            src += '\n';
+            return src;
+        }
     })(webgl = pixi_projection.webgl || (pixi_projection.webgl = {}));
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
@@ -763,7 +856,7 @@ var pixi_projection;
             configurable: true
         });
         return ProjectionSurface;
-    }(pixi_projection.Projection));
+    }(pixi_projection.AbstractProjection));
     pixi_projection.ProjectionSurface = ProjectionSurface;
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
@@ -1091,37 +1184,6 @@ var pixi_projection;
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
 (function (pixi_projection) {
-    PIXI.Sprite.prototype.convertTo2s = function () {
-        if (this.proj)
-            return;
-        this.pluginName = 'sprite_bilinear';
-        this.aTrans = new PIXI.Matrix();
-        this.calculateVertices = pixi_projection.Sprite2s.prototype.calculateVertices;
-        this.calculateTrimmedVertices = pixi_projection.Sprite2s.prototype.calculateTrimmedVertices;
-        this._calculateBounds = pixi_projection.Sprite2s.prototype._calculateBounds;
-        PIXI.Container.prototype.convertTo2s.call(this);
-    };
-    PIXI.Container.prototype.convertTo2s = function () {
-        if (this.proj)
-            return;
-        this.proj = new pixi_projection.Projection2d(this.transform);
-        Object.defineProperty(this, "worldTransform", {
-            get: function () {
-                return this.proj;
-            },
-            enumerable: true,
-            configurable: true
-        });
-    };
-    PIXI.Container.prototype.convertSubtreeTo2s = function () {
-        this.convertTo2s();
-        for (var i = 0; i < this.children.length; i++) {
-            this.children[i].convertSubtreeTo2s();
-        }
-    };
-})(pixi_projection || (pixi_projection = {}));
-var pixi_projection;
-(function (pixi_projection) {
     var Sprite2s = (function (_super) {
         __extends(Sprite2s, _super);
         function Sprite2s(texture) {
@@ -1296,6 +1358,37 @@ var pixi_projection;
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
 (function (pixi_projection) {
+    PIXI.Sprite.prototype.convertTo2s = function () {
+        if (this.proj)
+            return;
+        this.pluginName = 'sprite_bilinear';
+        this.aTrans = new PIXI.Matrix();
+        this.calculateVertices = pixi_projection.Sprite2s.prototype.calculateVertices;
+        this.calculateTrimmedVertices = pixi_projection.Sprite2s.prototype.calculateTrimmedVertices;
+        this._calculateBounds = pixi_projection.Sprite2s.prototype._calculateBounds;
+        PIXI.Container.prototype.convertTo2s.call(this);
+    };
+    PIXI.Container.prototype.convertTo2s = function () {
+        if (this.proj)
+            return;
+        this.proj = new pixi_projection.Projection2d(this.transform);
+        Object.defineProperty(this, "worldTransform", {
+            get: function () {
+                return this.proj;
+            },
+            enumerable: true,
+            configurable: true
+        });
+    };
+    PIXI.Container.prototype.convertSubtreeTo2s = function () {
+        this.convertTo2s();
+        for (var i = 0; i < this.children.length; i++) {
+            this.children[i].convertSubtreeTo2s();
+        }
+    };
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
     function container2dWorldTransform() {
         return this.proj.affine ? this.transform.worldTransform : this.proj.world;
     }
@@ -1307,6 +1400,34 @@ var pixi_projection;
             _this.proj = new pixi_projection.Projection2d(_this.transform);
             return _this;
         }
+        Container2d.prototype.toLocal = function (position, from, point, skipUpdate, step) {
+            if (step === void 0) { step = pixi_projection.TRANSFORM_STEP.ALL; }
+            if (from) {
+                position = from.toGlobal(position, point, skipUpdate);
+            }
+            if (!skipUpdate) {
+                this._recursivePostUpdateTransform();
+            }
+            if (step >= pixi_projection.TRANSFORM_STEP.PROJ) {
+                if (!skipUpdate) {
+                    this.displayObjectUpdateTransform();
+                }
+                if (this.proj.affine) {
+                    return this.transform.worldTransform.applyInverse(point, point);
+                }
+                return this.proj.world.applyInverse(point, point);
+            }
+            if (this.parent) {
+                point = this.parent.worldTransform.applyInverse(position, point);
+            }
+            else {
+                point.copy(position);
+            }
+            if (step === pixi_projection.TRANSFORM_STEP.NONE) {
+                return point;
+            }
+            return this.transform.localTransform.applyInverse(point, point);
+        };
         Object.defineProperty(Container2d.prototype, "worldTransform", {
             get: function () {
                 return this.proj.affine ? this.transform.worldTransform : this.proj.world;
@@ -1317,6 +1438,7 @@ var pixi_projection;
         return Container2d;
     }(PIXI.Container));
     pixi_projection.Container2d = Container2d;
+    pixi_projection.container2dToLocal = Container2d.prototype.toLocal;
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
 (function (pixi_projection) {
@@ -1337,60 +1459,60 @@ var pixi_projection;
         }
         Object.defineProperty(Matrix2d.prototype, "a", {
             get: function () {
-                return this.mat3[0];
+                return this.mat3[0] / this.mat3[8];
             },
             set: function (value) {
-                this.mat3[0] = value;
+                this.mat3[0] = value * this.mat3[8];
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(Matrix2d.prototype, "b", {
             get: function () {
-                return this.mat3[1];
+                return this.mat3[1] / this.mat3[8];
             },
             set: function (value) {
-                this.mat3[1] = value;
+                this.mat3[1] = value * this.mat3[8];
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(Matrix2d.prototype, "c", {
             get: function () {
-                return this.mat3[3];
+                return this.mat3[3] / this.mat3[8];
             },
             set: function (value) {
-                this.mat3[3] = value;
+                this.mat3[3] = value * this.mat3[8];
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(Matrix2d.prototype, "d", {
             get: function () {
-                return this.mat3[4];
+                return this.mat3[4] / this.mat3[8];
             },
             set: function (value) {
-                this.mat3[4] = value;
+                this.mat3[4] = value * this.mat3[8];
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(Matrix2d.prototype, "tx", {
             get: function () {
-                return this.mat3[6];
+                return this.mat3[6] / this.mat3[8];
             },
             set: function (value) {
-                this.mat3[6] = value;
+                this.mat3[6] = value * this.mat3[8];
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(Matrix2d.prototype, "ty", {
             get: function () {
-                return this.mat3[7];
+                return this.mat3[7] / this.mat3[8];
             },
             set: function (value) {
-                this.mat3[7] = value;
+                this.mat3[7] = value * this.mat3[8];
             },
             enumerable: true,
             configurable: true
@@ -1609,7 +1731,7 @@ var pixi_projection;
             out[8] = b20 * a02 + b21 * a12 + a22;
             return this;
         };
-        Matrix2d.prototype.setToMult2d = function (pt, lt) {
+        Matrix2d.prototype.setToMult = function (pt, lt) {
             var out = this.mat3;
             var a = pt.mat3, b = lt.mat3;
             var a00 = a[0], a01 = a[1], a02 = a[2], a10 = a[3], a11 = a[4], a12 = a[5], a20 = a[6], a21 = a[7], a22 = a[8], b00 = b[0], b01 = b[1], b02 = b[2], b10 = b[3], b11 = b[4], b12 = b[5], b20 = b[6], b21 = b[7], b22 = b[8];
@@ -1626,7 +1748,7 @@ var pixi_projection;
         };
         Matrix2d.prototype.prepend = function (lt) {
             if (lt.mat3) {
-                this.setToMult2d(lt, this);
+                this.setToMult(lt, this);
             }
             else {
                 this.setToMultLegacy(lt, this);
@@ -1640,50 +1762,6 @@ var pixi_projection;
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
 (function (pixi_projection) {
-    function transformHack(parentTransform) {
-        var proj = this.proj;
-        var ta = this;
-        var pwid = parentTransform._worldID;
-        var lt = ta.localTransform;
-        if (ta._localID !== ta._currentLocalID) {
-            lt.a = ta._cx * ta.scale._x;
-            lt.b = ta._sx * ta.scale._x;
-            lt.c = ta._cy * ta.scale._y;
-            lt.d = ta._sy * ta.scale._y;
-            lt.tx = ta.position._x - ((ta.pivot._x * lt.a) + (ta.pivot._y * lt.c));
-            lt.ty = ta.position._y - ((ta.pivot._x * lt.b) + (ta.pivot._y * lt.d));
-            ta._currentLocalID = ta._localID;
-            proj._currentProjID = -1;
-        }
-        var _matrixID = proj._projID;
-        if (proj._currentProjID !== _matrixID) {
-            proj._currentProjID = _matrixID;
-            if (_matrixID !== 0) {
-                if (proj.reverseLocalOrder) {
-                    proj.local.setToMultLegacy2(proj.matrix, lt);
-                }
-                else {
-                    proj.local.setToMultLegacy(lt, proj.matrix);
-                }
-            }
-            else {
-                proj.local.copyFrom(lt);
-            }
-            ta._parentID = -1;
-        }
-        if (ta._parentID !== pwid) {
-            var pp = parentTransform.proj;
-            if (pp && !pp.affine) {
-                proj.world.setToMult2d(pp.world, proj.local);
-            }
-            else {
-                proj.world.setToMultLegacy(parentTransform.worldTransform, proj.local);
-            }
-            proj.world.copy(ta.worldTransform, proj._affine);
-            ta._parentID = pwid;
-            ta._worldID++;
-        }
-    }
     var t0 = new PIXI.Point();
     var tt = [new PIXI.Point(), new PIXI.Point(), new PIXI.Point(), new PIXI.Point()];
     var tempRect = new PIXI.Rectangle();
@@ -1693,45 +1771,19 @@ var pixi_projection;
         function Projection2d(legacy, enable) {
             var _this = _super.call(this, legacy, enable) || this;
             _this.matrix = new pixi_projection.Matrix2d();
+            _this.pivot = new PIXI.ObservablePoint(_this.onChange, _this, 0, 0);
+            _this.reverseLocalOrder = false;
             _this.local = new pixi_projection.Matrix2d();
             _this.world = new pixi_projection.Matrix2d();
-            _this._projID = 0;
-            _this._currentProjID = -1;
-            _this._affine = pixi_projection.AFFINE.NONE;
-            _this.reverseLocalOrder = false;
             return _this;
         }
-        Object.defineProperty(Projection2d.prototype, "affine", {
-            get: function () {
-                return this._affine;
-            },
-            set: function (value) {
-                if (this._affine == value)
-                    return;
-                this._affine = value;
-                this._currentProjID = -1;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Projection2d.prototype, "enabled", {
-            set: function (value) {
-                if (value === this._enabled) {
-                    return;
-                }
-                this._enabled = value;
-                if (value) {
-                    this.legacy.updateTransform = transformHack;
-                    this.legacy._parentID = -1;
-                }
-                else {
-                    this.legacy.updateTransform = PIXI.TransformStatic.prototype.updateTransform;
-                    this.legacy._parentID = -1;
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
+        Projection2d.prototype.onChange = function () {
+            var pivot = this.pivot;
+            var mat3 = this.matrix.mat3;
+            mat3[6] = -(pivot._x * mat3[0] + pivot._y * mat3[3]);
+            mat3[7] = -(pivot._x * mat3[1] + pivot._y * mat3[4]);
+            this._projID++;
+        };
         Projection2d.prototype.setAxisX = function (p, factor) {
             if (factor === void 0) { factor = 1; }
             var x = p.x, y = p.y;
@@ -1740,7 +1792,7 @@ var pixi_projection;
             mat3[0] = x / d;
             mat3[1] = y / d;
             mat3[2] = factor / d;
-            this._projID++;
+            this.onChange();
         };
         Projection2d.prototype.setAxisY = function (p, factor) {
             if (factor === void 0) { factor = 1; }
@@ -1750,7 +1802,7 @@ var pixi_projection;
             mat3[3] = x / d;
             mat3[4] = y / d;
             mat3[5] = factor / d;
-            this._projID++;
+            this.onChange();
         };
         Projection2d.prototype.mapSprite = function (sprite, quad) {
             var tex = sprite.texture;
@@ -1803,16 +1855,29 @@ var pixi_projection;
             mat3[6] = p[k2].x;
             mat3[7] = p[k2].y;
             mat3[8] = 1;
-            this.matrix.setToMult2d(tempMat, this.matrix);
+            this.matrix.setToMult(tempMat, this.matrix);
             this._projID++;
         };
+        Projection2d.prototype.updateLocalTransform = function (lt) {
+            if (this._projID !== 0) {
+                if (this.reverseLocalOrder) {
+                    this.local.setToMultLegacy2(this.matrix, lt);
+                }
+                else {
+                    this.local.setToMultLegacy(lt, this.matrix);
+                }
+            }
+            else {
+                this.local.copyFrom(lt);
+            }
+        };
         Projection2d.prototype.clear = function () {
-            this._currentProjID = -1;
-            this._projID = 0;
+            _super.prototype.clear.call(this);
             this.matrix.identity();
+            this.pivot.set(0, 0);
         };
         return Projection2d;
-    }(pixi_projection.Projection));
+    }(pixi_projection.LinearProjection));
     pixi_projection.Projection2d = Projection2d;
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
@@ -1825,6 +1890,10 @@ var pixi_projection;
             _this.pluginName = 'mesh2d';
             return _this;
         }
+        Mesh2d.prototype.toLocal = function (position, from, point, skipUpdate, step) {
+            if (step === void 0) { step = pixi_projection.TRANSFORM_STEP.ALL; }
+            return pixi_projection.container2dToLocal.call(this, position, from, point, skipUpdate, step);
+        };
         Object.defineProperty(Mesh2d.prototype, "worldTransform", {
             get: function () {
                 return this.proj.affine ? this.transform.worldTransform : this.proj.world;
@@ -1853,51 +1922,6 @@ var pixi_projection;
     }(PIXI.mesh.MeshRenderer));
     pixi_projection.Mesh2dRenderer = Mesh2dRenderer;
     PIXI.WebGLRenderer.registerPlugin('mesh2d', Mesh2dRenderer);
-})(pixi_projection || (pixi_projection = {}));
-var pixi_projection;
-(function (pixi_projection) {
-    PIXI.Sprite.prototype.convertTo2d = function () {
-        if (this.proj)
-            return;
-        this.calculateVertices = pixi_projection.Sprite2d.prototype.calculateVertices;
-        this.calculateTrimmedVertices = pixi_projection.Sprite2d.prototype.calculateTrimmedVertices;
-        this._calculateBounds = pixi_projection.Sprite2d.prototype._calculateBounds;
-        this.proj = new pixi_projection.Projection2d(this.transform);
-        this.pluginName = 'sprite2d';
-        this.vertexData = new Float32Array(12);
-        Object.defineProperty(this, "worldTransform", {
-            get: pixi_projection.container2dWorldTransform,
-            enumerable: true,
-            configurable: true
-        });
-    };
-    PIXI.mesh.Mesh.prototype.convertTo2d = function () {
-        if (this.proj)
-            return;
-        this.proj = new pixi_projection.Projection2d(this.transform);
-        this.pluginName = 'mesh2d';
-        Object.defineProperty(this, "worldTransform", {
-            get: pixi_projection.container2dWorldTransform,
-            enumerable: true,
-            configurable: true
-        });
-    };
-    PIXI.Container.prototype.convertTo2d = function () {
-        if (this.proj)
-            return;
-        this.proj = new pixi_projection.Projection2d(this.transform);
-        Object.defineProperty(this, "worldTransform", {
-            get: pixi_projection.container2dWorldTransform,
-            enumerable: true,
-            configurable: true
-        });
-    };
-    PIXI.Container.prototype.convertSubtreeTo2d = function () {
-        this.convertTo2d();
-        for (var i = 0; i < this.children.length; i++) {
-            this.children[i].convertSubtreeTo2d();
-        }
-    };
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
 (function (pixi_projection) {
@@ -2003,6 +2027,10 @@ var pixi_projection;
             z = 1.0 / (wt[2] * w1 + wt[5] * h0 + wt[8]);
             vertexData[6] = z * ((wt[0] * w1) + (wt[3] * h0) + wt[6]);
             vertexData[7] = z * ((wt[1] * w1) + (wt[4] * h0) + wt[7]);
+        };
+        Sprite2d.prototype.toLocal = function (position, from, point, skipUpdate, step) {
+            if (step === void 0) { step = pixi_projection.TRANSFORM_STEP.ALL; }
+            return pixi_projection.container2dToLocal.call(this, position, from, point, skipUpdate, step);
         };
         Object.defineProperty(Sprite2d.prototype, "worldTransform", {
             get: function () {
@@ -2127,6 +2155,43 @@ var pixi_projection;
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
 (function (pixi_projection) {
+    function convertTo2d() {
+        if (this.proj)
+            return;
+        this.proj = new pixi_projection.Projection2d(this.transform);
+        this.toLocal = pixi_projection.Container2d.prototype.toLocal;
+        Object.defineProperty(this, "worldTransform", {
+            get: pixi_projection.container2dWorldTransform,
+            enumerable: true,
+            configurable: true
+        });
+    }
+    PIXI.Container.prototype.convertTo2d = convertTo2d;
+    PIXI.Sprite.prototype.convertTo2d = function () {
+        if (this.proj)
+            return;
+        this.calculateVertices = pixi_projection.Sprite2d.prototype.calculateVertices;
+        this.calculateTrimmedVertices = pixi_projection.Sprite2d.prototype.calculateTrimmedVertices;
+        this._calculateBounds = pixi_projection.Sprite2d.prototype._calculateBounds;
+        this.pluginName = 'sprite2d';
+        this.vertexData = new Float32Array(12);
+        convertTo2d.call(this);
+    };
+    PIXI.mesh.Mesh.prototype.convertTo2d = function () {
+        if (this.proj)
+            return;
+        this.pluginName = 'mesh2d';
+        convertTo2d.call(this);
+    };
+    PIXI.Container.prototype.convertSubtreeTo2d = function () {
+        this.convertTo2d();
+        for (var i = 0; i < this.children.length; i++) {
+            this.children[i].convertSubtreeTo2d();
+        }
+    };
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
     var tempTransform = new PIXI.TransformStatic();
     var TilingSprite2d = (function (_super) {
         __extends(TilingSprite2d, _super);
@@ -2146,6 +2211,10 @@ var pixi_projection;
             enumerable: true,
             configurable: true
         });
+        TilingSprite2d.prototype.toLocal = function (position, from, point, skipUpdate, step) {
+            if (step === void 0) { step = pixi_projection.TRANSFORM_STEP.ALL; }
+            return pixi_projection.container2dToLocal.call(this, position, from, point, skipUpdate, step);
+        };
         TilingSprite2d.prototype._renderWebGL = function (renderer) {
             var texture = this._texture;
             if (!texture || !texture.valid) {
@@ -2301,12 +2370,1541 @@ var pixi_projection;
             var texture = sprite.texture.orig;
             mappedMatrix.set(textureSize.width, 0, 0, textureSize.height, filterArea.x, filterArea.y);
             worldTransform.invert();
-            mappedMatrix.setToMult2d(worldTransform, mappedMatrix);
+            mappedMatrix.setToMult(worldTransform, mappedMatrix);
             mappedMatrix.scaleAndTranslate(1.0 / texture.width, 1.0 / texture.height, sprite.anchor.x, sprite.anchor.y);
             return mappedMatrix;
         };
         return SpriteMaskFilter2d;
     }(PIXI.Filter));
     pixi_projection.SpriteMaskFilter2d = SpriteMaskFilter2d;
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
+    function container3dWorldTransform() {
+        return this.proj.affine ? this.transform.worldTransform : this.proj.world;
+    }
+    pixi_projection.container3dWorldTransform = container3dWorldTransform;
+    var Container3d = (function (_super) {
+        __extends(Container3d, _super);
+        function Container3d() {
+            var _this = _super.call(this) || this;
+            _this.proj = new pixi_projection.Projection3d(_this.transform);
+            return _this;
+        }
+        Container3d.prototype.isFrontFace = function (forceUpdate) {
+            if (forceUpdate === void 0) { forceUpdate = false; }
+            if (forceUpdate) {
+                this._recursivePostUpdateTransform();
+                this.displayObjectUpdateTransform();
+            }
+            var mat = this.proj.world.mat4;
+            var dx1 = mat[0] * mat[15] - mat[3] * mat[12];
+            var dy1 = mat[1] * mat[15] - mat[3] * mat[13];
+            var dx2 = mat[4] * mat[15] - mat[7] * mat[12];
+            var dy2 = mat[5] * mat[15] - mat[7] * mat[13];
+            return dx1 * dy2 - dx2 * dy1 > 0;
+        };
+        Container3d.prototype.getDepth = function (forceUpdate) {
+            if (forceUpdate === void 0) { forceUpdate = false; }
+            if (forceUpdate) {
+                this._recursivePostUpdateTransform();
+                this.displayObjectUpdateTransform();
+            }
+            var mat4 = this.proj.world.mat4;
+            return mat4[14] / mat4[15];
+        };
+        Container3d.prototype.toLocal = function (position, from, point, skipUpdate, step) {
+            if (step === void 0) { step = pixi_projection.TRANSFORM_STEP.ALL; }
+            if (from) {
+                position = from.toGlobal(position, point, skipUpdate);
+            }
+            if (!skipUpdate) {
+                this._recursivePostUpdateTransform();
+            }
+            if (step === pixi_projection.TRANSFORM_STEP.ALL) {
+                if (!skipUpdate) {
+                    this.displayObjectUpdateTransform();
+                }
+                if (this.proj.affine) {
+                    return this.transform.worldTransform.applyInverse(point, point);
+                }
+                return this.proj.world.applyInverse(point, point);
+            }
+            if (this.parent) {
+                point = this.parent.worldTransform.applyInverse(position, point);
+            }
+            else {
+                point.copy(position);
+            }
+            if (step === pixi_projection.TRANSFORM_STEP.NONE) {
+                return point;
+            }
+            point = this.transform.localTransform.applyInverse(point, point);
+            if (step === pixi_projection.TRANSFORM_STEP.PROJ && this.proj.cameraMode) {
+                point = this.proj.cameraMatrix.applyInverse(point, point);
+            }
+            return point;
+        };
+        Object.defineProperty(Container3d.prototype, "worldTransform", {
+            get: function () {
+                return this.proj.affine ? this.transform.worldTransform : this.proj.world;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Container3d.prototype, "position3d", {
+            get: function () {
+                return this.proj.position;
+            },
+            set: function (value) {
+                this.proj.position.copy(value);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Container3d.prototype, "scale3d", {
+            get: function () {
+                return this.proj.scale;
+            },
+            set: function (value) {
+                this.proj.scale.copy(value);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Container3d.prototype, "euler", {
+            get: function () {
+                return this.proj.euler;
+            },
+            set: function (value) {
+                this.proj.euler.copy(value);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Container3d.prototype, "pivot3d", {
+            get: function () {
+                return this.proj.pivot;
+            },
+            set: function (value) {
+                this.proj.pivot.copy(value);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return Container3d;
+    }(PIXI.Container));
+    pixi_projection.Container3d = Container3d;
+    pixi_projection.container3dToLocal = Container3d.prototype.toLocal;
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
+    var Camera3d = (function (_super) {
+        __extends(Camera3d, _super);
+        function Camera3d() {
+            var _this = _super.call(this) || this;
+            _this._far = 0;
+            _this._near = 0;
+            _this._focus = 0;
+            _this._orthographic = false;
+            _this.proj.cameraMode = true;
+            _this.setPlanes(400, 10, 10000, false);
+            return _this;
+        }
+        Object.defineProperty(Camera3d.prototype, "far", {
+            get: function () {
+                return this._far;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Camera3d.prototype, "near", {
+            get: function () {
+                return this._near;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Camera3d.prototype, "focus", {
+            get: function () {
+                return this._focus;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Camera3d.prototype, "ortographic", {
+            get: function () {
+                return this._orthographic;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Camera3d.prototype.setPlanes = function (focus, near, far, orthographic) {
+            if (near === void 0) { near = 10; }
+            if (far === void 0) { far = 10000; }
+            if (orthographic === void 0) { orthographic = false; }
+            this._focus = focus;
+            this._near = near;
+            this._far = far;
+            this._orthographic = orthographic;
+            var proj = this.proj;
+            var mat4 = proj.cameraMatrix.mat4;
+            proj._projID++;
+            mat4[10] = 1.0 / (far - near);
+            mat4[14] = (focus - near) / (far - near);
+            if (this._orthographic) {
+                mat4[11] = 0;
+            }
+            else {
+                mat4[11] = 1.0 / focus;
+            }
+        };
+        return Camera3d;
+    }(pixi_projection.Container3d));
+    pixi_projection.Camera3d = Camera3d;
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
+    var Euler = (function () {
+        function Euler(x, y, z) {
+            this._quatUpdateId = -1;
+            this._quatDirtyId = 0;
+            this._sign = 1;
+            this._x = x || 0;
+            this._y = y || 0;
+            this._z = z || 0;
+            this.quaternion = new Float64Array(4);
+            this.quaternion[3] = 1;
+            this.update();
+        }
+        Object.defineProperty(Euler.prototype, "x", {
+            get: function () {
+                return this._x;
+            },
+            set: function (value) {
+                if (this._x !== value) {
+                    this._x = value;
+                    this._quatDirtyId++;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Euler.prototype, "y", {
+            get: function () {
+                return this._y;
+            },
+            set: function (value) {
+                if (this._y !== value) {
+                    this._y = value;
+                    this._quatDirtyId++;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Euler.prototype, "z", {
+            get: function () {
+                return this._z;
+            },
+            set: function (value) {
+                if (this._z !== value) {
+                    this._z = value;
+                    this._quatDirtyId++;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Euler.prototype, "pitch", {
+            get: function () {
+                return this._x;
+            },
+            set: function (value) {
+                if (this._x !== value) {
+                    this._x = value;
+                    this._quatDirtyId++;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Euler.prototype, "yaw", {
+            get: function () {
+                return this._y;
+            },
+            set: function (value) {
+                if (this._y !== value) {
+                    this._y = value;
+                    this._quatDirtyId++;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Euler.prototype, "roll", {
+            get: function () {
+                return this._z;
+            },
+            set: function (value) {
+                if (this._z !== value) {
+                    this._z = value;
+                    this._quatDirtyId++;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Euler.prototype.set = function (x, y, z) {
+            var _x = x || 0;
+            var _y = y || 0;
+            var _z = z || 0;
+            if (this._x !== _x || this._y !== _y || this._z !== _z) {
+                this._x = _x;
+                this._y = _y;
+                this._z = _z;
+                this._quatDirtyId++;
+            }
+        };
+        ;
+        Euler.prototype.copy = function (euler) {
+            var _x = euler.x;
+            var _y = euler.y;
+            var _z = euler.z;
+            if (this._x !== _x || this._y !== _y || this._z !== _z) {
+                this._x = _x;
+                this._y = _y;
+                this._z = _z;
+                this._quatDirtyId++;
+            }
+        };
+        Euler.prototype.clone = function () {
+            return new Euler(this._x, this._y, this._z);
+        };
+        Euler.prototype.update = function () {
+            if (this._quatUpdateId === this._quatDirtyId) {
+                return false;
+            }
+            this._quatUpdateId = this._quatDirtyId;
+            var c1 = Math.cos(this._x / 2);
+            var c2 = Math.cos(this._y / 2);
+            var c3 = Math.cos(this._z / 2);
+            var s = this._sign;
+            var s1 = s * Math.sin(this._x / 2);
+            var s2 = s * Math.sin(this._y / 2);
+            var s3 = s * Math.sin(this._z / 2);
+            var q = this.quaternion;
+            q[0] = s1 * c2 * c3 + c1 * s2 * s3;
+            q[1] = c1 * s2 * c3 - s1 * c2 * s3;
+            q[2] = c1 * c2 * s3 + s1 * s2 * c3;
+            q[3] = c1 * c2 * c3 - s1 * s2 * s3;
+            return true;
+        };
+        return Euler;
+    }());
+    pixi_projection.Euler = Euler;
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
+    var mat4id = [1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1];
+    var Matrix3d = (function () {
+        function Matrix3d(backingArray) {
+            this.floatArray = null;
+            this._dirtyId = 0;
+            this._updateId = -1;
+            this._mat4inv = null;
+            this.cacheInverse = false;
+            this.mat4 = new Float64Array(backingArray || mat4id);
+        }
+        Object.defineProperty(Matrix3d.prototype, "a", {
+            get: function () {
+                return this.mat4[0] / this.mat4[15];
+            },
+            set: function (value) {
+                this.mat4[0] = value * this.mat4[15];
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Matrix3d.prototype, "b", {
+            get: function () {
+                return this.mat4[1] / this.mat4[15];
+            },
+            set: function (value) {
+                this.mat4[1] = value * this.mat4[15];
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Matrix3d.prototype, "c", {
+            get: function () {
+                return this.mat4[4] / this.mat4[15];
+            },
+            set: function (value) {
+                this.mat4[4] = value * this.mat4[15];
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Matrix3d.prototype, "d", {
+            get: function () {
+                return this.mat4[5] / this.mat4[15];
+            },
+            set: function (value) {
+                this.mat4[5] = value * this.mat4[15];
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Matrix3d.prototype, "tx", {
+            get: function () {
+                return this.mat4[12] / this.mat4[15];
+            },
+            set: function (value) {
+                this.mat4[12] = value * this.mat4[15];
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Matrix3d.prototype, "ty", {
+            get: function () {
+                return this.mat4[13] / this.mat4[15];
+            },
+            set: function (value) {
+                this.mat4[13] = value * this.mat4[15];
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Matrix3d.prototype.set = function (a, b, c, d, tx, ty) {
+            var mat4 = this.mat4;
+            mat4[0] = a;
+            mat4[1] = b;
+            mat4[2] = 0;
+            mat4[3] = 0;
+            mat4[4] = c;
+            mat4[5] = d;
+            mat4[6] = 0;
+            mat4[7] = 0;
+            mat4[8] = 0;
+            mat4[9] = 0;
+            mat4[10] = 1;
+            mat4[11] = 0;
+            mat4[12] = tx;
+            mat4[13] = ty;
+            mat4[14] = 0;
+            mat4[15] = 1;
+            return this;
+        };
+        Matrix3d.prototype.toArray = function (transpose, out) {
+            if (!this.floatArray) {
+                this.floatArray = new Float32Array(9);
+            }
+            var array = out || this.floatArray;
+            var mat3 = this.mat4;
+            if (transpose) {
+                array[0] = mat3[0];
+                array[1] = mat3[1];
+                array[2] = mat3[3];
+                array[3] = mat3[4];
+                array[4] = mat3[5];
+                array[5] = mat3[7];
+                array[6] = mat3[12];
+                array[7] = mat3[13];
+                array[8] = mat3[15];
+            }
+            else {
+                array[0] = mat3[0];
+                array[1] = mat3[4];
+                array[2] = mat3[12];
+                array[3] = mat3[2];
+                array[4] = mat3[6];
+                array[5] = mat3[13];
+                array[6] = mat3[3];
+                array[7] = mat3[7];
+                array[8] = mat3[15];
+            }
+            return array;
+        };
+        Matrix3d.prototype.setToTranslation = function (tx, ty, tz) {
+            var mat4 = this.mat4;
+            mat4[0] = 1;
+            mat4[1] = 0;
+            mat4[2] = 0;
+            mat4[3] = 0;
+            mat4[4] = 0;
+            mat4[5] = 1;
+            mat4[6] = 0;
+            mat4[7] = 0;
+            mat4[8] = 0;
+            mat4[9] = 0;
+            mat4[10] = 1;
+            mat4[11] = 0;
+            mat4[12] = tx;
+            mat4[13] = ty;
+            mat4[14] = tz;
+            mat4[15] = 1;
+        };
+        Matrix3d.prototype.setToRotationTranslationScale = function (quat, tx, ty, tz, sx, sy, sz) {
+            var out = this.mat4;
+            var x = quat[0], y = quat[1], z = quat[2], w = quat[3];
+            var x2 = x + x;
+            var y2 = y + y;
+            var z2 = z + z;
+            var xx = x * x2;
+            var xy = x * y2;
+            var xz = x * z2;
+            var yy = y * y2;
+            var yz = y * z2;
+            var zz = z * z2;
+            var wx = w * x2;
+            var wy = w * y2;
+            var wz = w * z2;
+            out[0] = (1 - (yy + zz)) * sx;
+            out[1] = (xy + wz) * sx;
+            out[2] = (xz - wy) * sx;
+            out[3] = 0;
+            out[4] = (xy - wz) * sy;
+            out[5] = (1 - (xx + zz)) * sy;
+            out[6] = (yz + wx) * sy;
+            out[7] = 0;
+            out[8] = (xz + wy) * sz;
+            out[9] = (yz - wx) * sz;
+            out[10] = (1 - (xx + yy)) * sz;
+            out[11] = 0;
+            out[12] = tx;
+            out[13] = ty;
+            out[14] = tz;
+            out[15] = 1;
+            return out;
+        };
+        Matrix3d.prototype.apply = function (pos, newPos) {
+            newPos = newPos || new PIXI.Point();
+            var mat4 = this.mat4;
+            var x = pos.x;
+            var y = pos.y;
+            var z = pos.z;
+            var w = 1.0 / (mat4[3] * x + mat4[7] * y + mat4[11] * z + mat4[15]);
+            newPos.x = w * (mat4[0] * x + mat4[4] * y + mat4[8] * z + mat4[12]);
+            newPos.y = w * (mat4[1] * x + mat4[5] * y + mat4[9] * z + mat4[13]);
+            newPos.z = w * (mat4[2] * x + mat4[6] * y + mat4[10] * z + mat4[14]);
+            return newPos;
+        };
+        Matrix3d.prototype.translate = function (tx, ty, tz) {
+            var a = this.mat4;
+            a[12] = a[0] * tx + a[4] * ty + a[8] * tz + a[12];
+            a[13] = a[1] * tx + a[5] * ty + a[9] * tz + a[13];
+            a[14] = a[2] * tx + a[6] * ty + a[10] * tz + a[14];
+            a[15] = a[3] * tx + a[7] * ty + a[11] * tz + a[15];
+            return this;
+        };
+        Matrix3d.prototype.scale = function (x, y, z) {
+            var mat4 = this.mat4;
+            mat4[0] *= x;
+            mat4[1] *= x;
+            mat4[2] *= x;
+            mat4[3] *= x;
+            mat4[4] *= y;
+            mat4[5] *= y;
+            mat4[6] *= y;
+            mat4[7] *= y;
+            if (z !== undefined) {
+                mat4[8] *= z;
+                mat4[9] *= z;
+                mat4[10] *= z;
+                mat4[11] *= z;
+            }
+            return this;
+        };
+        Matrix3d.prototype.scaleAndTranslate = function (scaleX, scaleY, scaleZ, tx, ty, tz) {
+            var mat4 = this.mat4;
+            mat4[0] = scaleX * mat4[0] + tx * mat4[3];
+            mat4[1] = scaleY * mat4[1] + ty * mat4[3];
+            mat4[2] = scaleZ * mat4[2] + tz * mat4[3];
+            mat4[4] = scaleX * mat4[4] + tx * mat4[7];
+            mat4[5] = scaleY * mat4[5] + ty * mat4[7];
+            mat4[6] = scaleZ * mat4[6] + tz * mat4[7];
+            mat4[8] = scaleX * mat4[8] + tx * mat4[11];
+            mat4[9] = scaleY * mat4[9] + ty * mat4[11];
+            mat4[10] = scaleZ * mat4[10] + tz * mat4[11];
+            mat4[12] = scaleX * mat4[12] + tx * mat4[15];
+            mat4[13] = scaleY * mat4[13] + ty * mat4[15];
+            mat4[14] = scaleZ * mat4[14] + tz * mat4[15];
+        };
+        Matrix3d.prototype.applyInverse = function (pos, newPos) {
+            newPos = newPos || new pixi_projection.Point3d();
+            if (!this._mat4inv) {
+                this._mat4inv = new Float64Array(16);
+            }
+            var mat4 = this._mat4inv;
+            var a = this.mat4;
+            var x = pos.x;
+            var y = pos.y;
+            var z = pos.z;
+            if (!this.cacheInverse || this._updateId !== this._dirtyId) {
+                this._updateId = this._dirtyId;
+                Matrix3d.glMatrixMat4Invert(mat4, a);
+            }
+            var w1 = 1.0 / (mat4[3] * x + mat4[7] * y + mat4[11] * z + mat4[15]);
+            var x1 = w1 * (mat4[0] * x + mat4[4] * y + mat4[8] * z + mat4[12]);
+            var y1 = w1 * (mat4[1] * x + mat4[5] * y + mat4[9] * z + mat4[13]);
+            var z1 = w1 * (mat4[2] * x + mat4[6] * y + mat4[10] * z + mat4[14]);
+            z += 1.0;
+            var w2 = 1.0 / (mat4[3] * x + mat4[7] * y + mat4[11] * z + mat4[15]);
+            var x2 = w2 * (mat4[0] * x + mat4[4] * y + mat4[8] * z + mat4[12]);
+            var y2 = w2 * (mat4[1] * x + mat4[5] * y + mat4[9] * z + mat4[13]);
+            var z2 = w2 * (mat4[2] * x + mat4[6] * y + mat4[10] * z + mat4[14]);
+            if (Math.abs(z1 - z2) < 1e-10) {
+                newPos.set(NaN, NaN, 0);
+            }
+            var alpha = (0 - z1) / (z2 - z1);
+            newPos.set((x2 - x1) * alpha + x1, (y2 - y1) * alpha + y1, 0.0);
+            return newPos;
+        };
+        Matrix3d.prototype.invert = function () {
+            Matrix3d.glMatrixMat4Invert(this.mat4, this.mat4);
+            return this;
+        };
+        Matrix3d.prototype.invertCopyTo = function (matrix) {
+            if (!this._mat4inv) {
+                this._mat4inv = new Float64Array(16);
+            }
+            var mat4 = this._mat4inv;
+            var a = this.mat4;
+            if (!this.cacheInverse || this._updateId !== this._dirtyId) {
+                this._updateId = this._dirtyId;
+                Matrix3d.glMatrixMat4Invert(mat4, a);
+            }
+            matrix.mat4.set(mat4);
+        };
+        Matrix3d.prototype.identity = function () {
+            var mat3 = this.mat4;
+            mat3[0] = 1;
+            mat3[1] = 0;
+            mat3[2] = 0;
+            mat3[3] = 0;
+            mat3[4] = 0;
+            mat3[5] = 1;
+            mat3[6] = 0;
+            mat3[7] = 0;
+            mat3[8] = 0;
+            mat3[9] = 0;
+            mat3[10] = 1;
+            mat3[11] = 0;
+            mat3[12] = 0;
+            mat3[13] = 0;
+            mat3[14] = 0;
+            mat3[15] = 1;
+            return this;
+        };
+        Matrix3d.prototype.clone = function () {
+            return new Matrix3d(this.mat4);
+        };
+        Matrix3d.prototype.copyTo = function (matrix) {
+            var mat3 = this.mat4;
+            var ar2 = matrix.mat4;
+            ar2[0] = mat3[0];
+            ar2[1] = mat3[1];
+            ar2[2] = mat3[2];
+            ar2[3] = mat3[3];
+            ar2[4] = mat3[4];
+            ar2[5] = mat3[5];
+            ar2[6] = mat3[6];
+            ar2[7] = mat3[7];
+            ar2[8] = mat3[8];
+            return matrix;
+        };
+        Matrix3d.prototype.copy = function (matrix, affine) {
+            var mat3 = this.mat4;
+            var d = 1.0 / mat3[15];
+            var tx = mat3[12] * d, ty = mat3[13] * d;
+            matrix.a = (mat3[0] - mat3[3] * tx) * d;
+            matrix.b = (mat3[1] - mat3[3] * ty) * d;
+            matrix.c = (mat3[4] - mat3[7] * tx) * d;
+            matrix.d = (mat3[5] - mat3[7] * ty) * d;
+            matrix.tx = tx;
+            matrix.ty = ty;
+            if (affine >= 2) {
+                if (affine === pixi_projection.AFFINE.POINT) {
+                    matrix.a = 1;
+                    matrix.b = 0;
+                    matrix.c = 0;
+                    matrix.d = 1;
+                }
+                else if (affine === pixi_projection.AFFINE.AXIS_X) {
+                    matrix.c = -matrix.b;
+                    matrix.d = matrix.a;
+                }
+                else if (affine === pixi_projection.AFFINE.AXIS_Y) {
+                    matrix.a = matrix.d;
+                    matrix.c = -matrix.b;
+                }
+            }
+        };
+        Matrix3d.prototype.copyFrom = function (matrix) {
+            var mat3 = this.mat4;
+            mat3[0] = matrix.a;
+            mat3[1] = matrix.b;
+            mat3[2] = 0;
+            mat3[3] = 0;
+            mat3[4] = matrix.c;
+            mat3[5] = matrix.d;
+            mat3[6] = 0;
+            mat3[7] = 0;
+            mat3[8] = 0;
+            mat3[9] = 0;
+            mat3[10] = 1;
+            mat3[11] = 0;
+            mat3[12] = matrix.tx;
+            mat3[13] = matrix.ty;
+            mat3[14] = 0;
+            mat3[15] = 1;
+            this._dirtyId++;
+            return this;
+        };
+        Matrix3d.prototype.setToMultLegacy = function (pt, lt) {
+            var out = this.mat4;
+            var b = lt.mat4;
+            var a00 = pt.a, a01 = pt.b, a10 = pt.c, a11 = pt.d, a30 = pt.tx, a31 = pt.ty;
+            var b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
+            out[0] = b0 * a00 + b1 * a10 + b3 * a30;
+            out[1] = b0 * a01 + b1 * a11 + b3 * a31;
+            out[2] = b2;
+            out[3] = b3;
+            b0 = b[4];
+            b1 = b[5];
+            b2 = b[6];
+            b3 = b[7];
+            out[4] = b0 * a00 + b1 * a10 + b3 * a30;
+            out[5] = b0 * a01 + b1 * a11 + b3 * a31;
+            out[6] = b2;
+            out[7] = b3;
+            b0 = b[8];
+            b1 = b[9];
+            b2 = b[10];
+            b3 = b[11];
+            out[8] = b0 * a00 + b1 * a10 + b3 * a30;
+            out[9] = b0 * a01 + b1 * a11 + b3 * a31;
+            out[10] = b2;
+            out[11] = b3;
+            b0 = b[12];
+            b1 = b[13];
+            b2 = b[14];
+            b3 = b[15];
+            out[12] = b0 * a00 + b1 * a10 + b3 * a30;
+            out[13] = b0 * a01 + b1 * a11 + b3 * a31;
+            out[14] = b2;
+            out[15] = b3;
+            this._dirtyId++;
+            return this;
+        };
+        Matrix3d.prototype.setToMultLegacy2 = function (pt, lt) {
+            var out = this.mat4;
+            var a = pt.mat4;
+            var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3];
+            var a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7];
+            var b00 = lt.a, b01 = lt.b, b10 = lt.c, b11 = lt.d, b30 = lt.tx, b31 = lt.ty;
+            out[0] = b00 * a00 + b01 * a10;
+            out[1] = b00 * a01 + b01 * a11;
+            out[2] = b00 * a02 + b01 * a12;
+            out[3] = b00 * a03 + b01 * a13;
+            out[4] = b10 * a00 + b11 * a10;
+            out[5] = b10 * a01 + b11 * a11;
+            out[6] = b10 * a02 + b11 * a12;
+            out[7] = b10 * a03 + b11 * a13;
+            out[8] = a[8];
+            out[9] = a[9];
+            out[10] = a[10];
+            out[11] = a[11];
+            out[12] = b30 * a00 + b31 * a10 + a[12];
+            out[13] = b30 * a01 + b31 * a11 + a[13];
+            out[14] = b30 * a02 + b31 * a12 + a[14];
+            out[15] = b30 * a03 + b31 * a13 + a[15];
+            this._dirtyId++;
+            return this;
+        };
+        Matrix3d.prototype.setToMult = function (pt, lt) {
+            Matrix3d.glMatrixMat4Multiply(this.mat4, pt.mat4, lt.mat4);
+            this._dirtyId++;
+            return this;
+        };
+        Matrix3d.prototype.prepend = function (lt) {
+            if (lt.mat4) {
+                this.setToMult(lt, this);
+            }
+            else {
+                this.setToMultLegacy(lt, this);
+            }
+        };
+        Matrix3d.glMatrixMat4Invert = function (out, a) {
+            var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3];
+            var a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7];
+            var a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11];
+            var a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
+            var b00 = a00 * a11 - a01 * a10;
+            var b01 = a00 * a12 - a02 * a10;
+            var b02 = a00 * a13 - a03 * a10;
+            var b03 = a01 * a12 - a02 * a11;
+            var b04 = a01 * a13 - a03 * a11;
+            var b05 = a02 * a13 - a03 * a12;
+            var b06 = a20 * a31 - a21 * a30;
+            var b07 = a20 * a32 - a22 * a30;
+            var b08 = a20 * a33 - a23 * a30;
+            var b09 = a21 * a32 - a22 * a31;
+            var b10 = a21 * a33 - a23 * a31;
+            var b11 = a22 * a33 - a23 * a32;
+            var det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
+            if (!det) {
+                return null;
+            }
+            det = 1.0 / det;
+            out[0] = (a11 * b11 - a12 * b10 + a13 * b09) * det;
+            out[1] = (a02 * b10 - a01 * b11 - a03 * b09) * det;
+            out[2] = (a31 * b05 - a32 * b04 + a33 * b03) * det;
+            out[3] = (a22 * b04 - a21 * b05 - a23 * b03) * det;
+            out[4] = (a12 * b08 - a10 * b11 - a13 * b07) * det;
+            out[5] = (a00 * b11 - a02 * b08 + a03 * b07) * det;
+            out[6] = (a32 * b02 - a30 * b05 - a33 * b01) * det;
+            out[7] = (a20 * b05 - a22 * b02 + a23 * b01) * det;
+            out[8] = (a10 * b10 - a11 * b08 + a13 * b06) * det;
+            out[9] = (a01 * b08 - a00 * b10 - a03 * b06) * det;
+            out[10] = (a30 * b04 - a31 * b02 + a33 * b00) * det;
+            out[11] = (a21 * b02 - a20 * b04 - a23 * b00) * det;
+            out[12] = (a11 * b07 - a10 * b09 - a12 * b06) * det;
+            out[13] = (a00 * b09 - a01 * b07 + a02 * b06) * det;
+            out[14] = (a31 * b01 - a30 * b03 - a32 * b00) * det;
+            out[15] = (a20 * b03 - a21 * b01 + a22 * b00) * det;
+            return out;
+        };
+        Matrix3d.glMatrixMat4Multiply = function (out, a, b) {
+            var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3];
+            var a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7];
+            var a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11];
+            var a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
+            var b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
+            out[0] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+            out[1] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+            out[2] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+            out[3] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+            b0 = b[4];
+            b1 = b[5];
+            b2 = b[6];
+            b3 = b[7];
+            out[4] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+            out[5] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+            out[6] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+            out[7] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+            b0 = b[8];
+            b1 = b[9];
+            b2 = b[10];
+            b3 = b[11];
+            out[8] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+            out[9] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+            out[10] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+            out[11] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+            b0 = b[12];
+            b1 = b[13];
+            b2 = b[14];
+            b3 = b[15];
+            out[12] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+            out[13] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+            out[14] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+            out[15] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+            return out;
+        };
+        Matrix3d.IDENTITY = new Matrix3d();
+        Matrix3d.TEMP_MATRIX = new Matrix3d();
+        return Matrix3d;
+    }());
+    pixi_projection.Matrix3d = Matrix3d;
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
+    var ObservableEuler = (function () {
+        function ObservableEuler(cb, scope, x, y, z) {
+            this.cb = cb;
+            this.scope = scope;
+            this._quatUpdateId = -1;
+            this._quatDirtyId = 0;
+            this._sign = 1;
+            this._x = x || 0;
+            this._y = y || 0;
+            this._z = z || 0;
+            this.quaternion = new Float64Array(4);
+            this.quaternion[3] = 1;
+            this.update();
+        }
+        Object.defineProperty(ObservableEuler.prototype, "x", {
+            get: function () {
+                return this._x;
+            },
+            set: function (value) {
+                if (this._x !== value) {
+                    this._x = value;
+                    this._quatDirtyId++;
+                    this.cb.call(this.scope);
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ObservableEuler.prototype, "y", {
+            get: function () {
+                return this._y;
+            },
+            set: function (value) {
+                if (this._y !== value) {
+                    this._y = value;
+                    this._quatDirtyId++;
+                    this.cb.call(this.scope);
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ObservableEuler.prototype, "z", {
+            get: function () {
+                return this._z;
+            },
+            set: function (value) {
+                if (this._z !== value) {
+                    this._z = value;
+                    this._quatDirtyId++;
+                    this.cb.call(this.scope);
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ObservableEuler.prototype, "pitch", {
+            get: function () {
+                return this._x;
+            },
+            set: function (value) {
+                if (this._x !== value) {
+                    this._x = value;
+                    this._quatDirtyId++;
+                    this.cb.call(this.scope);
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ObservableEuler.prototype, "yaw", {
+            get: function () {
+                return this._y;
+            },
+            set: function (value) {
+                if (this._y !== value) {
+                    this._y = value;
+                    this._quatDirtyId++;
+                    this.cb.call(this.scope);
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ObservableEuler.prototype, "roll", {
+            get: function () {
+                return this._z;
+            },
+            set: function (value) {
+                if (this._z !== value) {
+                    this._z = value;
+                    this._quatDirtyId++;
+                    this.cb.call(this.scope);
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        ObservableEuler.prototype.set = function (x, y, z) {
+            var _x = x || 0;
+            var _y = y || 0;
+            var _z = z || 0;
+            if (this._x !== _x || this._y !== _y || this._z !== _z) {
+                this._x = _x;
+                this._y = _y;
+                this._z = _z;
+                this._quatDirtyId++;
+                this.cb.call(this.scope);
+            }
+        };
+        ;
+        ObservableEuler.prototype.copy = function (euler) {
+            var _x = euler.x;
+            var _y = euler.y;
+            var _z = euler.z;
+            if (this._x !== _x || this._y !== _y || this._z !== _z) {
+                this._x = _x;
+                this._y = _y;
+                this._z = _z;
+                this._quatDirtyId++;
+                this.cb.call(this.scope);
+            }
+        };
+        ObservableEuler.prototype.clone = function () {
+            return new pixi_projection.Euler(this._x, this._y, this._z);
+        };
+        ObservableEuler.prototype.update = function () {
+            if (this._quatUpdateId === this._quatDirtyId) {
+                return false;
+            }
+            this._quatUpdateId = this._quatDirtyId;
+            var c1 = Math.cos(this._x / 2);
+            var c2 = Math.cos(this._y / 2);
+            var c3 = Math.cos(this._z / 2);
+            var s = this._sign;
+            var s1 = s * Math.sin(this._x / 2);
+            var s2 = s * Math.sin(this._y / 2);
+            var s3 = s * Math.sin(this._z / 2);
+            var q = this.quaternion;
+            q[0] = s1 * c2 * c3 + c1 * s2 * s3;
+            q[1] = c1 * s2 * c3 - s1 * c2 * s3;
+            q[2] = c1 * c2 * s3 + s1 * s2 * c3;
+            q[3] = c1 * c2 * c3 - s1 * s2 * s3;
+            return true;
+        };
+        return ObservableEuler;
+    }());
+    pixi_projection.ObservableEuler = ObservableEuler;
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
+    PIXI.Point.prototype.z = 0;
+    PIXI.Point.prototype.set = function (x, y, z) {
+        this.x = x || 0;
+        this.y = (y === undefined) ? this.x : (y || 0);
+        this.z = (y === undefined) ? this.x : (z || 0);
+    };
+    PIXI.Point.prototype.copy = function (p) {
+        this.set(p.x, p.y, p.z);
+    };
+    PIXI.ObservablePoint.prototype._z = 0;
+    PIXI.ObservablePoint.prototype.set = function (x, y, z) {
+        var _x = x || 0;
+        var _y = (y === undefined) ? _x : (y || 0);
+        var _z = (y === undefined) ? _x : (z || 0);
+        if (this._x !== _x || this._y !== _y || this._z !== _z) {
+            this._x = _x;
+            this._y = _y;
+            this._z = _z;
+            this.cb.call(this.scope);
+        }
+    };
+    Object.defineProperty(PIXI.ObservablePoint.prototype, "z", {
+        get: function () {
+            return this._z;
+        },
+        set: function (value) {
+            if (this._z !== value) {
+                this._z = value;
+                this.cb.call(this.scope);
+            }
+        },
+        enumerable: true,
+        configurable: true
+    });
+    PIXI.ObservablePoint.prototype.copy = function (point) {
+        if (this._x !== point.x || this._y !== point.y || this._z !== point.z) {
+            this._x = point.x;
+            this._y = point.y;
+            this._z = point.z;
+            this.cb.call(this.scope);
+        }
+    };
+    var Point3d = (function (_super) {
+        __extends(Point3d, _super);
+        function Point3d(x, y, z) {
+            var _this = _super.call(this, x, y) || this;
+            _this.z = z;
+            return _this;
+        }
+        return Point3d;
+    }(PIXI.Point));
+    pixi_projection.Point3d = Point3d;
+    PIXI.Point = Point3d;
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
+    var tempMat = new pixi_projection.Matrix3d();
+    var Projection3d = (function (_super) {
+        __extends(Projection3d, _super);
+        function Projection3d(legacy, enable) {
+            var _this = _super.call(this, legacy, enable) || this;
+            _this.cameraMatrix = null;
+            _this._cameraMode = false;
+            _this.position = new PIXI.ObservablePoint(_this.onChange, _this, 0, 0);
+            _this.scale = new PIXI.ObservablePoint(_this.onChange, _this, 1, 1);
+            _this.euler = new pixi_projection.ObservableEuler(_this.onChange, _this, 0, 0, 0);
+            _this.pivot = new PIXI.ObservablePoint(_this.onChange, _this, 0, 0);
+            _this.local = new pixi_projection.Matrix3d();
+            _this.world = new pixi_projection.Matrix3d();
+            _this.local.cacheInverse = true;
+            _this.world.cacheInverse = true;
+            _this.position._z = 0;
+            _this.scale._z = 1;
+            _this.pivot._z = 0;
+            return _this;
+        }
+        Object.defineProperty(Projection3d.prototype, "cameraMode", {
+            get: function () {
+                return this._cameraMode;
+            },
+            set: function (value) {
+                if (this._cameraMode === value) {
+                    return;
+                }
+                this._cameraMode = value;
+                this.euler._sign = this._cameraMode ? -1 : 1;
+                this.euler._quatDirtyId++;
+                if (value) {
+                    this.cameraMatrix = new pixi_projection.Matrix3d();
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Projection3d.prototype.onChange = function () {
+            this._projID++;
+        };
+        Projection3d.prototype.clear = function () {
+            if (this.cameraMatrix) {
+                this.cameraMatrix.identity();
+            }
+            this.position.set(0, 0, 0);
+            this.scale.set(1, 1, 1);
+            this.euler.set(0, 0, 0);
+            this.pivot.set(0, 0, 0);
+            _super.prototype.clear.call(this);
+        };
+        Projection3d.prototype.updateLocalTransform = function (lt) {
+            if (this._projID === 0) {
+                this.local.copyFrom(lt);
+                return;
+            }
+            var matrix = this.local;
+            var euler = this.euler;
+            var pos = this.position;
+            var scale = this.scale;
+            var pivot = this.pivot;
+            euler.update();
+            if (!this.cameraMode) {
+                matrix.setToRotationTranslationScale(euler.quaternion, pos._x, pos._y, pos._z, scale._x, scale._y, scale._z);
+                matrix.translate(-pivot._x, -pivot._y, -pivot._z);
+                matrix.setToMultLegacy(lt, matrix);
+                return;
+            }
+            matrix.setToMultLegacy(lt, this.cameraMatrix);
+            matrix.translate(pivot._x, pivot._y, pivot._z);
+            matrix.scale(1.0 / scale._x, 1.0 / scale._y, 1.0 / scale._z);
+            tempMat.setToRotationTranslationScale(euler.quaternion, 0, 0, 0, 1, 1, 1);
+            matrix.setToMult(matrix, tempMat);
+            matrix.translate(-pos._x, -pos._y, -pos._z);
+            this.local._dirtyId++;
+        };
+        return Projection3d;
+    }(pixi_projection.LinearProjection));
+    pixi_projection.Projection3d = Projection3d;
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
+    var Mesh3d = (function (_super) {
+        __extends(Mesh3d, _super);
+        function Mesh3d(texture, vertices, uvs, indices, drawMode) {
+            var _this = _super.call(this, texture, vertices, uvs, indices, drawMode) || this;
+            _this.proj = new pixi_projection.Projection3d(_this.transform);
+            _this.pluginName = 'mesh2d';
+            return _this;
+        }
+        Object.defineProperty(Mesh3d.prototype, "worldTransform", {
+            get: function () {
+                return this.proj.affine ? this.transform.worldTransform : this.proj.world;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Mesh3d.prototype.toLocal = function (position, from, point, skipUpdate, step) {
+            if (step === void 0) { step = pixi_projection.TRANSFORM_STEP.ALL; }
+            return pixi_projection.container3dToLocal.call(this, position, from, point, skipUpdate, step);
+        };
+        Object.defineProperty(Mesh3d.prototype, "position3d", {
+            get: function () {
+                return this.proj.position;
+            },
+            set: function (value) {
+                this.proj.position.copy(value);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Mesh3d.prototype, "scale3d", {
+            get: function () {
+                return this.proj.scale;
+            },
+            set: function (value) {
+                this.proj.scale.copy(value);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Mesh3d.prototype, "euler", {
+            get: function () {
+                return this.proj.euler;
+            },
+            set: function (value) {
+                this.proj.euler.copy(value);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Mesh3d.prototype, "pivot3d", {
+            get: function () {
+                return this.proj.pivot;
+            },
+            set: function (value) {
+                this.proj.pivot.copy(value);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return Mesh3d;
+    }(PIXI.mesh.Mesh));
+    pixi_projection.Mesh3d = Mesh3d;
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
+    var Sprite3d = (function (_super) {
+        __extends(Sprite3d, _super);
+        function Sprite3d(texture) {
+            var _this = _super.call(this, texture) || this;
+            _this.culledByFrustrum = false;
+            _this.trimmedCulledByFrustrum = false;
+            _this.proj = new pixi_projection.Projection3d(_this.transform);
+            _this.pluginName = 'sprite2d';
+            _this.vertexData = new Float32Array(12);
+            return _this;
+        }
+        Sprite3d.prototype._calculateBounds = function () {
+            this.calculateVertices();
+            if (this.culledByFrustrum) {
+                return;
+            }
+            this.calculateTrimmedVertices();
+            if (!this.trimmedCulledByFrustrum) {
+                this._bounds.addQuad(this.vertexTrimmedData);
+            }
+        };
+        Sprite3d.prototype.calculateVertices = function () {
+            if (this.proj._affine) {
+                if (this.vertexData.length != 8) {
+                    this.vertexData = new Float32Array(8);
+                }
+                _super.prototype.calculateVertices.call(this);
+                return;
+            }
+            if (this.vertexData.length != 12) {
+                this.vertexData = new Float32Array(12);
+            }
+            var wid = this.transform._worldID;
+            var tuid = this._texture._updateID;
+            if (this._transformID === wid && this._textureID === tuid) {
+                return;
+            }
+            this._transformID = wid;
+            this._textureID = tuid;
+            var texture = this._texture;
+            var wt = this.proj.world.mat4;
+            var vertexData = this.vertexData;
+            var trim = texture.trim;
+            var orig = texture.orig;
+            var anchor = this._anchor;
+            var w0 = 0;
+            var w1 = 0;
+            var h0 = 0;
+            var h1 = 0;
+            if (trim) {
+                w1 = trim.x - (anchor._x * orig.width);
+                w0 = w1 + trim.width;
+                h1 = trim.y - (anchor._y * orig.height);
+                h0 = h1 + trim.height;
+            }
+            else {
+                w1 = -anchor._x * orig.width;
+                w0 = w1 + orig.width;
+                h1 = -anchor._y * orig.height;
+                h0 = h1 + orig.height;
+            }
+            var culled = false;
+            var z;
+            vertexData[0] = (wt[0] * w1) + (wt[4] * h1) + wt[12];
+            vertexData[1] = (wt[1] * w1) + (wt[5] * h1) + wt[13];
+            z = (wt[2] * w1) + (wt[6] * h1) + wt[14];
+            vertexData[2] = (wt[3] * w1) + (wt[7] * h1) + wt[15];
+            culled = culled || z < 0;
+            vertexData[3] = (wt[0] * w0) + (wt[4] * h1) + wt[12];
+            vertexData[4] = (wt[1] * w0) + (wt[5] * h1) + wt[13];
+            z = (wt[2] * w0) + (wt[6] * h1) + wt[14];
+            vertexData[5] = (wt[3] * w0) + (wt[7] * h1) + wt[15];
+            culled = culled || z < 0;
+            vertexData[6] = (wt[0] * w0) + (wt[4] * h0) + wt[12];
+            vertexData[7] = (wt[1] * w0) + (wt[5] * h0) + wt[13];
+            z = (wt[2] * w0) + (wt[6] * h0) + wt[14];
+            vertexData[8] = (wt[3] * w0) + (wt[7] * h0) + wt[15];
+            culled = culled || z < 0;
+            vertexData[9] = (wt[0] * w1) + (wt[4] * h0) + wt[12];
+            vertexData[10] = (wt[1] * w1) + (wt[5] * h0) + wt[13];
+            z = (wt[2] * w1) + (wt[6] * h0) + wt[14];
+            vertexData[11] = (wt[3] * w1) + (wt[7] * h0) + wt[15];
+            culled = culled || z < 0;
+            this.culledByFrustrum = culled;
+        };
+        Sprite3d.prototype.calculateTrimmedVertices = function () {
+            if (this.proj._affine) {
+                _super.prototype.calculateTrimmedVertices.call(this);
+                return;
+            }
+            var wid = this.transform._worldID;
+            var tuid = this._texture._updateID;
+            if (!this.vertexTrimmedData) {
+                this.vertexTrimmedData = new Float32Array(8);
+            }
+            else if (this._transformTrimmedID === wid && this._textureTrimmedID === tuid) {
+                return;
+            }
+            this._transformTrimmedID = wid;
+            this._textureTrimmedID = tuid;
+            var texture = this._texture;
+            var vertexData = this.vertexTrimmedData;
+            var orig = texture.orig;
+            var anchor = this._anchor;
+            var wt = this.proj.world.mat4;
+            var w1 = -anchor._x * orig.width;
+            var w0 = w1 + orig.width;
+            var h1 = -anchor._y * orig.height;
+            var h0 = h1 + orig.height;
+            var culled = false;
+            var w = 1.0 / (wt[3] * w1 + wt[7] * h1 + wt[15]);
+            vertexData[0] = w * ((wt[0] * w1) + (wt[4] * h1) + wt[12]);
+            vertexData[1] = w * ((wt[1] * w1) + (wt[5] * h1) + wt[13]);
+            var z = (wt[2] * w1) + (wt[6] * h1) + wt[14];
+            culled = culled || z < 0;
+            w = 1.0 / (wt[3] * w0 + wt[7] * h1 + wt[15]);
+            vertexData[2] = w * ((wt[0] * w0) + (wt[4] * h1) + wt[12]);
+            vertexData[3] = w * ((wt[1] * w0) + (wt[5] * h1) + wt[13]);
+            z = (wt[2] * w0) + (wt[6] * h1) + wt[14];
+            culled = culled || z < 0;
+            w = 1.0 / (wt[3] * w0 + wt[7] * h0 + wt[15]);
+            vertexData[4] = w * ((wt[0] * w0) + (wt[4] * h0) + wt[12]);
+            vertexData[5] = w * ((wt[1] * w0) + (wt[5] * h0) + wt[13]);
+            z = (wt[2] * w0) + (wt[6] * h0) + wt[14];
+            culled = culled || z < 0;
+            w = 1.0 / (wt[3] * w1 + wt[7] * h0 + wt[15]);
+            vertexData[6] = w * ((wt[0] * w1) + (wt[4] * h0) + wt[12]);
+            vertexData[7] = w * ((wt[1] * w1) + (wt[5] * h0) + wt[13]);
+            z = (wt[2] * w1) + (wt[6] * h0) + wt[14];
+            culled = culled || z < 0;
+            this.trimmedCulledByFrustrum = culled;
+        };
+        Sprite3d.prototype._renderWebGL = function (renderer) {
+            this.calculateVertices();
+            if (this.culledByFrustrum) {
+                return;
+            }
+            renderer.setObjectRenderer(renderer.plugins[this.pluginName]);
+            renderer.plugins[this.pluginName].render(this);
+        };
+        Sprite3d.prototype.containsPoint = function (point) {
+            if (this.culledByFrustrum) {
+                return false;
+            }
+            return _super.prototype.containsPoint.call(this, point);
+        };
+        Object.defineProperty(Sprite3d.prototype, "worldTransform", {
+            get: function () {
+                return this.proj.affine ? this.transform.worldTransform : this.proj.world;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Sprite3d.prototype.toLocal = function (position, from, point, skipUpdate, step) {
+            if (step === void 0) { step = pixi_projection.TRANSFORM_STEP.ALL; }
+            return pixi_projection.container3dToLocal.call(this, position, from, point, skipUpdate, step);
+        };
+        Object.defineProperty(Sprite3d.prototype, "position3d", {
+            get: function () {
+                return this.proj.position;
+            },
+            set: function (value) {
+                this.proj.position.copy(value);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Sprite3d.prototype, "scale3d", {
+            get: function () {
+                return this.proj.scale;
+            },
+            set: function (value) {
+                this.proj.scale.copy(value);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Sprite3d.prototype, "euler", {
+            get: function () {
+                return this.proj.euler;
+            },
+            set: function (value) {
+                this.proj.euler.copy(value);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Sprite3d.prototype, "pivot3d", {
+            get: function () {
+                return this.proj.pivot;
+            },
+            set: function (value) {
+                this.proj.pivot.copy(value);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return Sprite3d;
+    }(PIXI.Sprite));
+    pixi_projection.Sprite3d = Sprite3d;
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
+    var Text3d = (function (_super) {
+        __extends(Text3d, _super);
+        function Text3d(text, style, canvas) {
+            var _this = _super.call(this, text, style, canvas) || this;
+            _this.proj = new pixi_projection.Projection3d(_this.transform);
+            _this.pluginName = 'sprite2d';
+            _this.vertexData = new Float32Array(12);
+            return _this;
+        }
+        Object.defineProperty(Text3d.prototype, "worldTransform", {
+            get: function () {
+                return this.proj.affine ? this.transform.worldTransform : this.proj.world;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Text3d.prototype.toLocal = function (position, from, point, skipUpdate, step) {
+            if (step === void 0) { step = pixi_projection.TRANSFORM_STEP.ALL; }
+            return pixi_projection.container3dToLocal.call(this, position, from, point, skipUpdate, step);
+        };
+        Object.defineProperty(Text3d.prototype, "position3d", {
+            get: function () {
+                return this.proj.position;
+            },
+            set: function (value) {
+                this.proj.position.copy(value);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Text3d.prototype, "scale3d", {
+            get: function () {
+                return this.proj.scale;
+            },
+            set: function (value) {
+                this.proj.scale.copy(value);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Text3d.prototype, "euler", {
+            get: function () {
+                return this.proj.euler;
+            },
+            set: function (value) {
+                this.proj.euler.copy(value);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Text3d.prototype, "pivot3d", {
+            get: function () {
+                return this.proj.pivot;
+            },
+            set: function (value) {
+                this.proj.pivot.copy(value);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return Text3d;
+    }(PIXI.Text));
+    pixi_projection.Text3d = Text3d;
+    Text3d.prototype.calculateVertices = pixi_projection.Sprite3d.prototype.calculateVertices;
+    Text3d.prototype.calculateTrimmedVertices = pixi_projection.Sprite3d.prototype.calculateTrimmedVertices;
+    Text3d.prototype._calculateBounds = pixi_projection.Sprite3d.prototype._calculateBounds;
+    Text3d.prototype.containsPoint = pixi_projection.Sprite3d.prototype.containsPoint;
+    Text3d.prototype._renderWebGL = pixi_projection.Sprite3d.prototype._renderWebGL;
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
+    var containerProps = {
+        worldTransform: {
+            get: pixi_projection.container3dWorldTransform,
+            enumerable: true,
+            configurable: true
+        },
+        position3d: {
+            get: function () { return this.proj.position; },
+            set: function (value) { this.proj.position.copy(value); }
+        },
+        scale3d: {
+            get: function () { return this.proj.scale; },
+            set: function (value) { this.proj.scale.copy(value); }
+        },
+        pivot3d: {
+            get: function () { return this.proj.pivot; },
+            set: function (value) { this.proj.pivot.copy(value); }
+        },
+        euler: {
+            get: function () { return this.proj.euler; },
+            set: function (value) { this.proj.euler.copy(value); }
+        }
+    };
+    function convertTo3d() {
+        if (this.proj)
+            return;
+        this.proj = new pixi_projection.Projection3d(this.transform);
+        this.toLocal = pixi_projection.Container3d.prototype.toLocal;
+        this.isFrontFace = pixi_projection.Container3d.prototype.isFrontFace;
+        Object.defineProperties(this, containerProps);
+    }
+    PIXI.Container.prototype.convertTo3d = convertTo3d;
+    PIXI.Sprite.prototype.convertTo3d = function () {
+        if (this.proj)
+            return;
+        this.calculateVertices = pixi_projection.Sprite3d.prototype.calculateVertices;
+        this.calculateTrimmedVertices = pixi_projection.Sprite3d.prototype.calculateTrimmedVertices;
+        this._calculateBounds = pixi_projection.Sprite3d.prototype._calculateBounds;
+        this.containsPoint = pixi_projection.Sprite3d.prototype.containsPoint;
+        this.pluginName = 'sprite2d';
+        this.vertexData = new Float32Array(12);
+        convertTo3d.call(this);
+    };
+    PIXI.mesh.Mesh.prototype.convertTo3d = function () {
+        if (this.proj)
+            return;
+        this.pluginName = 'mesh2d';
+        convertTo3d.call(this);
+    };
+    PIXI.Container.prototype.convertSubtreeTo3d = function () {
+        this.convertTo3d();
+        for (var i = 0; i < this.children.length; i++) {
+            this.children[i].convertSubtreeTo3d();
+        }
+    };
 })(pixi_projection || (pixi_projection = {}));
 //# sourceMappingURL=pixi-projection.js.map
