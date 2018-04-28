@@ -31,8 +31,8 @@ namespace pixi_projection {
 	PIXI.ObservablePoint.prototype._z = 0;
 	PIXI.ObservablePoint.prototype.set = function(x?: number, y?: number, z?: number) {
 		const _x = x || 0;
-		const _y = (y === undefined) ? this.x : (y || 0);
-		const _z = (y === undefined) ? this.x : (z || 0);
+		const _y = (y === undefined) ? _x : (y || 0);
+		const _z = (y === undefined) ? _x : (z || 0);
 
 		if (this._x !== _x || this._y !== _y || this._z !== _z)
 		{

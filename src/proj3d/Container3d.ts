@@ -36,7 +36,10 @@ namespace pixi_projection {
 			}
 
 			if (step === TRANSFORM_STEP.ALL) {
-				if (this.proj.affine === AFFINE.NONE) {
+				if (!skipUpdate) {
+					this.displayObjectUpdateTransform();
+				}
+				if (this.proj.affine) {
 					return this.transform.worldTransform.applyInverse(point, point) as any;
 				}
 				return this.proj.world.applyInverse(point, point) as any;
