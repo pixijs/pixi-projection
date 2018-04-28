@@ -1,9 +1,4 @@
 namespace pixi_projection {
-	import PointLike = PIXI.PointLike;
-
-	const t0 = new PIXI.Point();
-	const tt = [new PIXI.Point(), new PIXI.Point(), new PIXI.Point(), new PIXI.Point()];
-	const tempRect = new PIXI.Rectangle();
 	const tempMat = new Matrix3d();
 
 	export class Projection3d extends LinearProjection<Matrix3d> {
@@ -19,11 +14,30 @@ namespace pixi_projection {
 		}
 
 		cameraMatrix: Matrix3d = null;
-		cameraMode = false;
+
+		_cameraMode = false;
+
+		get cameraMode() {
+			return this._cameraMode;
+		}
+
+		set cameraMode(value: boolean) {
+			if (this._cameraMode === value) {
+				return;
+			}
+			this._cameraMode = value;
+
+			this.euler._sign = this._cameraMode ? -1 : 1;
+			this.euler._quatDirtyId++;
+
+			if (value) {
+				this.cameraMatrix = new Matrix3d();
+			}
+		}
 
 		position = new PIXI.ObservablePoint(this.onChange, this, 0, 0);
 		scale = new PIXI.ObservablePoint(this.onChange, this, 0, 0);
-		euler = new ObservableEuler(this.onChange, this, 0, 0,0);
+		euler = new ObservableEuler(this.onChange, this, 0, 0, 0);
 		pivot = new PIXI.ObservablePoint(this.onChange, this, 0, 0);
 
 		onChange() {
@@ -52,13 +66,17 @@ namespace pixi_projection {
 
 			if (!this.cameraMode) {
 				matrix.setToRotationTranslation(euler.quaternion, pos._x, pos._y, pos._z);
-				matrix.scaleAndTranslate(scale._x, scale._y, scale._z, pivot.x, pivot.y, pivot.z);
+				matrix.scaleAndTranslate(scale._x, scale._y, scale._z, pivot._x, pivot._y, pivot._z);
+				matrix.setToMultLegacy(lt, matrix);
 				return;
 			}
 
-			// Camera mode is difficult
-
-
+			matrix.setToMultLegacy(lt, this.cameraMatrix);
+			matrix.translate(pivot._x, pivot._y, pivot._z);
+			matrix.scale(scale._x, scale._y, scale._z);
+			tempMat.setToRotationTranslation(euler.quaternion, 0, 0, 0);
+			matrix.setToMult(matrix, tempMat);
+			matrix.translate(-pos._x, -pos._y, -pos._z);
 		}
 	}
 }
