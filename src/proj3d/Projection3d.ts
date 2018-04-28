@@ -8,6 +8,9 @@ namespace pixi_projection {
 			this.local = new Matrix3d();
 			this.world = new Matrix3d();
 
+			this.local.cacheInverse = true;
+			this.world.cacheInverse = true;
+
 			this.position._z = 0;
 			this.scale._z = 1;
 			this.pivot._z = 0;
