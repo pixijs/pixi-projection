@@ -13,15 +13,15 @@ namespace pixi_projection {
 			enumerable: true,
 			configurable: true
 		},
-		position: {
+		position3d: {
 			get: function() { return this.proj.position },
 			set: function(value: any) { this.proj.position.copy(value) }
 		},
-		scale: {
+		scale3d: {
 			get: function() { return this.proj.scale },
 			set: function(value: any) { this.proj.scale.copy(value) }
 		},
-		pivot: {
+		pivot3d: {
 			get: function() { return this.proj.pivot },
 			set: function(value: any) { this.proj.pivot.copy(value) }
 		},
