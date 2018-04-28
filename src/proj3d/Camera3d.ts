@@ -3,7 +3,7 @@ namespace pixi_projection {
 		constructor() {
 			super();
 			this.proj.cameraMode = true;
-			this.setPlanes(0, 0, 0, false);
+			this.setPlanes(10, 400, 10000, false);
 		}
 
 		_far: number = 0;
