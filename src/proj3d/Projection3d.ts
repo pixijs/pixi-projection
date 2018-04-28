@@ -84,6 +84,8 @@ namespace pixi_projection {
 			tempMat.setToRotationTranslation(euler.quaternion, 0, 0, 0);
 			matrix.setToMult(matrix, tempMat);
 			matrix.translate(-pos._x, -pos._y, -pos._z);
+
+			this.local._dirtyId++;
 		}
 	}
 }

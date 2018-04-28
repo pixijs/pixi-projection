@@ -208,7 +208,6 @@ namespace pixi_projection {
 			return out;
 		}
 
-		//TODO: remove props
 		apply(pos: IPoint, newPos: IPoint): IPoint {
 			newPos = newPos || new PIXI.Point();
 
@@ -216,6 +215,8 @@ namespace pixi_projection {
 			const x = pos.x;
 			const y = pos.y;
 			const z = pos.z;
+
+			//TODO: apply for 2d point
 
 			let w = 1.0 / (mat4[3] * x + mat4[7] * y + mat4[11] * z + mat4[15]);
 			newPos.x = w * (mat4[0] * x + mat4[4] * y + mat4[8] * z + mat4[12]);
@@ -303,17 +304,31 @@ namespace pixi_projection {
 			const a = this.mat4;
 			const x = pos.x;
 			const y = pos.y;
-			const z = pos.z;
+			let z = pos.z;
 
 			if (!this.cacheInverse || this._updateId !== this._dirtyId) {
 				this._updateId = this._dirtyId;
 				Matrix3d.glMatrixMat4Invert(mat4, a);
 			}
 
-			let w = 1.0 / (mat4[3] * x + mat4[7] * y + mat4[11] * z + mat4[15]);
-			newPos.x = w * (mat4[0] * x + mat4[4] * y + mat4[8] * z + mat4[12]);
-			newPos.y = w * (mat4[1] * x + mat4[5] * y + mat4[9] * z + mat4[13]);
-			newPos.z = w * (mat4[2] * x + mat4[6] * y + mat4[10] * z + mat4[14]);
+			let w1 = 1.0 / (mat4[3] * x + mat4[7] * y + mat4[11] * z + mat4[15]);
+			const x1 = w1 * (mat4[0] * x + mat4[4] * y + mat4[8] * z + mat4[12]);
+			const y1 = w1 * (mat4[1] * x + mat4[5] * y + mat4[9] * z + mat4[13]);
+			const z1 = w1 * (mat4[2] * x + mat4[6] * y + mat4[10] * z + mat4[14]);
+
+			z += 1.0;
+
+			let w2 = 1.0 / (mat4[3] * x + mat4[7] * y + mat4[11] * z + mat4[15]);
+			const x2 = w2 * (mat4[0] * x + mat4[4] * y + mat4[8] * z + mat4[12]);
+			const y2 = w2 * (mat4[1] * x + mat4[5] * y + mat4[9] * z + mat4[13]);
+			const z2 = w2 * (mat4[2] * x + mat4[6] * y + mat4[10] * z + mat4[14]);
+
+			if (Math.abs(z1-z2)<1e-10) {
+				newPos.set(NaN, NaN, 0);
+			}
+
+			const alpha = (0-z1) / (z2-z1);
+			newPos.set( (x2-x1)*alpha + x1, (y2-y1)*alpha + y1, 0.0);
 			return newPos;
 		}
 
@@ -439,6 +454,8 @@ namespace pixi_projection {
 			mat3[13] = matrix.ty;
 			mat3[14] = 0;
 			mat3[15] = 1;
+
+			this._dirtyId++;
 			return this;
 		}
 
@@ -484,6 +501,7 @@ namespace pixi_projection {
 			out[14] = b2;
 			out[15] = b3;
 
+			this._dirtyId++;
 			return this;
 		}
 
@@ -518,13 +536,15 @@ namespace pixi_projection {
 			out[14] = b30 * a02 + b31 * a12 + a[14];
 			out[15] = b30 * a03 + b31 * a13 + a[15];
 
-
+			this._dirtyId++;
 			return this;
 		}
 
 		// that's transform multiplication we use
 		setToMult(pt: Matrix3d, lt: Matrix3d) {
 			Matrix3d.glMatrixMat4Multiply(this.mat4, pt.mat4, lt.mat4);
+
+			this._dirtyId++;
 			return this;
 		}
 
