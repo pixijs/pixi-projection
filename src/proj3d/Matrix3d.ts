@@ -170,7 +170,7 @@ namespace pixi_projection {
 			mat4[15] = 1;
 		}
 
-		setToRotationTranslation(quat: Float64Array, tx: number, ty: number, tz: number) {
+		setToRotationTranslationScale(quat: Float64Array, tx: number, ty: number, tz: number, sx: number, sy: number, sz: number) {
 			const out = this.mat4;
 
 			let x = quat[0], y = quat[1], z = quat[2], w = quat[3];
@@ -188,17 +188,17 @@ namespace pixi_projection {
 			let wy = w * y2;
 			let wz = w * z2;
 
-			out[0] = 1 - (yy + zz);
-			out[1] = xy + wz;
-			out[2] = xz - wy;
+			out[0] = (1 - (yy + zz)) * sx;
+			out[1] = (xy + wz) * sx;
+			out[2] = (xz - wy) * sx;
 			out[3] = 0;
-			out[4] = xy - wz;
-			out[5] = 1 - (xx + zz);
-			out[6] = yz + wx;
+			out[4] = (xy - wz) * sy;
+			out[5] = (1 - (xx + zz)) * sy;
+			out[6] = (yz + wx) * sy;
 			out[7] = 0;
-			out[8] = xz + wy;
-			out[9] = yz - wx;
-			out[10] = 1 - (xx + yy);
+			out[8] = (xz + wy) * sz;
+			out[9] = (yz - wx) * sz;
+			out[10] = (1 - (xx + yy)) * sz;
 			out[11] = 0;
 			out[12] = tx;
 			out[13] = ty;
@@ -226,26 +226,13 @@ namespace pixi_projection {
 			return newPos;
 		}
 
-		translate(tx: number, ty: number, tz?: number) {
-			const mat4 = this.mat4;
-			mat4[0] += tx * mat4[3];
-			mat4[1] += ty * mat4[3];
+		translate(tx: number, ty: number, tz: number) {
+			const a = this.mat4;
 
-			mat4[4] += tx * mat4[7];
-			mat4[5] += ty * mat4[7];
-
-			mat4[8] += tx * mat4[11];
-			mat4[9] += ty * mat4[11];
-
-			mat4[12] += tx * mat4[15];
-			mat4[13] += ty * mat4[15];
-
-			if (tz !== undefined) {
-				mat4[2] += tz * mat4[3];
-				mat4[6] += tz * mat4[7];
-				mat4[10] += tz * mat4[11];
-				mat4[14] += tz * mat4[15];
-			}
+			a[12] = a[0] * tx + a[4] * ty + a[8] * tz + a[12];
+			a[13] = a[1] * tx + a[5] * ty + a[9] * tz + a[13];
+			a[14] = a[2] * tx + a[6] * ty + a[10] * tz + a[14];
+			a[15] = a[3] * tx + a[7] * ty + a[11] * tz + a[15];
 
 			return this;
 		}
@@ -253,22 +240,20 @@ namespace pixi_projection {
 		scale(x: number, y: number, z?: number) {
 			const mat4 = this.mat4;
 			mat4[0] *= x;
-			mat4[1] *= y;
+			mat4[1] *= x;
+			mat4[2] *= x;
+			mat4[3] *= x;
 
-			mat4[4] *= x;
+			mat4[4] *= y;
 			mat4[5] *= y;
-
-			mat4[8] *= x;
-			mat4[9] *= y;
-
-			mat4[12] *= x;
-			mat4[13] *= y;
+			mat4[6] *= y;
+			mat4[7] *= y;
 
 			if (z !== undefined) {
-				mat4[2] *= z;
-				mat4[6] *= z;
+				mat4[8] *= z;
+				mat4[9] *= z;
 				mat4[10] *= z;
-				mat4[14] *= z;
+				mat4[11] *= z;
 			}
 
 			return this;

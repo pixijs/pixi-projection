@@ -17,8 +17,13 @@ namespace pixi_projection {
 				this.displayObjectUpdateTransform();
 			}
 
-			const mat4 = this.proj.world.mat4;
-			return mat4[10] * mat4[15] > 0;
+			const mat = this.proj.world.mat4;
+			const dx1 = mat[0] * mat[15] - mat[3] * mat[12];
+			const dy1 = mat[1] * mat[15] - mat[3] * mat[13];
+			const dx2 = mat[4] * mat[15] - mat[7] * mat[12];
+			const dy2 = mat[5] * mat[15] - mat[7] * mat[13];
+
+			return dx1 * dy2 - dx2 * dy1 > 0;
 		}
 
 		/**

@@ -72,16 +72,16 @@ namespace pixi_projection {
 			euler.update();
 
 			if (!this.cameraMode) {
-				matrix.setToRotationTranslation(euler.quaternion, pos._x, pos._y, pos._z);
-				matrix.scaleAndTranslate(scale._x, scale._y, scale._z, -pivot._x, -pivot._y, -pivot._z);
+				matrix.setToRotationTranslationScale(euler.quaternion, pos._x, pos._y, pos._z, scale._x, scale._y, scale._z);
+				matrix.translate(-pivot._x, -pivot._y, -pivot._z);
 				matrix.setToMultLegacy(lt, matrix);
 				return;
 			}
 
 			matrix.setToMultLegacy(lt, this.cameraMatrix);
 			matrix.translate(pivot._x, pivot._y, pivot._z);
-			matrix.scale(scale._x, scale._y, scale._z);
-			tempMat.setToRotationTranslation(euler.quaternion, 0, 0, 0);
+			matrix.scale(1.0 / scale._x, 1.0 / scale._y, 1.0 / scale._z);
+			tempMat.setToRotationTranslationScale(euler.quaternion, 0, 0, 0, 1, 1, 1);
 			matrix.setToMult(matrix, tempMat);
 			matrix.translate(-pos._x, -pos._y, -pos._z);
 
