@@ -16,42 +16,36 @@ declare module PIXI {
 }
 
 namespace pixi_projection {
-    (PIXI as any).Sprite.prototype.convertTo2d = function () {
-        if (this.proj) return;
-        this.calculateVertices = Sprite2d.prototype.calculateVertices;
-        this.calculateTrimmedVertices = Sprite2d.prototype.calculateTrimmedVertices;
-	    this._calculateBounds = Sprite2d.prototype._calculateBounds;
-        //cointainer
-        this.proj = new Projection2d(this.transform);
-        this.pluginName = 'sprite2d';
-        this.vertexData = new Float32Array(12);
-        Object.defineProperty(this, "worldTransform", {
-            get: container2dWorldTransform,
-            enumerable: true,
-            configurable: true
-        });
-    };
 
-	(PIXI as any).mesh.Mesh.prototype.convertTo2d = function () {
+	function convertTo2d() {
 		if (this.proj) return;
 		this.proj = new Projection2d(this.transform);
-		this.pluginName = 'mesh2d';
+		this.toLocal = Container2d.prototype.toLocal;
 		Object.defineProperty(this, "worldTransform", {
 			get: container2dWorldTransform,
 			enumerable: true,
 			configurable: true
 		});
-	};
+	}
 
-    (PIXI as any).Container.prototype.convertTo2d = function () {
+
+	(PIXI as any).Container.prototype.convertTo2d = convertTo2d;
+
+    (PIXI as any).Sprite.prototype.convertTo2d = function () {
         if (this.proj) return;
-        this.proj = new Projection2d(this.transform);
-        Object.defineProperty(this, "worldTransform", {
-            get: container2dWorldTransform,
-            enumerable: true,
-            configurable: true
-        });
+        this.calculateVertices = Sprite2d.prototype.calculateVertices;
+        this.calculateTrimmedVertices = Sprite2d.prototype.calculateTrimmedVertices;
+	    this._calculateBounds = Sprite2d.prototype._calculateBounds;
+        this.pluginName = 'sprite2d';
+        this.vertexData = new Float32Array(12);
+        convertTo2d.call(this);
     };
+
+	(PIXI as any).mesh.Mesh.prototype.convertTo2d = function () {
+		if (this.proj) return;
+		this.pluginName = 'mesh2d';
+		convertTo2d.call(this);
+	};
 
     (PIXI as any).Container.prototype.convertSubtreeTo2d = function () {
         this.convertTo2d();

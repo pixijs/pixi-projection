@@ -45,11 +45,14 @@ namespace pixi_projection {
 		}
 
 		clear() {
-			super.clear();
 			if (this.cameraMatrix) {
 				this.cameraMatrix.identity();
 			}
-			this.pivot.set(0, 0);
+			this.position.set(0, 0, 0);
+			this.scale.set(1, 1, 1);
+			this.euler.set(0, 0, 0);
+			this.pivot.set(0, 0, 0);
+			super.clear();
 		}
 
 		updateLocalTransform(lt: PIXI.Matrix) {
@@ -62,6 +65,7 @@ namespace pixi_projection {
 			const pos = this.position;
 			const scale = this.scale;
 			const pivot = this.pivot;
+
 			euler.update();
 
 			if (!this.cameraMode) {

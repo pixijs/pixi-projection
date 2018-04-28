@@ -20,6 +20,12 @@ namespace pixi_projection {
 			return this.proj.affine ? this.transform.worldTransform : this.proj.world as any;
 		}
 
+		toLocal<T extends PIXI.PointLike>(position: PIXI.PointLike, from?: PIXI.DisplayObject,
+		                                  point?: T, skipUpdate?: boolean,
+		                                  step = TRANSFORM_STEP.ALL): T {
+			return container2dToLocal.call(this, position, from, point, skipUpdate, step);
+		}
+
 		_renderWebGL(renderer: PIXI.WebGLRenderer)
 		{
 			// tweak our texture temporarily..

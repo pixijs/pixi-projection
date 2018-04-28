@@ -25,33 +25,29 @@ namespace pixi_projection {
 				this._recursivePostUpdateTransform();
 			}
 
-			// this parent check is for just in case the item is a root object.
-			// If it is we need to give it a temporary parent so that displayObjectUpdateTransform works correctly
-			// this is mainly to avoid a parent check in the main loop. Every little helps for performance :)
+			if (step >= TRANSFORM_STEP.PROJ) {
+				if (this.proj.affine === AFFINE.NONE) {
+					return this.transform.worldTransform.applyInverse(point, point) as any;
+				}
+				return this.proj.world.applyInverse(point, point) as any;
+			}
+
 			if (this.parent) {
-				//TODO: sometimes we need to convert it to 3d
 				point  = this.parent.worldTransform.applyInverse(position, point) as any;
 			} else {
 				point.copy(position);
 			}
 			if (step === TRANSFORM_STEP.NONE) {
-
 				return point;
 			}
 
-			point = this.transform.localTransform.applyInverse(point, point) as any;
-
-			if (step <= TRANSFORM_STEP.BEFORE_PROJ) {
-				return point;
-			}
-
-			point = this.proj.matrix.applyInverse(point, point) as any;
-
-			return point;
+			return this.transform.localTransform.applyInverse(point, point) as any;
 		}
 
 		get worldTransform() {
 			return this.proj.affine ? this.transform.worldTransform : this.proj.world as any;
 		}
 	}
+
+	export let container2dToLocal = Container2d.prototype.toLocal;
 }
