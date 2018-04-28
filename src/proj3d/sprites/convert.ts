@@ -53,7 +53,7 @@ namespace pixi_projection {
     };
 
 
-	(PIXI as any).Mesh.prototype.convertTo3d = function () {
+	(PIXI as any).mesh.Mesh.prototype.convertTo3d = function () {
 		if (this.proj) return;
 		this.pluginName = 'mesh2d';
 		convertTo3d.call(this);

@@ -1,3 +1,4 @@
+///<reference path="./Container3d.ts"/>
 namespace pixi_projection {
 	export class Camera3d extends Container3d {
 		constructor() {
