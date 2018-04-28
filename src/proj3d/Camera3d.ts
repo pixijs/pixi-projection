@@ -27,7 +27,7 @@ namespace pixi_projection {
 			return this._orthographic;
 		}
 
-		setPlanes(focus: number, near: number, far: number, orthographic: boolean = false) {
+		setPlanes(focus: number, near: number = 10, far: number = 10000, orthographic: boolean = false) {
 			this._focus = focus;
 			this._near = near;
 			this._far = far;
