@@ -113,4 +113,6 @@ namespace pixi_projection {
 	}
 
 	export let container3dToLocal = Container3d.prototype.toLocal;
+	export let container3dGetDepth = Container3d.prototype.getDepth;
+	export let container3dIsFrontFace = Container3d.prototype.isFrontFace;
 }

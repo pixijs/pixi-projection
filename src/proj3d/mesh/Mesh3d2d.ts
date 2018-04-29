@@ -19,6 +19,14 @@ namespace pixi_projection {
 			return container3dToLocal.call(this, position, from, point, skipUpdate, step);
 		}
 
+		isFrontFace(forceUpdate?: boolean) {
+			return container3dIsFrontFace.call(this, forceUpdate);
+		}
+
+		getDepth(forceUpdate?: boolean) {
+			return container3dGetDepth.call(this, forceUpdate);
+		}
+
 		get position3d(): PIXI.PointLike {
 			return this.proj.position;
 		}

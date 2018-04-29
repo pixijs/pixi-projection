@@ -2496,6 +2496,8 @@ var pixi_projection;
     }(PIXI.Container));
     pixi_projection.Container3d = Container3d;
     pixi_projection.container3dToLocal = Container3d.prototype.toLocal;
+    pixi_projection.container3dGetDepth = Container3d.prototype.getDepth;
+    pixi_projection.container3dIsFrontFace = Container3d.prototype.isFrontFace;
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
 (function (pixi_projection) {
@@ -3531,6 +3533,12 @@ var pixi_projection;
             if (step === void 0) { step = pixi_projection.TRANSFORM_STEP.ALL; }
             return pixi_projection.container3dToLocal.call(this, position, from, point, skipUpdate, step);
         };
+        Mesh3d.prototype.isFrontFace = function (forceUpdate) {
+            return pixi_projection.container3dIsFrontFace.call(this, forceUpdate);
+        };
+        Mesh3d.prototype.getDepth = function (forceUpdate) {
+            return pixi_projection.container3dGetDepth.call(this, forceUpdate);
+        };
         Object.defineProperty(Mesh3d.prototype, "position3d", {
             get: function () {
                 return this.proj.position;
@@ -3734,6 +3742,12 @@ var pixi_projection;
             if (step === void 0) { step = pixi_projection.TRANSFORM_STEP.ALL; }
             return pixi_projection.container3dToLocal.call(this, position, from, point, skipUpdate, step);
         };
+        Sprite3d.prototype.isFrontFace = function (forceUpdate) {
+            return pixi_projection.container3dIsFrontFace.call(this, forceUpdate);
+        };
+        Sprite3d.prototype.getDepth = function (forceUpdate) {
+            return pixi_projection.container3dGetDepth.call(this, forceUpdate);
+        };
         Object.defineProperty(Sprite3d.prototype, "position3d", {
             get: function () {
                 return this.proj.position;
@@ -3799,6 +3813,12 @@ var pixi_projection;
         Text3d.prototype.toLocal = function (position, from, point, skipUpdate, step) {
             if (step === void 0) { step = pixi_projection.TRANSFORM_STEP.ALL; }
             return pixi_projection.container3dToLocal.call(this, position, from, point, skipUpdate, step);
+        };
+        Text3d.prototype.isFrontFace = function (forceUpdate) {
+            return pixi_projection.container3dIsFrontFace.call(this, forceUpdate);
+        };
+        Text3d.prototype.getDepth = function (forceUpdate) {
+            return pixi_projection.container3dGetDepth.call(this, forceUpdate);
         };
         Object.defineProperty(Text3d.prototype, "position3d", {
             get: function () {
@@ -3880,6 +3900,7 @@ var pixi_projection;
         this.proj = new pixi_projection.Projection3d(this.transform);
         this.toLocal = pixi_projection.Container3d.prototype.toLocal;
         this.isFrontFace = pixi_projection.Container3d.prototype.isFrontFace;
+        this.getDepth = pixi_projection.Container3d.prototype.getDepth;
         Object.defineProperties(this, containerProps);
     }
     PIXI.Container.prototype.convertTo3d = convertTo3d;

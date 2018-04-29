@@ -408,6 +408,8 @@ declare module PIXI.projection {
         pivot3d: PIXI.PointLike;
     }
     let container3dToLocal: <T extends PIXI.PointLike>(position: PIXI.PointLike, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP) => T;
+    let container3dGetDepth: (forceUpdate?: boolean) => number;
+    let container3dIsFrontFace: (forceUpdate?: boolean) => boolean;
 }
 declare module PIXI.projection {
     class Euler implements PIXI.PointLike {
@@ -479,6 +481,8 @@ declare module PIXI.projection {
         proj: Projection3d;
         readonly worldTransform: any;
         toLocal<T extends PIXI.PointLike>(position: PIXI.PointLike, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
+        isFrontFace(forceUpdate?: boolean): any;
+        getDepth(forceUpdate?: boolean): any;
         position3d: PIXI.PointLike;
         scale3d: PIXI.PointLike;
         euler: Euler;
@@ -565,6 +569,8 @@ declare module PIXI.projection {
         containsPoint(point: PIXI.PointLike): boolean;
         readonly worldTransform: any;
         toLocal<T extends PIXI.PointLike>(position: PIXI.PointLike, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
+        isFrontFace(forceUpdate?: boolean): any;
+        getDepth(forceUpdate?: boolean): any;
         position3d: PIXI.PointLike;
         scale3d: PIXI.PointLike;
         euler: Euler;
@@ -577,6 +583,8 @@ declare module PIXI.projection {
         proj: Projection3d;
         readonly worldTransform: any;
         toLocal<T extends PIXI.PointLike>(position: PIXI.PointLike, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
+        isFrontFace(forceUpdate?: boolean): any;
+        getDepth(forceUpdate?: boolean): any;
         position3d: PIXI.PointLike;
         scale3d: PIXI.PointLike;
         euler: Euler;

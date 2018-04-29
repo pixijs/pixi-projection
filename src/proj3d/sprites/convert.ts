@@ -36,6 +36,7 @@ namespace pixi_projection {
 		this.proj = new Projection3d(this.transform);
 		this.toLocal = Container3d.prototype.toLocal;
 		this.isFrontFace = Container3d.prototype.isFrontFace;
+		this.getDepth = Container3d.prototype.getDepth;
 		Object.defineProperties(this, containerProps);
 	}
 
