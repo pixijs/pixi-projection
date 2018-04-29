@@ -113,11 +113,22 @@ and projection plugin adds `position3d`, `euler`, `scale3d`, `pivot3d`. Those fi
 The only exception is a `Camera3d`, that applies `projection` just after pixi fields, and then applies 3d fields in **reversed** order.
 That's why it can follow elements - its transform negates the element transform.
 
-For complex objects like `Spine` there are two ways to add them:
+### Spine
 
-1. Use corresponding class in projection lib: `PIXI.projection.spine.Spine`
-2. Create `Container3d` that returns all children to 2d space: `container3d.affine = PIXI.projection.AFFINE.AXIS_X;` 
+There's special build `pixi-projection-spine` to support Spine objects, please browse `dist` folder.
+
+### Heaven
+
+No, we dont support `pixi-heaven` sprites yet.
+
+### What if element is not supported by library?
+
+For complex objects that are not supported by library, there is a way to add them inside the camera **If their plane is perpendicular to the camera**.
+
+Create `Container3d` that returns all children to 2d space: `container3d.affine = PIXI.projection.AFFINE.AXIS_X;` 
 Any 2d elements added to that container will think of it as a simple 2d container, and custom renderers will work with it just fine.
+
+This way is also **more performant** because **Sprite works faster than Sprite3d. 4x4 matrices ARE VERY SLOW**.
 
 ### Sorting
 
