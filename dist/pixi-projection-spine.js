@@ -232,6 +232,44 @@ var pixi_projection;
 (function (pixi_projection) {
     var webgl;
     (function (webgl) {
+        function generateMultiTextureShader(vertexSrc, fragmentSrc, gl, maxTextures) {
+            fragmentSrc = fragmentSrc.replace(/%count%/gi, maxTextures + '');
+            fragmentSrc = fragmentSrc.replace(/%forloop%/gi, generateSampleSrc(maxTextures));
+            var shader = new PIXI.Shader(gl, vertexSrc, fragmentSrc);
+            var sampleValues = new Int32Array(maxTextures);
+            for (var i = 0; i < maxTextures; i++) {
+                sampleValues[i] = i;
+            }
+            shader.bind();
+            shader.uniforms.uSamplers = sampleValues;
+            return shader;
+        }
+        webgl.generateMultiTextureShader = generateMultiTextureShader;
+        function generateSampleSrc(maxTextures) {
+            var src = '';
+            src += '\n';
+            src += '\n';
+            for (var i = 0; i < maxTextures; i++) {
+                if (i > 0) {
+                    src += '\nelse ';
+                }
+                if (i < maxTextures - 1) {
+                    src += "if(textureId == " + i + ".0)";
+                }
+                src += '\n{';
+                src += "\n\tcolor = texture2D(uSamplers[" + i + "], textureCoord);";
+                src += '\n}';
+            }
+            src += '\n';
+            src += '\n';
+            return src;
+        }
+    })(webgl = pixi_projection.webgl || (pixi_projection.webgl = {}));
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
+    var webgl;
+    (function (webgl) {
         var ObjectRenderer = PIXI.ObjectRenderer;
         var settings = PIXI.settings;
         var GLBuffer = PIXI.glCore.GLBuffer;
@@ -353,6 +391,7 @@ var pixi_projection;
                 var i;
                 for (i = 0; i < this.currentIndex; ++i) {
                     var sprite = sprites[i];
+                    sprites[i] = null;
                     nextTexture = sprite._texture.baseTexture;
                     var spriteBlendMode = premultiplyBlendMode[Number(nextTexture.premultipliedAlpha)][sprite.blendMode];
                     if (blendMode !== spriteBlendMode) {
@@ -470,44 +509,6 @@ var pixi_projection;
             return MultiTextureSpriteRenderer;
         }(ObjectRenderer));
         webgl.MultiTextureSpriteRenderer = MultiTextureSpriteRenderer;
-    })(webgl = pixi_projection.webgl || (pixi_projection.webgl = {}));
-})(pixi_projection || (pixi_projection = {}));
-var pixi_projection;
-(function (pixi_projection) {
-    var webgl;
-    (function (webgl) {
-        function generateMultiTextureShader(vertexSrc, fragmentSrc, gl, maxTextures) {
-            fragmentSrc = fragmentSrc.replace(/%count%/gi, maxTextures + '');
-            fragmentSrc = fragmentSrc.replace(/%forloop%/gi, generateSampleSrc(maxTextures));
-            var shader = new PIXI.Shader(gl, vertexSrc, fragmentSrc);
-            var sampleValues = new Int32Array(maxTextures);
-            for (var i = 0; i < maxTextures; i++) {
-                sampleValues[i] = i;
-            }
-            shader.bind();
-            shader.uniforms.uSamplers = sampleValues;
-            return shader;
-        }
-        webgl.generateMultiTextureShader = generateMultiTextureShader;
-        function generateSampleSrc(maxTextures) {
-            var src = '';
-            src += '\n';
-            src += '\n';
-            for (var i = 0; i < maxTextures; i++) {
-                if (i > 0) {
-                    src += '\nelse ';
-                }
-                if (i < maxTextures - 1) {
-                    src += "if(textureId == " + i + ".0)";
-                }
-                src += '\n{';
-                src += "\n\tcolor = texture2D(uSamplers[" + i + "], textureCoord);";
-                src += '\n}';
-            }
-            src += '\n';
-            src += '\n';
-            return src;
-        }
     })(webgl = pixi_projection.webgl || (pixi_projection.webgl = {}));
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
@@ -1184,6 +1185,37 @@ var pixi_projection;
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
 (function (pixi_projection) {
+    PIXI.Sprite.prototype.convertTo2s = function () {
+        if (this.proj)
+            return;
+        this.pluginName = 'sprite_bilinear';
+        this.aTrans = new PIXI.Matrix();
+        this.calculateVertices = pixi_projection.Sprite2s.prototype.calculateVertices;
+        this.calculateTrimmedVertices = pixi_projection.Sprite2s.prototype.calculateTrimmedVertices;
+        this._calculateBounds = pixi_projection.Sprite2s.prototype._calculateBounds;
+        PIXI.Container.prototype.convertTo2s.call(this);
+    };
+    PIXI.Container.prototype.convertTo2s = function () {
+        if (this.proj)
+            return;
+        this.proj = new pixi_projection.Projection2d(this.transform);
+        Object.defineProperty(this, "worldTransform", {
+            get: function () {
+                return this.proj;
+            },
+            enumerable: true,
+            configurable: true
+        });
+    };
+    PIXI.Container.prototype.convertSubtreeTo2s = function () {
+        this.convertTo2s();
+        for (var i = 0; i < this.children.length; i++) {
+            this.children[i].convertSubtreeTo2s();
+        }
+    };
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
     var Sprite2s = (function (_super) {
         __extends(Sprite2s, _super);
         function Sprite2s(texture) {
@@ -1355,37 +1387,6 @@ var pixi_projection;
     Text2s.prototype.calculateVertices = pixi_projection.Sprite2s.prototype.calculateVertices;
     Text2s.prototype.calculateTrimmedVertices = pixi_projection.Sprite2s.prototype.calculateTrimmedVertices;
     Text2s.prototype._calculateBounds = pixi_projection.Sprite2s.prototype._calculateBounds;
-})(pixi_projection || (pixi_projection = {}));
-var pixi_projection;
-(function (pixi_projection) {
-    PIXI.Sprite.prototype.convertTo2s = function () {
-        if (this.proj)
-            return;
-        this.pluginName = 'sprite_bilinear';
-        this.aTrans = new PIXI.Matrix();
-        this.calculateVertices = pixi_projection.Sprite2s.prototype.calculateVertices;
-        this.calculateTrimmedVertices = pixi_projection.Sprite2s.prototype.calculateTrimmedVertices;
-        this._calculateBounds = pixi_projection.Sprite2s.prototype._calculateBounds;
-        PIXI.Container.prototype.convertTo2s.call(this);
-    };
-    PIXI.Container.prototype.convertTo2s = function () {
-        if (this.proj)
-            return;
-        this.proj = new pixi_projection.Projection2d(this.transform);
-        Object.defineProperty(this, "worldTransform", {
-            get: function () {
-                return this.proj;
-            },
-            enumerable: true,
-            configurable: true
-        });
-    };
-    PIXI.Container.prototype.convertSubtreeTo2s = function () {
-        this.convertTo2s();
-        for (var i = 0; i < this.children.length; i++) {
-            this.children[i].convertSubtreeTo2s();
-        }
-    };
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
 (function (pixi_projection) {
@@ -1925,6 +1926,43 @@ var pixi_projection;
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
 (function (pixi_projection) {
+    function convertTo2d() {
+        if (this.proj)
+            return;
+        this.proj = new pixi_projection.Projection2d(this.transform);
+        this.toLocal = pixi_projection.Container2d.prototype.toLocal;
+        Object.defineProperty(this, "worldTransform", {
+            get: pixi_projection.container2dWorldTransform,
+            enumerable: true,
+            configurable: true
+        });
+    }
+    PIXI.Container.prototype.convertTo2d = convertTo2d;
+    PIXI.Sprite.prototype.convertTo2d = function () {
+        if (this.proj)
+            return;
+        this.calculateVertices = pixi_projection.Sprite2d.prototype.calculateVertices;
+        this.calculateTrimmedVertices = pixi_projection.Sprite2d.prototype.calculateTrimmedVertices;
+        this._calculateBounds = pixi_projection.Sprite2d.prototype._calculateBounds;
+        this.pluginName = 'sprite2d';
+        this.vertexData = new Float32Array(12);
+        convertTo2d.call(this);
+    };
+    PIXI.mesh.Mesh.prototype.convertTo2d = function () {
+        if (this.proj)
+            return;
+        this.pluginName = 'mesh2d';
+        convertTo2d.call(this);
+    };
+    PIXI.Container.prototype.convertSubtreeTo2d = function () {
+        this.convertTo2d();
+        for (var i = 0; i < this.children.length; i++) {
+            this.children[i].convertSubtreeTo2d();
+        }
+    };
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
     var Sprite2d = (function (_super) {
         __extends(Sprite2d, _super);
         function Sprite2d(texture) {
@@ -2152,43 +2190,6 @@ var pixi_projection;
     Text2d.prototype.calculateVertices = pixi_projection.Sprite2d.prototype.calculateVertices;
     Text2d.prototype.calculateTrimmedVertices = pixi_projection.Sprite2d.prototype.calculateTrimmedVertices;
     Text2d.prototype._calculateBounds = pixi_projection.Sprite2d.prototype._calculateBounds;
-})(pixi_projection || (pixi_projection = {}));
-var pixi_projection;
-(function (pixi_projection) {
-    function convertTo2d() {
-        if (this.proj)
-            return;
-        this.proj = new pixi_projection.Projection2d(this.transform);
-        this.toLocal = pixi_projection.Container2d.prototype.toLocal;
-        Object.defineProperty(this, "worldTransform", {
-            get: pixi_projection.container2dWorldTransform,
-            enumerable: true,
-            configurable: true
-        });
-    }
-    PIXI.Container.prototype.convertTo2d = convertTo2d;
-    PIXI.Sprite.prototype.convertTo2d = function () {
-        if (this.proj)
-            return;
-        this.calculateVertices = pixi_projection.Sprite2d.prototype.calculateVertices;
-        this.calculateTrimmedVertices = pixi_projection.Sprite2d.prototype.calculateTrimmedVertices;
-        this._calculateBounds = pixi_projection.Sprite2d.prototype._calculateBounds;
-        this.pluginName = 'sprite2d';
-        this.vertexData = new Float32Array(12);
-        convertTo2d.call(this);
-    };
-    PIXI.mesh.Mesh.prototype.convertTo2d = function () {
-        if (this.proj)
-            return;
-        this.pluginName = 'mesh2d';
-        convertTo2d.call(this);
-    };
-    PIXI.Container.prototype.convertSubtreeTo2d = function () {
-        this.convertTo2d();
-        for (var i = 0; i < this.children.length; i++) {
-            this.children[i].convertSubtreeTo2d();
-        }
-    };
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
 (function (pixi_projection) {
@@ -3585,6 +3586,65 @@ var pixi_projection;
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
 (function (pixi_projection) {
+    var containerProps = {
+        worldTransform: {
+            get: pixi_projection.container3dWorldTransform,
+            enumerable: true,
+            configurable: true
+        },
+        position3d: {
+            get: function () { return this.proj.position; },
+            set: function (value) { this.proj.position.copy(value); }
+        },
+        scale3d: {
+            get: function () { return this.proj.scale; },
+            set: function (value) { this.proj.scale.copy(value); }
+        },
+        pivot3d: {
+            get: function () { return this.proj.pivot; },
+            set: function (value) { this.proj.pivot.copy(value); }
+        },
+        euler: {
+            get: function () { return this.proj.euler; },
+            set: function (value) { this.proj.euler.copy(value); }
+        }
+    };
+    function convertTo3d() {
+        if (this.proj)
+            return;
+        this.proj = new pixi_projection.Projection3d(this.transform);
+        this.toLocal = pixi_projection.Container3d.prototype.toLocal;
+        this.isFrontFace = pixi_projection.Container3d.prototype.isFrontFace;
+        this.getDepth = pixi_projection.Container3d.prototype.getDepth;
+        Object.defineProperties(this, containerProps);
+    }
+    PIXI.Container.prototype.convertTo3d = convertTo3d;
+    PIXI.Sprite.prototype.convertTo3d = function () {
+        if (this.proj)
+            return;
+        this.calculateVertices = pixi_projection.Sprite3d.prototype.calculateVertices;
+        this.calculateTrimmedVertices = pixi_projection.Sprite3d.prototype.calculateTrimmedVertices;
+        this._calculateBounds = pixi_projection.Sprite3d.prototype._calculateBounds;
+        this.containsPoint = pixi_projection.Sprite3d.prototype.containsPoint;
+        this.pluginName = 'sprite2d';
+        this.vertexData = new Float32Array(12);
+        convertTo3d.call(this);
+    };
+    PIXI.mesh.Mesh.prototype.convertTo3d = function () {
+        if (this.proj)
+            return;
+        this.pluginName = 'mesh2d';
+        convertTo3d.call(this);
+    };
+    PIXI.Container.prototype.convertSubtreeTo3d = function () {
+        this.convertTo3d();
+        for (var i = 0; i < this.children.length; i++) {
+            this.children[i].convertSubtreeTo3d();
+        }
+    };
+})(pixi_projection || (pixi_projection = {}));
+var pixi_projection;
+(function (pixi_projection) {
     var Sprite3d = (function (_super) {
         __extends(Sprite3d, _super);
         function Sprite3d(texture) {
@@ -3868,65 +3928,6 @@ var pixi_projection;
     Text3d.prototype._calculateBounds = pixi_projection.Sprite3d.prototype._calculateBounds;
     Text3d.prototype.containsPoint = pixi_projection.Sprite3d.prototype.containsPoint;
     Text3d.prototype._renderWebGL = pixi_projection.Sprite3d.prototype._renderWebGL;
-})(pixi_projection || (pixi_projection = {}));
-var pixi_projection;
-(function (pixi_projection) {
-    var containerProps = {
-        worldTransform: {
-            get: pixi_projection.container3dWorldTransform,
-            enumerable: true,
-            configurable: true
-        },
-        position3d: {
-            get: function () { return this.proj.position; },
-            set: function (value) { this.proj.position.copy(value); }
-        },
-        scale3d: {
-            get: function () { return this.proj.scale; },
-            set: function (value) { this.proj.scale.copy(value); }
-        },
-        pivot3d: {
-            get: function () { return this.proj.pivot; },
-            set: function (value) { this.proj.pivot.copy(value); }
-        },
-        euler: {
-            get: function () { return this.proj.euler; },
-            set: function (value) { this.proj.euler.copy(value); }
-        }
-    };
-    function convertTo3d() {
-        if (this.proj)
-            return;
-        this.proj = new pixi_projection.Projection3d(this.transform);
-        this.toLocal = pixi_projection.Container3d.prototype.toLocal;
-        this.isFrontFace = pixi_projection.Container3d.prototype.isFrontFace;
-        this.getDepth = pixi_projection.Container3d.prototype.getDepth;
-        Object.defineProperties(this, containerProps);
-    }
-    PIXI.Container.prototype.convertTo3d = convertTo3d;
-    PIXI.Sprite.prototype.convertTo3d = function () {
-        if (this.proj)
-            return;
-        this.calculateVertices = pixi_projection.Sprite3d.prototype.calculateVertices;
-        this.calculateTrimmedVertices = pixi_projection.Sprite3d.prototype.calculateTrimmedVertices;
-        this._calculateBounds = pixi_projection.Sprite3d.prototype._calculateBounds;
-        this.containsPoint = pixi_projection.Sprite3d.prototype.containsPoint;
-        this.pluginName = 'sprite2d';
-        this.vertexData = new Float32Array(12);
-        convertTo3d.call(this);
-    };
-    PIXI.mesh.Mesh.prototype.convertTo3d = function () {
-        if (this.proj)
-            return;
-        this.pluginName = 'mesh2d';
-        convertTo3d.call(this);
-    };
-    PIXI.Container.prototype.convertSubtreeTo3d = function () {
-        this.convertTo3d();
-        for (var i = 0; i < this.children.length; i++) {
-            this.children[i].convertSubtreeTo3d();
-        }
-    };
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
 (function (pixi_projection) {
