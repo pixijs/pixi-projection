@@ -298,6 +298,7 @@ var pixi_projection;
                 var i;
                 for (i = 0; i < this.currentIndex; ++i) {
                     var sprite = sprites[i];
+                    sprites[i] = null;
                     nextTexture = sprite._texture.baseTexture;
                     var spriteBlendMode = premultiplyBlendMode[Number(nextTexture.premultipliedAlpha)][sprite.blendMode];
                     if (blendMode !== spriteBlendMode) {
