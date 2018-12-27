@@ -224,6 +224,8 @@ namespace pixi_projection.webgl {
 				// they have all ready been calculated so we just need to push them into the buffer.
 				const sprite = sprites[i] as any;
 
+				sprites[i] = null;
+
 				nextTexture = sprite._texture.baseTexture;
 
 				const spriteBlendMode = premultiplyBlendMode[Number(nextTexture.premultipliedAlpha)][sprite.blendMode];
