@@ -37,7 +37,7 @@ namespace pixi_projection {
 			} else {
 				proj.world.setToMultLegacy(parentTransform.worldTransform, proj.local);
 			}
-			proj.world.copy(ta.worldTransform, proj._affine);
+			proj.world.copy(ta.worldTransform, proj._affine, proj.affinePreserveOrientation);
 			ta._parentID = pwid;
 			ta._worldID++;
 		}
@@ -51,6 +51,7 @@ namespace pixi_projection {
 		_projID = 0;
 		_currentProjID = -1;
 		_affine = AFFINE.NONE;
+		affinePreserveOrientation = true;
 
 		set affine(value: AFFINE) {
 			if (this._affine == value) return;

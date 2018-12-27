@@ -122,8 +122,7 @@ namespace pixi_projection {
 				array[6] = mat3[6];
 				array[7] = mat3[7];
 				array[8] = mat3[8];
-			}
-			else {
+			} else {
 				//this branch is NEVER USED in pixi
 				array[0] = mat3[0];
 				array[1] = mat3[3];
@@ -277,7 +276,7 @@ namespace pixi_projection {
 		 * @param matrix
 		 * @return
 		 */
-		copy(matrix: PIXI.Matrix, affine?: AFFINE) {
+		copy(matrix: PIXI.Matrix, affine?: AFFINE, preserveOrientation?: boolean) {
 			const mat3 = this.mat3;
 			const d = 1.0 / mat3[8];
 			const tx = mat3[6] * d, ty = mat3[7] * d;
@@ -289,17 +288,23 @@ namespace pixi_projection {
 			matrix.ty = ty;
 
 			if (affine >= 2) {
+				let D = 0;
+				if (preserveOrientation) {
+					D = mat3[0] * mat3[4] - mat3[1] * mat3[2];
+					if (D >= 0.0) D = 1;
+					else D = -1;
+				}
 				if (affine === AFFINE.POINT) {
 					matrix.a = 1;
 					matrix.b = 0;
 					matrix.c = 0;
-					matrix.d = 1;
+					matrix.d = D;
 				} else if (affine === AFFINE.AXIS_X) {
-					matrix.c = -matrix.b;
-					matrix.d = matrix.a;
+					matrix.c = -matrix.b * D;
+					matrix.d = matrix.a * D;
 				} else if (affine === AFFINE.AXIS_Y) {
-					matrix.a = matrix.d;
-					matrix.c = -matrix.b;
+					matrix.a = matrix.d * D;
+					matrix.c = -matrix.b * D;
 				}
 			}
 		}
@@ -410,8 +415,7 @@ namespace pixi_projection {
 		prepend(lt: any) {
 			if (lt.mat3) {
 				this.setToMult(lt, this);
-			} else
-			{
+			} else {
 				this.setToMultLegacy(lt, this);
 			}
 		}
