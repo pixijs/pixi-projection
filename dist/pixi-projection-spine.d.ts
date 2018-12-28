@@ -1,4 +1,6 @@
 /// <reference types="pixi.js" />
+declare namespace pixi_heaven {
+}
 declare namespace PIXI {
     interface TransformBase {
         proj: PIXI.projection.AbstractProjection;
@@ -32,6 +34,7 @@ declare module PIXI.projection {
         _projID: number;
         _currentProjID: number;
         _affine: AFFINE;
+        affinePreserveOrientation: boolean;
         affine: AFFINE;
         local: T;
         world: T;
@@ -264,7 +267,7 @@ declare module PIXI.projection {
         identity(): Matrix2d;
         clone(): Matrix2d;
         copyTo(matrix: Matrix2d): Matrix2d;
-        copy(matrix: PIXI.Matrix, affine?: AFFINE): void;
+        copy(matrix: PIXI.Matrix, affine?: AFFINE, preserveOrientation?: boolean): void;
         copyFrom(matrix: PIXI.Matrix): this;
         setToMultLegacy(pt: PIXI.Matrix, lt: Matrix2d): this;
         setToMultLegacy2(pt: Matrix2d, lt: PIXI.Matrix): this;
@@ -465,7 +468,7 @@ declare module PIXI.projection {
         identity(): Matrix3d;
         clone(): Matrix3d;
         copyTo(matrix: Matrix3d): Matrix3d;
-        copy(matrix: PIXI.Matrix, affine?: AFFINE): void;
+        copy(matrix: PIXI.Matrix, affine?: AFFINE, preserveOrientation?: boolean): void;
         copyFrom(matrix: PIXI.Matrix): this;
         setToMultLegacy(pt: PIXI.Matrix, lt: Matrix3d): this;
         setToMultLegacy2(pt: Matrix3d, lt: PIXI.Matrix): this;
