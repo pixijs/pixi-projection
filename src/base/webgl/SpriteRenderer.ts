@@ -21,7 +21,7 @@ namespace pixi_projection.webgl {
 	import premultiplyTint = PIXI.utils.premultiplyTint;
 	import premultiplyBlendMode = PIXI.utils.premultiplyBlendMode;
 
-	let TICK = 0;
+	let TICK = 1 << 21;
 
 	export class BatchGroup {
 		textures: Array<BaseTexture> = [];
