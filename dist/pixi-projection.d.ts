@@ -1,6 +1,4 @@
 /// <reference types="pixi.js" />
-declare namespace pixi_heaven {
-}
 declare namespace PIXI {
     interface TransformBase {
         proj: PIXI.projection.AbstractProjection;
@@ -25,7 +23,7 @@ declare module PIXI.projection {
         NONE = 0,
         BEFORE_PROJ = 4,
         PROJ = 5,
-        ALL = 9,
+        ALL = 9
     }
 }
 declare module PIXI.projection {
@@ -242,7 +240,7 @@ declare module PIXI.projection {
         FREE = 1,
         AXIS_X = 2,
         AXIS_Y = 3,
-        POINT = 4,
+        POINT = 4
     }
     class Matrix2d {
         static readonly IDENTITY: Matrix2d;
