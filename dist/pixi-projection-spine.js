@@ -79,14 +79,6 @@ var pixi_projection;
     })(utils = pixi_projection.utils || (pixi_projection.utils = {}));
 })(pixi_projection || (pixi_projection = {}));
 PIXI.projection = pixi_projection;
-var pixi_heaven;
-(function (pixi_heaven) {
-    if (!PIXI.spine) {
-        PIXI.spine = {
-            Spine: function () { }
-        };
-    }
-})(pixi_heaven || (pixi_heaven = {}));
 var pixi_projection;
 (function (pixi_projection) {
     var AbstractProjection = (function () {
@@ -2034,15 +2026,23 @@ var pixi_projection;
             var h1 = -anchor._y * orig.height;
             var h0 = h1 + orig.height;
             var z = 1.0 / (wt[2] * w1 + wt[5] * h1 + wt[8]);
+            if (z < 0)
+                z = 0;
             vertexData[0] = z * ((wt[0] * w1) + (wt[3] * h1) + wt[6]);
             vertexData[1] = z * ((wt[1] * w1) + (wt[4] * h1) + wt[7]);
             z = 1.0 / (wt[2] * w0 + wt[5] * h1 + wt[8]);
+            if (z < 0)
+                z = 0;
             vertexData[2] = z * ((wt[0] * w0) + (wt[3] * h1) + wt[6]);
             vertexData[3] = z * ((wt[1] * w0) + (wt[4] * h1) + wt[7]);
             z = 1.0 / (wt[2] * w0 + wt[5] * h0 + wt[8]);
+            if (z < 0)
+                z = 0;
             vertexData[4] = z * ((wt[0] * w0) + (wt[3] * h0) + wt[6]);
             vertexData[5] = z * ((wt[1] * w0) + (wt[4] * h0) + wt[7]);
             z = 1.0 / (wt[2] * w1 + wt[5] * h0 + wt[8]);
+            if (z < 0)
+                z = 0;
             vertexData[6] = z * ((wt[0] * w1) + (wt[3] * h0) + wt[6]);
             vertexData[7] = z * ((wt[1] * w1) + (wt[4] * h0) + wt[7]);
         };
