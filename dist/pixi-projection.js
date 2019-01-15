@@ -138,12 +138,21 @@ var pixi_projection;
         var proj = this.proj;
         var ta = this;
         var pwid = parentTransform._worldID;
+        var scaleAfter = proj._affine >= 1;
         var lt = ta.localTransform;
         if (ta._localID !== ta._currentLocalID) {
-            lt.a = ta._cx * ta.scale._x;
-            lt.b = ta._sx * ta.scale._x;
-            lt.c = ta._cy * ta.scale._y;
-            lt.d = ta._sy * ta.scale._y;
+            if (!scaleAfter) {
+                lt.a = ta._cx * ta.scale._x;
+                lt.b = ta._sx * ta.scale._x;
+                lt.c = ta._cy * ta.scale._y;
+                lt.d = ta._sy * ta.scale._y;
+            }
+            else {
+                lt.a = ta._cx;
+                lt.b = ta._sx;
+                lt.c = ta._cy;
+                lt.d = ta._sy;
+            }
             lt.tx = ta.position._x - ((ta.pivot._x * lt.a) + (ta.pivot._y * lt.c));
             lt.ty = ta.position._y - ((ta.pivot._x * lt.b) + (ta.pivot._y * lt.d));
             ta._currentLocalID = ta._localID;
@@ -163,7 +172,14 @@ var pixi_projection;
             else {
                 proj.world.setToMultLegacy(parentTransform.worldTransform, proj.local);
             }
-            proj.world.copy(ta.worldTransform, proj._affine, proj.affinePreserveOrientation);
+            var wa = ta.worldTransform;
+            proj.world.copy(wa, proj._affine, proj.affinePreserveOrientation);
+            if (scaleAfter) {
+                wa.a *= ta.scale._x;
+                wa.b *= ta.scale._x;
+                wa.c *= ta.scale._y;
+                wa.d *= ta.scale._y;
+            }
             ta._parentID = pwid;
             ta._worldID++;
         }
@@ -175,7 +191,7 @@ var pixi_projection;
             _this._projID = 0;
             _this._currentProjID = -1;
             _this._affine = pixi_projection.AFFINE.NONE;
-            _this.affinePreserveOrientation = true;
+            _this.affinePreserveOrientation = false;
             return _this;
         }
         LinearProjection.prototype.updateLocalTransform = function (lt) {
@@ -1423,9 +1439,9 @@ var pixi_projection;
                     this.displayObjectUpdateTransform();
                 }
                 if (this.proj.affine) {
-                    return this.transform.worldTransform.applyInverse(point, point);
+                    return this.transform.worldTransform.applyInverse(position, point);
                 }
-                return this.proj.world.applyInverse(point, point);
+                return this.proj.world.applyInverse(position, point);
             }
             if (this.parent) {
                 point = this.parent.worldTransform.applyInverse(position, point);
@@ -1682,27 +1698,30 @@ var pixi_projection;
             matrix.tx = tx;
             matrix.ty = ty;
             if (affine >= 2) {
-                var D = 0;
-                if (preserveOrientation) {
-                    D = matrix.a * matrix.d - matrix.b * matrix.c;
-                    if (D >= 0.0)
-                        D = 1;
-                    else
-                        D = -1;
+                var D = matrix.a * matrix.d - matrix.b * matrix.c;
+                if (!preserveOrientation) {
+                    D = Math.abs(D);
                 }
                 if (affine === AFFINE.POINT) {
-                    matrix.a = 1;
+                    if (D > 0) {
+                        D = 1;
+                    }
+                    else
+                        D = -1;
+                    matrix.a = D;
                     matrix.b = 0;
                     matrix.c = 0;
                     matrix.d = D;
                 }
                 else if (affine === AFFINE.AXIS_X) {
-                    matrix.c = -matrix.b * D;
-                    matrix.d = matrix.a * D;
+                    D /= Math.sqrt(matrix.b * matrix.b + matrix.d * matrix.d);
+                    matrix.c = 0;
+                    matrix.d = D;
                 }
                 else if (affine === AFFINE.AXIS_Y) {
-                    matrix.a = matrix.d * D;
-                    matrix.c = -matrix.b * D;
+                    D /= Math.sqrt(matrix.a * matrix.a + matrix.c * matrix.c);
+                    matrix.a = D;
+                    matrix.c = 0;
                 }
             }
         };
@@ -3048,27 +3067,30 @@ var pixi_projection;
             matrix.tx = tx;
             matrix.ty = ty;
             if (affine >= 2) {
-                var D = 0;
-                if (preserveOrientation) {
-                    D = matrix.a * matrix.d - matrix.b * matrix.c;
-                    if (D >= 0.0)
-                        D = 1;
-                    else
-                        D = -1;
+                var D = matrix.a * matrix.d - matrix.b * matrix.c;
+                if (!preserveOrientation) {
+                    D = Math.abs(D);
                 }
                 if (affine === pixi_projection.AFFINE.POINT) {
-                    matrix.a = 1;
+                    if (D > 0) {
+                        D = 1;
+                    }
+                    else
+                        D = -1;
+                    matrix.a = D;
                     matrix.b = 0;
                     matrix.c = 0;
                     matrix.d = D;
                 }
                 else if (affine === pixi_projection.AFFINE.AXIS_X) {
-                    matrix.c = -matrix.b * D;
-                    matrix.d = matrix.a * D;
+                    D /= Math.sqrt(matrix.b * matrix.b + matrix.d * matrix.d);
+                    matrix.c = 0;
+                    matrix.d = D;
                 }
                 else if (affine === pixi_projection.AFFINE.AXIS_Y) {
-                    matrix.a = matrix.d * D;
-                    matrix.c = -matrix.b * D;
+                    D /= Math.sqrt(matrix.a * matrix.a + matrix.c * matrix.c);
+                    matrix.a = D;
+                    matrix.c = 0;
                 }
             }
         };
