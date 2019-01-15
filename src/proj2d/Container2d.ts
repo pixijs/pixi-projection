@@ -30,9 +30,9 @@ namespace pixi_projection {
 					this.displayObjectUpdateTransform();
 				}
 				if (this.proj.affine) {
-					return this.transform.worldTransform.applyInverse(point, point) as any;
+					return this.transform.worldTransform.applyInverse(position, point) as any;
 				}
-				return this.proj.world.applyInverse(point, point) as any;
+				return this.proj.world.applyInverse(position, point) as any;
 			}
 
 			if (this.parent) {

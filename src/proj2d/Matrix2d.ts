@@ -288,23 +288,26 @@ namespace pixi_projection {
 			matrix.ty = ty;
 
 			if (affine >= 2) {
-				let D = 0;
-				if (preserveOrientation) {
-					D = matrix.a * matrix.d - matrix.b * matrix.c;
-					if (D >= 0.0) D = 1;
-					else D = -1;
+				let D = matrix.a * matrix.d - matrix.b * matrix.c;
+				if (!preserveOrientation) {
+					D = Math.abs(D);
 				}
 				if (affine === AFFINE.POINT) {
-					matrix.a = 1;
+					if (D > 0) {
+						D = 1;
+					} else D = -1;
+					matrix.a = D;
 					matrix.b = 0;
 					matrix.c = 0;
 					matrix.d = D;
 				} else if (affine === AFFINE.AXIS_X) {
-					matrix.c = -matrix.b * D;
-					matrix.d = matrix.a * D;
+					D /= Math.sqrt(matrix.b * matrix.b + matrix.d * matrix.d);
+					matrix.c = 0;
+					matrix.d = D;
 				} else if (affine === AFFINE.AXIS_Y) {
-					matrix.a = matrix.d * D;
-					matrix.c = -matrix.b * D;
+					D /= Math.sqrt(matrix.a * matrix.a + matrix.c * matrix.c);
+					matrix.a = D;
+					matrix.c = 0;
 				}
 			}
 		}

@@ -4,16 +4,24 @@ namespace pixi_projection {
 		const proj = this.proj as LinearProjection<any>;
 		const ta = this as any;
 		const pwid = (parentTransform as any)._worldID;
+		const scaleAfter = proj._affine >= 1;
 
 		const lt = ta.localTransform;
 
 		//this part is copied from
 		if (ta._localID !== ta._currentLocalID) {
 			// get the matrix values of the displayobject based on its transform properties..
-			lt.a = ta._cx * ta.scale._x;
-			lt.b = ta._sx * ta.scale._x;
-			lt.c = ta._cy * ta.scale._y;
-			lt.d = ta._sy * ta.scale._y;
+			if (!scaleAfter) {
+				lt.a = ta._cx * ta.scale._x;
+				lt.b = ta._sx * ta.scale._x;
+				lt.c = ta._cy * ta.scale._y;
+				lt.d = ta._sy * ta.scale._y;
+			} else {
+				lt.a = ta._cx;
+				lt.b = ta._sx;
+				lt.c = ta._cy;
+				lt.d = ta._sy;
+			}
 
 			lt.tx = ta.position._x - ((ta.pivot._x * lt.a) + (ta.pivot._y * lt.c));
 			lt.ty = ta.position._y - ((ta.pivot._x * lt.b) + (ta.pivot._y * lt.d));
@@ -37,7 +45,17 @@ namespace pixi_projection {
 			} else {
 				proj.world.setToMultLegacy(parentTransform.worldTransform, proj.local);
 			}
-			proj.world.copy(ta.worldTransform, proj._affine, proj.affinePreserveOrientation);
+
+			let wa = ta.worldTransform;
+
+			proj.world.copy(wa, proj._affine, proj.affinePreserveOrientation);
+
+			if (scaleAfter) {
+				wa.a *= ta.scale._x;
+				wa.b *= ta.scale._x;
+				wa.c *= ta.scale._y;
+				wa.d *= ta.scale._y;
+			}
 			ta._parentID = pwid;
 			ta._worldID++;
 		}
@@ -51,7 +69,7 @@ namespace pixi_projection {
 		_projID = 0;
 		_currentProjID = -1;
 		_affine = AFFINE.NONE;
-		affinePreserveOrientation = true;
+		affinePreserveOrientation = false;
 
 		set affine(value: AFFINE) {
 			if (this._affine == value) return;
