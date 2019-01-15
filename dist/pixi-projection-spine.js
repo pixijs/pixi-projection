@@ -138,10 +138,9 @@ var pixi_projection;
         var proj = this.proj;
         var ta = this;
         var pwid = parentTransform._worldID;
-        var scaleAfter = proj._affine >= 1;
         var lt = ta.localTransform;
         if (ta._localID !== ta._currentLocalID) {
-            if (!scaleAfter) {
+            if (!proj.scaleAfterAffine) {
                 lt.a = ta._cx * ta.scale._x;
                 lt.b = ta._sx * ta.scale._x;
                 lt.c = ta._cy * ta.scale._y;
@@ -174,7 +173,7 @@ var pixi_projection;
             }
             var wa = ta.worldTransform;
             proj.world.copy(wa, proj._affine, proj.affinePreserveOrientation);
-            if (scaleAfter) {
+            if (proj.scaleAfterAffine) {
                 wa.a *= ta.scale._x;
                 wa.b *= ta.scale._x;
                 wa.c *= ta.scale._y;
@@ -192,6 +191,7 @@ var pixi_projection;
             _this._currentProjID = -1;
             _this._affine = pixi_projection.AFFINE.NONE;
             _this.affinePreserveOrientation = false;
+            _this.scaleAfterAffine = false;
             return _this;
         }
         LinearProjection.prototype.updateLocalTransform = function (lt) {

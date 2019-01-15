@@ -35,6 +35,7 @@ declare module PIXI.projection {
         _currentProjID: number;
         _affine: AFFINE;
         affinePreserveOrientation: boolean;
+        scaleAfterAffine: boolean;
         affine: AFFINE;
         local: T;
         world: T;

@@ -4,14 +4,13 @@ namespace pixi_projection {
 		const proj = this.proj as LinearProjection<any>;
 		const ta = this as any;
 		const pwid = (parentTransform as any)._worldID;
-		const scaleAfter = proj._affine >= 1;
 
 		const lt = ta.localTransform;
 
 		//this part is copied from
 		if (ta._localID !== ta._currentLocalID) {
 			// get the matrix values of the displayobject based on its transform properties..
-			if (!scaleAfter) {
+			if (!proj.scaleAfterAffine) {
 				lt.a = ta._cx * ta.scale._x;
 				lt.b = ta._sx * ta.scale._x;
 				lt.c = ta._cy * ta.scale._y;
@@ -50,7 +49,7 @@ namespace pixi_projection {
 
 			proj.world.copy(wa, proj._affine, proj.affinePreserveOrientation);
 
-			if (scaleAfter) {
+			if (proj.scaleAfterAffine) {
 				wa.a *= ta.scale._x;
 				wa.b *= ta.scale._x;
 				wa.c *= ta.scale._y;
@@ -70,6 +69,7 @@ namespace pixi_projection {
 		_currentProjID = -1;
 		_affine = AFFINE.NONE;
 		affinePreserveOrientation = false;
+		scaleAfterAffine = false;
 
 		set affine(value: AFFINE) {
 			if (this._affine == value) return;
