@@ -6,24 +6,29 @@ namespace pixi_projection {
 		const pwid = (parentTransform as any)._worldID;
 
 		const lt = ta.localTransform;
+		const scaleAfterAffine = proj.scaleAfterAffine && proj.affine >= 2;
 
 		//this part is copied from
 		if (ta._localID !== ta._currentLocalID) {
 			// get the matrix values of the displayobject based on its transform properties..
-			if (!proj.scaleAfterAffine) {
-				lt.a = ta._cx * ta.scale._x;
-				lt.b = ta._sx * ta.scale._x;
-				lt.c = ta._cy * ta.scale._y;
-				lt.d = ta._sy * ta.scale._y;
-			} else {
+			if (scaleAfterAffine) {
 				lt.a = ta._cx;
 				lt.b = ta._sx;
 				lt.c = ta._cy;
 				lt.d = ta._sy;
+
+				lt.tx = ta.position._x;
+				lt.ty = ta.position._y;
+			} else {
+				lt.a = ta._cx * ta.scale._x;
+				lt.b = ta._sx * ta.scale._x;
+				lt.c = ta._cy * ta.scale._y;
+				lt.d = ta._sy * ta.scale._y;
+
+				lt.tx = ta.position._x - ((ta.pivot._x * lt.a) + (ta.pivot._y * lt.c));
+				lt.ty = ta.position._y - ((ta.pivot._x * lt.b) + (ta.pivot._y * lt.d));
 			}
 
-			lt.tx = ta.position._x - ((ta.pivot._x * lt.a) + (ta.pivot._y * lt.c));
-			lt.ty = ta.position._y - ((ta.pivot._x * lt.b) + (ta.pivot._y * lt.d));
 			ta._currentLocalID = ta._localID;
 
 			// force an update..
@@ -49,11 +54,14 @@ namespace pixi_projection {
 
 			proj.world.copy(wa, proj._affine, proj.affinePreserveOrientation);
 
-			if (proj.scaleAfterAffine) {
+			if (scaleAfterAffine) {
 				wa.a *= ta.scale._x;
 				wa.b *= ta.scale._x;
 				wa.c *= ta.scale._y;
 				wa.d *= ta.scale._y;
+
+				wa.tx -= ((ta.pivot._x * wa.a) + (ta.pivot._y * wa.c));
+				wa.ty -= ((ta.pivot._x * wa.b) + (ta.pivot._y * wa.d));
 			}
 			ta._parentID = pwid;
 			ta._worldID++;
@@ -69,7 +77,7 @@ namespace pixi_projection {
 		_currentProjID = -1;
 		_affine = AFFINE.NONE;
 		affinePreserveOrientation = false;
-		scaleAfterAffine = false;
+		scaleAfterAffine = true;
 
 		set affine(value: AFFINE) {
 			if (this._affine == value) return;
