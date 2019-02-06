@@ -381,6 +381,29 @@ namespace pixi_projection {
 			return matrix;
 		}
 
+		copyTo2d(matrix: Matrix2d) {
+			const mat3 = this.mat4;
+			const ar2 = matrix.mat3;
+			ar2[0] = mat3[0];
+			ar2[1] = mat3[1];
+			ar2[2] = mat3[3];
+			ar2[3] = mat3[4];
+			ar2[4] = mat3[5];
+			ar2[5] = mat3[7];
+			ar2[6] = mat3[12];
+			ar2[7] = mat3[13];
+			ar2[8] = mat3[15];
+			return matrix;
+		}
+
+		copyTo2dOr3d(matrix: Matrix2d | Matrix3d) {
+			if (matrix instanceof Matrix2d) {
+				return this.copyTo2d(matrix);
+			} else {
+				return this.copyTo(matrix);
+			}
+		}
+
 		/**
 		 * legacy method, change the values of given pixi matrix
 		 * @param matrix

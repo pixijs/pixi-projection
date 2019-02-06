@@ -22,20 +22,23 @@ varying vec3 vMaskCoord;
 varying vec2 vTextureCoord;
 
 uniform sampler2D uSampler;
-uniform float alpha;
 uniform sampler2D mask;
+uniform float alpha;
+uniform vec4 maskClamp;
 
 void main(void)
 {
     vec2 uv = vMaskCoord.xy / vMaskCoord.z;
     
-    vec2 text = abs( uv - 0.5 );
-    text = step(0.5, text);
+    float clip = step(3.5,
+        step(maskClamp.x, uv.x) +
+        step(maskClamp.y, uv.y) +
+        step(uv.x, maskClamp.z) +
+        step(uv.y, maskClamp.w));
 
-    float clip = 1.0 - max(text.y, text.x);
     vec4 original = texture2D(uSampler, vTextureCoord);
     vec4 masky = texture2D(mask, uv);
-
+    
     original *= (masky.r * masky.a * alpha * clip);
 
     gl_FragColor = original;
@@ -48,6 +51,7 @@ void main(void)
 		mask: PIXI.Texture;
 		otherMatrix: PIXI.Matrix | Matrix2d;
 		alpha: number;
+		maskClamp: Float32Array;
 	}
 
 	export class SpriteMaskFilter2d extends PIXI.Filter<SpriteMaskFilter2dUniforms> {
@@ -65,10 +69,25 @@ void main(void)
 		apply(filterManager: PIXI.FilterManager, input: PIXI.RenderTarget, output: PIXI.RenderTarget,
 		      clear?: boolean, currentState?: any) {
 			const maskSprite = this.maskSprite;
+			const tex = this.maskSprite.texture;
+
+			if (!tex.valid)
+			{
+				return;
+			}
+			if (!tex.transform)
+			{
+				// margin = 0.0, let it bleed a bit, shader code becomes easier
+				// assuming that atlas textures were made with 1-pixel padding
+				tex.transform = new PIXI.TextureMatrix(tex, 0.0);
+			}
+			tex.transform.update();
 
 			this.uniforms.mask = maskSprite.texture;
-			this.uniforms.otherMatrix = SpriteMaskFilter2d.calculateSpriteMatrix(currentState, this.maskMatrix, maskSprite);
+			this.uniforms.otherMatrix = SpriteMaskFilter2d.calculateSpriteMatrix(currentState, this.maskMatrix, maskSprite)
+				.prepend(tex.transform.mapCoord);
 			this.uniforms.alpha = maskSprite.worldAlpha;
+			this.uniforms.maskClamp = tex.transform.uClampFrame;
 
 			filterManager.applyFilter(this, input, output);
 		}
@@ -79,7 +98,7 @@ void main(void)
 			const filterArea = currentState.sourceFrame;
 			const textureSize = currentState.renderTarget.size;
 
-			const worldTransform = proj && !proj._affine ? proj.world.copyTo(tempMat) : tempMat.copyFrom(sprite.transform.worldTransform);
+			const worldTransform = proj && !proj._affine ? proj.world.copyTo2dOr3d(tempMat) : tempMat.copyFrom(sprite.transform.worldTransform);
 			const texture = sprite.texture.orig;
 
 			mappedMatrix.set(textureSize.width, 0, 0, textureSize.height, filterArea.x, filterArea.y);

@@ -271,6 +271,10 @@ namespace pixi_projection {
 			return matrix;
 		}
 
+		copyTo2dOr3d(matrix: Matrix2d) {
+			return this.copyTo(matrix);
+		}
+
 		/**
 		 * legacy method, change the values of given pixi matrix
 		 * @param matrix
@@ -417,9 +421,9 @@ namespace pixi_projection {
 
 		prepend(lt: any) {
 			if (lt.mat3) {
-				this.setToMult(lt, this);
+				return this.setToMult(lt, this);
 			} else {
-				this.setToMultLegacy(lt, this);
+				return this.setToMultLegacy(lt, this);
 			}
 		}
 	}
