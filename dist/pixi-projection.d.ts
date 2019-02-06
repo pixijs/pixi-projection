@@ -268,12 +268,13 @@ declare module PIXI.projection {
         identity(): Matrix2d;
         clone(): Matrix2d;
         copyTo(matrix: Matrix2d): Matrix2d;
+        copyTo2dOr3d(matrix: Matrix2d): Matrix2d;
         copy(matrix: PIXI.Matrix, affine?: AFFINE, preserveOrientation?: boolean): void;
         copyFrom(matrix: PIXI.Matrix): this;
         setToMultLegacy(pt: PIXI.Matrix, lt: Matrix2d): this;
         setToMultLegacy2(pt: Matrix2d, lt: PIXI.Matrix): this;
         setToMult(pt: Matrix2d, lt: Matrix2d): this;
-        prepend(lt: any): void;
+        prepend(lt: any): this;
     }
 }
 declare module PIXI.projection {
@@ -374,6 +375,7 @@ declare module PIXI.projection {
         mask: PIXI.Texture;
         otherMatrix: PIXI.Matrix | Matrix2d;
         alpha: number;
+        maskClamp: Float32Array;
     }
     class SpriteMaskFilter2d extends PIXI.Filter<SpriteMaskFilter2dUniforms> {
         constructor(sprite: PIXI.Sprite);
@@ -469,6 +471,8 @@ declare module PIXI.projection {
         identity(): Matrix3d;
         clone(): Matrix3d;
         copyTo(matrix: Matrix3d): Matrix3d;
+        copyTo2d(matrix: Matrix2d): Matrix2d;
+        copyTo2dOr3d(matrix: Matrix2d | Matrix3d): Matrix2d | Matrix3d;
         copy(matrix: PIXI.Matrix, affine?: AFFINE, preserveOrientation?: boolean): void;
         copyFrom(matrix: PIXI.Matrix): this;
         setToMultLegacy(pt: PIXI.Matrix, lt: Matrix3d): this;

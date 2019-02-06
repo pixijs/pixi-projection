@@ -1692,6 +1692,9 @@ var pixi_projection;
             ar2[8] = mat3[8];
             return matrix;
         };
+        Matrix2d.prototype.copyTo2dOr3d = function (matrix) {
+            return this.copyTo(matrix);
+        };
         Matrix2d.prototype.copy = function (matrix, affine, preserveOrientation) {
             var mat3 = this.mat3;
             var d = 1.0 / mat3[8];
@@ -1790,10 +1793,10 @@ var pixi_projection;
         };
         Matrix2d.prototype.prepend = function (lt) {
             if (lt.mat3) {
-                this.setToMult(lt, this);
+                return this.setToMult(lt, this);
             }
             else {
-                this.setToMultLegacy(lt, this);
+                return this.setToMultLegacy(lt, this);
             }
         };
         Matrix2d.IDENTITY = new Matrix2d();
@@ -2386,7 +2389,7 @@ var pixi_projection;
 var pixi_projection;
 (function (pixi_projection) {
     var spriteMaskVert = "\nattribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\n\nuniform mat3 projectionMatrix;\nuniform mat3 otherMatrix;\n\nvarying vec3 vMaskCoord;\nvarying vec2 vTextureCoord;\n\nvoid main(void)\n{\n\tgl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n\n\tvTextureCoord = aTextureCoord;\n\tvMaskCoord = otherMatrix * vec3( aTextureCoord, 1.0);\n}\n";
-    var spriteMaskFrag = "\nvarying vec3 vMaskCoord;\nvarying vec2 vTextureCoord;\n\nuniform sampler2D uSampler;\nuniform float alpha;\nuniform sampler2D mask;\n\nvoid main(void)\n{\n    vec2 uv = vMaskCoord.xy / vMaskCoord.z;\n    \n    vec2 text = abs( uv - 0.5 );\n    text = step(0.5, text);\n\n    float clip = 1.0 - max(text.y, text.x);\n    vec4 original = texture2D(uSampler, vTextureCoord);\n    vec4 masky = texture2D(mask, uv);\n\n    original *= (masky.r * masky.a * alpha * clip);\n\n    gl_FragColor = original;\n}\n";
+    var spriteMaskFrag = "\nvarying vec3 vMaskCoord;\nvarying vec2 vTextureCoord;\n\nuniform sampler2D uSampler;\nuniform sampler2D mask;\nuniform float alpha;\nuniform vec4 maskClamp;\n\nvoid main(void)\n{\n    vec2 uv = vMaskCoord.xy / vMaskCoord.z;\n    \n    float clip = step(3.5,\n        step(maskClamp.x, uv.x) +\n        step(maskClamp.y, uv.y) +\n        step(uv.x, maskClamp.z) +\n        step(uv.y, maskClamp.w));\n\n    vec4 original = texture2D(uSampler, vTextureCoord);\n    vec4 masky = texture2D(mask, uv);\n    \n    original *= (masky.r * masky.a * alpha * clip);\n\n    gl_FragColor = original;\n}\n";
     var tempMat = new pixi_projection.Matrix2d();
     var SpriteMaskFilter2d = (function (_super) {
         __extends(SpriteMaskFilter2d, _super);
@@ -2399,16 +2402,26 @@ var pixi_projection;
         }
         SpriteMaskFilter2d.prototype.apply = function (filterManager, input, output, clear, currentState) {
             var maskSprite = this.maskSprite;
+            var tex = this.maskSprite.texture;
+            if (!tex.valid) {
+                return;
+            }
+            if (!tex.transform) {
+                tex.transform = new PIXI.TextureMatrix(tex, 0.0);
+            }
+            tex.transform.update();
             this.uniforms.mask = maskSprite.texture;
-            this.uniforms.otherMatrix = SpriteMaskFilter2d.calculateSpriteMatrix(currentState, this.maskMatrix, maskSprite);
+            this.uniforms.otherMatrix = SpriteMaskFilter2d.calculateSpriteMatrix(currentState, this.maskMatrix, maskSprite)
+                .prepend(tex.transform.mapCoord);
             this.uniforms.alpha = maskSprite.worldAlpha;
+            this.uniforms.maskClamp = tex.transform.uClampFrame;
             filterManager.applyFilter(this, input, output);
         };
         SpriteMaskFilter2d.calculateSpriteMatrix = function (currentState, mappedMatrix, sprite) {
             var proj = sprite.proj;
             var filterArea = currentState.sourceFrame;
             var textureSize = currentState.renderTarget.size;
-            var worldTransform = proj && !proj._affine ? proj.world.copyTo(tempMat) : tempMat.copyFrom(sprite.transform.worldTransform);
+            var worldTransform = proj && !proj._affine ? proj.world.copyTo2dOr3d(tempMat) : tempMat.copyFrom(sprite.transform.worldTransform);
             var texture = sprite.texture.orig;
             mappedMatrix.set(textureSize.width, 0, 0, textureSize.height, filterArea.x, filterArea.y);
             worldTransform.invert();
@@ -3060,6 +3073,28 @@ var pixi_projection;
             ar2[7] = mat3[7];
             ar2[8] = mat3[8];
             return matrix;
+        };
+        Matrix3d.prototype.copyTo2d = function (matrix) {
+            var mat3 = this.mat4;
+            var ar2 = matrix.mat3;
+            ar2[0] = mat3[0];
+            ar2[1] = mat3[1];
+            ar2[2] = mat3[3];
+            ar2[3] = mat3[4];
+            ar2[4] = mat3[5];
+            ar2[5] = mat3[7];
+            ar2[6] = mat3[12];
+            ar2[7] = mat3[13];
+            ar2[8] = mat3[15];
+            return matrix;
+        };
+        Matrix3d.prototype.copyTo2dOr3d = function (matrix) {
+            if (matrix instanceof pixi_projection.Matrix2d) {
+                return this.copyTo2d(matrix);
+            }
+            else {
+                return this.copyTo(matrix);
+            }
         };
         Matrix3d.prototype.copy = function (matrix, affine, preserveOrientation) {
             var mat3 = this.mat4;
