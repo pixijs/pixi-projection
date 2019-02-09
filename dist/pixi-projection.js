@@ -210,6 +210,7 @@ var pixi_projection;
                     return;
                 this._affine = value;
                 this._currentProjID = -1;
+                this.legacy._currentLocalID = -1;
             },
             enumerable: true,
             configurable: true
