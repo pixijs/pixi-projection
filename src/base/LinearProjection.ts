@@ -83,6 +83,8 @@ namespace pixi_projection {
 			if (this._affine == value) return;
 			this._affine = value;
 			this._currentProjID = -1;
+			// this is because scaleAfterAffine
+			(this.legacy as any)._currentLocalID = -1;
 		}
 
 		get affine() {
