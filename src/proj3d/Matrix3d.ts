@@ -209,7 +209,7 @@ namespace pixi_projection {
 		}
 
 		apply(pos: IPoint, newPos: IPoint): IPoint {
-			newPos = newPos || new PIXI.Point();
+			newPos = newPos || new Point3d();
 
 			const mat4 = this.mat4;
 			const x = pos.x;
