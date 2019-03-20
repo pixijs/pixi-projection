@@ -75,5 +75,5 @@ namespace pixi_projection {
 		}
 	}
 
-	(PIXI as any).Point = Point3d;
+	(PIXI as any).Point3d = Point3d;
 }
