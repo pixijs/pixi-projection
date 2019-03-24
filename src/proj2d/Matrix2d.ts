@@ -316,7 +316,7 @@ namespace pixi_projection {
 					matrix.c = 0;
 				}
 				else if (affine === AFFINE.AXIS_XR) {
-                    matrix.a =  matrix.d * D;
+					matrix.a =  matrix.d * D;
 					matrix.c = -matrix.b * D;
 				}
 			}
