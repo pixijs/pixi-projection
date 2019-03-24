@@ -11,7 +11,9 @@ namespace pixi_projection {
 		FREE = 1,
 		AXIS_X = 2,
 		AXIS_Y = 3,
-		POINT = 4
+		POINT = 4,
+		AXIS_XR = 5
+
 	}
 
 	export class Matrix2d {
@@ -312,6 +314,10 @@ namespace pixi_projection {
 					D /= Math.sqrt(matrix.a * matrix.a + matrix.c * matrix.c);
 					matrix.a = D;
 					matrix.c = 0;
+				}
+				else if (affine === AFFINE.AXIS_XR) {
+                    matrix.a =  matrix.d * D;
+					matrix.c = -matrix.b * D;
 				}
 			}
 		}
