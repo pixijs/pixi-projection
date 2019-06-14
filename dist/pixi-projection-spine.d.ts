@@ -268,7 +268,7 @@ declare module PIXI.projection {
         clone(): Matrix2d;
         copyTo(matrix: Matrix2d): Matrix2d;
         copyTo2dOr3d(matrix: Matrix2d): Matrix2d;
-        copy(matrix: PIXI.Matrix, affine?: AFFINE, preserveOrientation?: boolean): void;
+        copy(matrix: PIXI.Matrix, affine?: AFFINE, preserveOrientation?: boolean): PIXI.Matrix;
         copyFrom(matrix: PIXI.Matrix): this;
         setToMultLegacy(pt: PIXI.Matrix, lt: Matrix2d): this;
         setToMultLegacy2(pt: Matrix2d, lt: PIXI.Matrix): this;
@@ -472,7 +472,7 @@ declare module PIXI.projection {
         copyTo(matrix: Matrix3d): Matrix3d;
         copyTo2d(matrix: Matrix2d): Matrix2d;
         copyTo2dOr3d(matrix: Matrix2d | Matrix3d): Matrix2d | Matrix3d;
-        copy(matrix: PIXI.Matrix, affine?: AFFINE, preserveOrientation?: boolean): void;
+        copy(matrix: PIXI.Matrix, affine?: AFFINE, preserveOrientation?: boolean): PIXI.Matrix;
         copyFrom(matrix: PIXI.Matrix): this;
         setToMultLegacy(pt: PIXI.Matrix, lt: Matrix3d): this;
         setToMultLegacy2(pt: Matrix3d, lt: PIXI.Matrix): this;

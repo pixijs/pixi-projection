@@ -1730,6 +1730,7 @@ var pixi_projection;
                     matrix.c = -matrix.b * D;
                 }
             }
+            return matrix;
         };
         Matrix2d.prototype.copyFrom = function (matrix) {
             var mat3 = this.mat3;
@@ -3131,6 +3132,7 @@ var pixi_projection;
                     matrix.c = 0;
                 }
             }
+            return matrix;
         };
         Matrix3d.prototype.copyFrom = function (matrix) {
             var mat3 = this.mat4;
