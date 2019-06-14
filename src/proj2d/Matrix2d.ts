@@ -320,6 +320,7 @@ namespace pixi_projection {
 					matrix.c = -matrix.b * D;
 				}
 			}
+			return matrix;
 		}
 
 		/**

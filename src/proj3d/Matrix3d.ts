@@ -443,6 +443,7 @@ namespace pixi_projection {
 					matrix.c = 0;
 				}
 			}
+			return matrix;
 		}
 
 		/**
