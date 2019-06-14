@@ -407,7 +407,7 @@ namespace pixi_projection {
 		/**
 		 * legacy method, change the values of given pixi matrix
 		 * @param matrix
-		 * @return
+		 * @return matrix
 		 */
 		copy(matrix: PIXI.Matrix, affine?: AFFINE, preserveOrientation?: boolean) {
 			const mat3 = this.mat4;
