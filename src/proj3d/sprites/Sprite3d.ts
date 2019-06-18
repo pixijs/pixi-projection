@@ -170,7 +170,7 @@ namespace pixi_projection {
 			this.trimmedCulledByFrustrum = culled;
 		}
 
-		_renderWebGL(renderer: PIXI.WebGLRenderer) {
+		_render(renderer: PIXI.WebGLRenderer) {
 			this.calculateVertices();
 
 			if (this.culledByFrustrum) {

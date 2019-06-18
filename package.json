@@ -1,6 +1,6 @@
 {
   "name": "pixi-projection",
-  "version": "0.2.8",
+  "version": "1.0.0",
   "description": "Projections (2.5d, 3d and bilinear) for pixi v^4",
   "author": "Ivan Popelyshev",
   "contributors": [
@@ -38,22 +38,15 @@
     "README.md"
   ],
   "devDependencies": {
-    "checkpack": "^0.2.7",
-    "del": "~2.2.0",
-    "glob": "~7.1.1",
-    "jaguarjs-jsdoc": "~1.0.1",
-    "jsdoc": "~3.4.0",
-    "mkdirp": "~0.5.1",
-    "parallelshell": "~2.0.0",
-    "pixi-spine": "~1.5.7",
-    "pixi.js": "~4.7.1",
-    "rimraf": "~2.5.3",
-    "static-html-server": "~0.1.2",
-    "tmp": "^0.0.33",
-    "ts-helpers": "~1.1.2",
-    "typescript": "^2.4.2"
-  },
-  "dependencies": {
-    "@types/pixi.js": "^4.7.1"
+    "checkpack": "^0.3",
+    "del": "^2.2.0",
+    "jaguarjs-jsdoc": "^1.0.1",
+    "jsdoc": "^3.4.0",
+    "mkdirp": "^0.5.1",
+    "pixi.js": "~5.0.4",
+    "pixi-spine": "~2.0.2",
+    "parallelshell": "^2.0.0",
+    "rimraf": "^2.5.3",
+    "typescript": "^2.8.3"
   }
 }

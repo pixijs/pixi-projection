@@ -26,7 +26,7 @@ namespace pixi_projection {
 			return container2dToLocal.call(this, position, from, point, skipUpdate, step);
 		}
 
-		_renderWebGL(renderer: PIXI.WebGLRenderer)
+		_render(renderer: PIXI.WebGLRenderer)
 		{
 			// tweak our texture temporarily..
 			const texture = this._texture;

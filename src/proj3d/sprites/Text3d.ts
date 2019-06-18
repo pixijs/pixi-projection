@@ -57,5 +57,5 @@ namespace pixi_projection {
     (Text3d.prototype as any).calculateTrimmedVertices = Sprite3d.prototype.calculateTrimmedVertices;
 	(Text3d.prototype as any)._calculateBounds = Sprite3d.prototype._calculateBounds;
 	(Text3d.prototype as any).containsPoint = Sprite3d.prototype.containsPoint;
-	(Text3d.prototype as any)._renderWebGL = Sprite3d.prototype._renderWebGL;
+	(Text3d.prototype as any)._render = Sprite3d.prototype._render;
 }
