@@ -11,7 +11,7 @@ namespace pixi_projection {
 
 		proj: Projection2d;
 
-		toLocal<T extends PIXI.PointLike>(position: PIXI.PointLike, from?: PIXI.DisplayObject,
+		toLocal<T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject,
 		        point?: T, skipUpdate?: boolean,
 		        step = TRANSFORM_STEP.ALL): T {
 
@@ -38,7 +38,7 @@ namespace pixi_projection {
 			if (this.parent) {
 				point  = this.parent.worldTransform.applyInverse(position, point) as any;
 			} else {
-				point.copy(position);
+				point.copyFrom(position);
 			}
 			if (step === TRANSFORM_STEP.NONE) {
 				return point;

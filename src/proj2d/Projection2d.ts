@@ -1,5 +1,5 @@
 namespace pixi_projection {
-	import PointLike = PIXI.PointLike;
+	import IPoint = PIXI.IPoint;
 
 	const t0 = new PIXI.Point();
 	const tt = [new PIXI.Point(), new PIXI.Point(), new PIXI.Point(), new PIXI.Point()];
@@ -8,7 +8,7 @@ namespace pixi_projection {
 
 	export class Projection2d extends LinearProjection<Matrix2d> {
 
-		constructor(legacy: PIXI.TransformBase, enable?: boolean) {
+		constructor(legacy: PIXI.Transform, enable?: boolean) {
 			super(legacy, enable);
 			this.local = new Matrix2d();
 			this.world = new Matrix2d();
@@ -29,7 +29,7 @@ namespace pixi_projection {
 			this._projID++;
 		}
 
-		setAxisX(p: PointLike, factor: number = 1): void {
+		setAxisX(p: IPoint, factor: number = 1): void {
 			const x = p.x, y = p.y;
 			const d = Math.sqrt(x * x + y * y);
 			const mat3 = this.matrix.mat3;
@@ -40,7 +40,7 @@ namespace pixi_projection {
 			this.onChange();
 		}
 
-		setAxisY(p: PointLike, factor: number = 1) {
+		setAxisY(p: IPoint, factor: number = 1) {
 			const x = p.x, y = p.y;
 			const d = Math.sqrt(x * x + y * y);
 			const mat3 = this.matrix.mat3;
@@ -50,7 +50,7 @@ namespace pixi_projection {
 			this.onChange();
 		}
 
-		mapSprite(sprite: PIXI.Sprite, quad: Array<PointLike>) {
+		mapSprite(sprite: PIXI.Sprite, quad: Array<IPoint>) {
 			const tex = sprite.texture;
 
 			tempRect.x = -sprite.anchor.x * tex.orig.width;
@@ -61,7 +61,7 @@ namespace pixi_projection {
 			return this.mapQuad(tempRect, quad);
 		}
 
-		mapQuad(rect: PIXI.Rectangle, p: Array<PointLike>) {
+		mapQuad(rect: PIXI.Rectangle, p: Array<IPoint>) {
 			// utils.getPositionFromQuad(p, anchor, t0);
 			tt[0].set(rect.x, rect.y);
 			tt[1].set(rect.x + rect.width, rect.y);

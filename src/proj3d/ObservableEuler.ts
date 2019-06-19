@@ -1,4 +1,6 @@
 namespace pixi_projection {
+	export type IEuler = Euler | ObservableEuler;
+
 	/**
 	 * The Euler angles, order is YZX. Except for projections (camera.lookEuler), its reversed XZY
 	 * @class
@@ -9,7 +11,7 @@ namespace pixi_projection {
 	 * @constructor
 	 */
 
-	export class ObservableEuler implements PIXI.PointLike, Euler {
+	export class ObservableEuler {
 		constructor(public cb: any, public scope: any, x?: number, y?: number, z?: number) {
 			/**
 			 * @member {number}
@@ -130,7 +132,7 @@ namespace pixi_projection {
 			}
 		};
 
-		copy(euler: PIXI.PointLike) {
+		copyFrom(euler: IEuler) {
 			const _x = euler.x;
 			const _y = euler.y;
 			const _z = euler.z;
@@ -141,6 +143,17 @@ namespace pixi_projection {
 				this._quatDirtyId++;
 				this.cb.call(this.scope);
 			}
+		}
+
+		copyTo(p: IEuler) {
+			p.set(this._x, this._y, this._z);
+			return p;
+		}
+
+		equals(euler: IEuler) {
+			return this._x === euler.x
+				&& this._y === euler.y
+				&& this._z === euler.z;
 		}
 
 		clone() {

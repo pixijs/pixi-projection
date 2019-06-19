@@ -1,5 +1,5 @@
 namespace pixi_projection {
-    import PointLike = PIXI.PointLike;
+    import IPoint = PIXI.IPoint;
     import WebGLState = PIXI.WebGLState;
 
     const tempMat = new PIXI.Matrix();
@@ -21,7 +21,7 @@ namespace pixi_projection {
             p[3] = NaN;
         }
 
-        setAxisX(pos: PointLike, factor: number, outTransform: PIXI.TransformStatic) {
+        setAxisX(pos: IPoint, factor: number, outTransform: PIXI.Transform) {
             const x = pos.x, y = pos.y;
             //TODO: check x=0, y=0
 
@@ -44,7 +44,7 @@ namespace pixi_projection {
             this._calc01();
         }
 
-        setAxisY(pos: PointLike, factor: number, outTransform: PIXI.TransformStatic) {
+        setAxisY(pos: IPoint, factor: number, outTransform: PIXI.Transform) {
             const x = pos.x, y = pos.y;
 
             //TODO: check if axis x and axis y is the same
@@ -89,7 +89,7 @@ namespace pixi_projection {
             }
         }
 
-        apply(pos: PointLike, newPos?: PointLike): PointLike {
+        apply(pos: IPoint, newPos?: IPoint): IPoint {
             newPos = newPos || new PIXI.Point();
 
             const aleph = this.params[0], bet = this.params[1], A = this.params[2], B = this.params[3];
@@ -110,7 +110,7 @@ namespace pixi_projection {
             return newPos;
         }
 
-        applyInverse(pos: PointLike, newPos: PointLike): PointLike {
+        applyInverse(pos: IPoint, newPos: IPoint): IPoint {
             newPos = newPos || new PIXI.Point();
 
             const aleph = this.params[0], bet = this.params[1], A = this.params[2], B = this.params[3];
@@ -130,7 +130,7 @@ namespace pixi_projection {
             return newPos;
         }
 
-        mapSprite(sprite: PIXI.Sprite, quad: Array<PointLike>, outTransform?: PIXI.TransformStatic) {
+        mapSprite(sprite: PIXI.Sprite, quad: Array<IPoint>, outTransform?: PIXI.Transform) {
             const tex = sprite.texture;
 
             tempRect.x = -sprite.anchor.x * tex.orig.width;
@@ -138,10 +138,10 @@ namespace pixi_projection {
             tempRect.width = tex.orig.width;
             tempRect.height = tex.orig.height;
 
-            return this.mapQuad(tempRect, quad, outTransform || sprite.transform as PIXI.TransformStatic);
+            return this.mapQuad(tempRect, quad, outTransform || sprite.transform as PIXI.Transform);
         }
 
-        mapQuad(rect: PIXI.Rectangle, quad: Array<PointLike>, outTransform: PIXI.TransformStatic) {
+        mapQuad(rect: PIXI.Rectangle, quad: Array<IPoint>, outTransform: PIXI.Transform) {
             const ax = -rect.x / rect.width;
             const ay = -rect.y / rect.height;
 

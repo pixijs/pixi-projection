@@ -1,5 +1,5 @@
 namespace pixi_projection {
-    import PointLike = PIXI.PointLike;
+    import IPoint = PIXI.IPoint;
 
     const p = [new PIXI.Point(), new PIXI.Point(), new PIXI.Point(), new PIXI.Point()];
     const a = [0, 0, 0, 0];
@@ -101,9 +101,9 @@ namespace pixi_projection {
             }
         }
 
-        abstract apply(pos: PointLike, newPos: PointLike): PointLike;
+        abstract apply(pos: IPoint, newPos: IPoint): IPoint;
 
         //TODO: remove props
-        abstract applyInverse(pos: PointLike, newPos: PointLike): PointLike;
+        abstract applyInverse(pos: IPoint, newPos: IPoint): IPoint;
     }
 }

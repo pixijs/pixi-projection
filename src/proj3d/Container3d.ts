@@ -42,7 +42,7 @@ namespace pixi_projection {
 			return mat4[14] / mat4[15];
 		}
 
-		toLocal<T extends PIXI.PointLike>(position: PIXI.PointLike, from?: PIXI.DisplayObject,
+		toLocal<T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject,
 		        point?: T, skipUpdate?: boolean,
 		        step = TRANSFORM_STEP.ALL): T {
 
@@ -69,7 +69,7 @@ namespace pixi_projection {
 			if (this.parent) {
 				point  = this.parent.worldTransform.applyInverse(position, point) as any;
 			} else {
-				point.copy(position);
+				point.copyFrom(position);
 			}
 			if (step === TRANSFORM_STEP.NONE) {
 				return point;
@@ -86,29 +86,29 @@ namespace pixi_projection {
 			return this.proj.affine ? this.transform.worldTransform : this.proj.world as any;
 		}
 
-		get position3d(): PIXI.PointLike {
+		get position3d(): PIXI.IPoint {
 			return this.proj.position;
 		}
-		get scale3d(): PIXI.PointLike {
+		get scale3d(): PIXI.IPoint {
 			return this.proj.scale;
 		}
-		get euler(): Euler {
+		get euler(): IEuler {
 			return this.proj.euler;
 		}
-		get pivot3d(): PIXI.PointLike {
+		get pivot3d(): PIXI.IPoint {
 			return this.proj.pivot;
 		}
-		set position3d(value: PIXI.PointLike) {
-			this.proj.position.copy(value);
+		set position3d(value: PIXI.IPoint) {
+			this.proj.position.copyFrom(value);
 		}
-		set scale3d(value: PIXI.PointLike) {
-			this.proj.scale.copy(value);
+		set scale3d(value: PIXI.IPoint) {
+			this.proj.scale.copyFrom(value);
 		}
-		set euler(value: Euler) {
-			this.proj.euler.copy(value);
+		set euler(value: IEuler) {
+			this.proj.euler.copyFrom(value);
 		}
-		set pivot3d(value: PIXI.PointLike) {
-			this.proj.pivot.copy(value);
+		set pivot3d(value: PIXI.IPoint) {
+			this.proj.pivot.copyFrom(value);
 		}
 	}
 

@@ -1,5 +1,5 @@
 namespace pixi_projection {
-    import PointLike = PIXI.PointLike;
+    import IPoint = PIXI.IPoint;
 
     const tempMat = new PIXI.Matrix();
     const tempRect = new PIXI.Rectangle();
@@ -16,7 +16,7 @@ namespace pixi_projection {
             this.distortion.set(0, 0);
         }
 
-        apply(pos: PointLike, newPos?: PointLike): PointLike {
+        apply(pos: IPoint, newPos?: IPoint): IPoint {
             newPos = newPos || new PIXI.Point();
             const d = this.distortion;
             const m = pos.x * pos.y;
@@ -25,7 +25,7 @@ namespace pixi_projection {
             return newPos;
         }
 
-        applyInverse(pos: PointLike, newPos: PointLike): PointLike {
+        applyInverse(pos: IPoint, newPos: IPoint): IPoint {
             newPos = newPos || new PIXI.Point();
             const vx = pos.x, vy = pos.y;
             const dx = this.distortion.x, dy = this.distortion.y;
@@ -55,7 +55,7 @@ namespace pixi_projection {
             return newPos;
         }
 
-        mapSprite(sprite: PIXI.Sprite, quad: Array<PointLike>, outTransform?: PIXI.TransformStatic) {
+        mapSprite(sprite: PIXI.Sprite, quad: Array<IPoint>, outTransform?: PIXI.Transform) {
             const tex = sprite.texture;
 
             tempRect.x = -sprite.anchor.x * tex.orig.width;
@@ -63,10 +63,10 @@ namespace pixi_projection {
             tempRect.width = tex.orig.width;
             tempRect.height = tex.orig.height;
 
-            return this.mapQuad(tempRect, quad, outTransform || sprite.transform as PIXI.TransformStatic);
+            return this.mapQuad(tempRect, quad, outTransform || sprite.transform as PIXI.Transform);
         }
 
-        mapQuad(rect: PIXI.Rectangle, quad: Array<PointLike>, outTransform: PIXI.TransformStatic) {
+        mapQuad(rect: PIXI.Rectangle, quad: Array<IPoint>, outTransform: PIXI.Transform) {
             const ax = -rect.x / rect.width;
             const ay = -rect.y / rect.height;
 

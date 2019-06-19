@@ -1,24 +1,24 @@
 declare namespace PIXI {
 	interface Matrix extends pixi_projection.IWorldTransform {
-		apply(pos: PointLike, newPos?: PointLike): PointLike;
+		apply(pos: IPoint, newPos?: IPoint): IPoint;
 
-		applyInverse(pos: PointLike, newPos?: PointLike): PointLike;
+		applyInverse(pos: IPoint, newPos?: IPoint): IPoint;
 	}
 }
 
 namespace pixi_projection {
-	import PointLike = PIXI.PointLike;
+	import IPoint = PIXI.IPoint;
 
-	const fun = PIXI.TransformStatic.prototype.updateTransform;
+	const fun = PIXI.Transform.prototype.updateTransform;
 
 	export interface IWorldTransform {
-		apply(pos: PointLike, newPos: PointLike): PointLike;
+		apply(pos: IPoint, newPos: IPoint): IPoint;
 
 		//TODO: remove props
-		applyInverse(pos: PointLike, newPos: PointLike): PointLike;
+		applyInverse(pos: IPoint, newPos: IPoint): IPoint;
 	}
 
-	function transformHack(this: PIXI.TransformStatic, parentTransform: PIXI.TransformBase): IWorldTransform {
+	function transformHack(this: PIXI.Transform, parentTransform: PIXI.Transform): IWorldTransform {
 		const proj = this.proj as ProjectionSurface;
 
 		const pp = parentTransform.proj as ProjectionSurface;
@@ -45,7 +45,7 @@ namespace pixi_projection {
 	}
 
 	export class ProjectionSurface extends AbstractProjection {
-		constructor(legacy: PIXI.TransformBase, enable?: boolean) {
+		constructor(legacy: PIXI.Transform, enable?: boolean) {
 			super(legacy, enable);
 		}
 
@@ -61,7 +61,7 @@ namespace pixi_projection {
 				this.legacy.updateTransform = transformHack;
 				(this.legacy as any)._parentID = -1;
 			} else {
-				this.legacy.updateTransform = PIXI.TransformStatic.prototype.updateTransform;
+				this.legacy.updateTransform = PIXI.Transform.prototype.updateTransform;
 				(this.legacy as any)._parentID = -1;
 			}
 		}
@@ -78,7 +78,7 @@ namespace pixi_projection {
 			(this.legacy as any)._parentID = -1;
 		}
 
-		applyPartial(pos: PointLike, newPos?: PointLike): PointLike {
+		applyPartial(pos: IPoint, newPos?: IPoint): IPoint {
 			if (this._activeProjection !== null) {
 				newPos = this.legacy.worldTransform.apply(pos, newPos);
 				return this._activeProjection.surface.apply(newPos, newPos);
@@ -89,7 +89,7 @@ namespace pixi_projection {
 			return this.legacy.worldTransform.apply(pos, newPos);
 		}
 
-		apply(pos: PointLike, newPos?: PointLike): PointLike {
+		apply(pos: IPoint, newPos?: IPoint): IPoint {
 			if (this._activeProjection !== null) {
 				newPos = this.legacy.worldTransform.apply(pos, newPos);
 				this._activeProjection.surface.apply(newPos, newPos);
@@ -102,7 +102,7 @@ namespace pixi_projection {
 			return this.legacy.worldTransform.apply(pos, newPos);
 		}
 
-		applyInverse(pos: PointLike, newPos: PointLike) {
+		applyInverse(pos: IPoint, newPos: IPoint) {
 			if (this._activeProjection !== null) {
 				newPos = this._activeProjection.legacy.worldTransform.applyInverse(pos, newPos);
 				this._activeProjection._surface.applyInverse(newPos, newPos);
@@ -115,7 +115,7 @@ namespace pixi_projection {
 			return this.legacy.worldTransform.applyInverse(pos, newPos);
 		}
 
-		mapBilinearSprite(sprite: PIXI.Sprite, quad: Array<PointLike>) {
+		mapBilinearSprite(sprite: PIXI.Sprite, quad: Array<IPoint>) {
 			if (!(this._surface instanceof BilinearSurface)) {
 				this.surface = new BilinearSurface();
 			}

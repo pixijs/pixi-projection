@@ -1,7 +1,7 @@
 // according to https://jsperf.com/obj-vs-array-view-access/1 , Float64Array is the best here
 
 namespace pixi_projection {
-	import IPoint = PIXI.PointLike;
+	import IPoint = PIXI.IPoint;
 
 	const mat4id = [1, 0, 0, 0,
 		0, 1, 0, 0,

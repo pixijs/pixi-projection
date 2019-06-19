@@ -1,5 +1,5 @@
 namespace pixi_projection {
-	function transformHack(this: PIXI.TransformStatic, parentTransform: PIXI.TransformBase) {
+	function transformHack(this: PIXI.Transform, parentTransform: PIXI.Transform) {
 		// implementation here
 		const proj = this.proj as LinearProjection<any>;
 		const ta = this as any;
@@ -103,7 +103,7 @@ namespace pixi_projection {
 				this.legacy.updateTransform = transformHack;
 				(this.legacy as any)._parentID = -1;
 			} else {
-				this.legacy.updateTransform = PIXI.TransformStatic.prototype.updateTransform;
+				this.legacy.updateTransform = PIXI.Transform.prototype.updateTransform;
 				(this.legacy as any)._parentID = -1;
 			}
 		}

@@ -2,7 +2,7 @@
 
 namespace pixi_projection {
 	import Point = PIXI.Point;
-	import IPoint = PIXI.PointLike;
+	import IPoint = PIXI.IPoint;
 
 	const mat3id = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 

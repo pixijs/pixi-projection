@@ -3,7 +3,7 @@ namespace pixi_projection {
 
 	export class Projection3d extends LinearProjection<Matrix3d> {
 
-		constructor(legacy: PIXI.TransformBase, enable?: boolean) {
+		constructor(legacy: PIXI.Transform, enable?: boolean) {
 			super(legacy, enable);
 			this.local = new Matrix3d();
 			this.world = new Matrix3d();

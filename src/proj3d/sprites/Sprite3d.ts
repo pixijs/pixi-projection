@@ -181,7 +181,7 @@ namespace pixi_projection {
 			renderer.plugins[this.pluginName].render(this);
 		}
 
-		containsPoint(point: PIXI.PointLike) {
+		containsPoint(point: PIXI.IPoint) {
 			if (this.culledByFrustrum) {
 				return false;
 			}
@@ -193,7 +193,7 @@ namespace pixi_projection {
 			return this.proj.affine ? this.transform.worldTransform : this.proj.world as any;
 		}
 
-		toLocal<T extends PIXI.PointLike>(position: PIXI.PointLike, from?: PIXI.DisplayObject,
+		toLocal<T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject,
 		                                  point?: T, skipUpdate?: boolean,
 		                                  step = TRANSFORM_STEP.ALL): T {
 			return container3dToLocal.call(this, position, from, point, skipUpdate, step);
@@ -207,28 +207,28 @@ namespace pixi_projection {
 			return container3dGetDepth.call(this, forceUpdate);
 		}
 
-		get position3d(): PIXI.PointLike {
+		get position3d(): PIXI.IPoint {
 			return this.proj.position;
 		}
-		get scale3d(): PIXI.PointLike {
+		get scale3d(): PIXI.IPoint {
 			return this.proj.scale;
 		}
 		get euler(): Euler {
 			return this.proj.euler;
 		}
-		get pivot3d(): PIXI.PointLike {
+		get pivot3d(): PIXI.IPoint {
 			return this.proj.pivot;
 		}
-		set position3d(value: PIXI.PointLike) {
+		set position3d(value: PIXI.IPoint) {
 			this.proj.position.copy(value);
 		}
-		set scale3d(value: PIXI.PointLike) {
+		set scale3d(value: PIXI.IPoint) {
 			this.proj.scale.copy(value);
 		}
 		set euler(value: Euler) {
 			this.proj.euler.copy(value);
 		}
-		set pivot3d(value: PIXI.PointLike) {
+		set pivot3d(value: PIXI.IPoint) {
 			this.proj.pivot.copy(value);
 		}
 	}
