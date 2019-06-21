@@ -47,12 +47,6 @@ gl_FragColor = color * vColor;
 
             this._buffer = new PIXI.Buffer(null, _static, false);
 
-            /**
-             * Index buffer data
-             *
-             * @member {PIXI.Buffer}
-             * @protected
-             */
             this._indexBuffer = new PIXI.Buffer(null, _static, true);
 
             this.addAttribute('aVertexPosition', this._buffer, 2, false, TYPES.FLOAT)
@@ -93,7 +87,7 @@ gl_FragColor = color * vColor;
                     const uvs = element.uvs;
                     const indicies = element.indices;// geometry.getIndex().data;// indicies;
                     const vertexData = element.vertexData;
-                    const vertexData3d = element.vertexData3d;
+                    const vertexData2d = element.vertexData2d;
                     const textureId = element._texture.baseTexture._id;
 
                     const alpha = Math.min(element.worldAlpha, 1.0);
@@ -101,12 +95,12 @@ gl_FragColor = color * vColor;
                     const argb = alpha < 1.0 && element._texture.baseTexture.premultiplyAlpha ? premultiplyTint(element._tintRGB, alpha)
                         : element._tintRGB + (alpha * 255 << 24);
 
-                    if (vertexData3d) {
-                        for (let i = 0; i < vertexData3d.length; i += 3)
+                    if (vertexData2d) {
+                        for (let i = 0; i < vertexData2d.length; i += 3)
                         {
-                            float32View[index++] = vertexData3d[i];
-                            float32View[index++] = vertexData3d[i + 1];
-                            float32View[index++] = vertexData3d[i + 2];
+                            float32View[index++] = vertexData2d[i];
+                            float32View[index++] = vertexData2d[i + 1];
+                            float32View[index++] = vertexData2d[i + 2];
                             float32View[index++] = uvs[i];
                             float32View[index++] = uvs[i + 1];
                             uint32View[index++] = argb;

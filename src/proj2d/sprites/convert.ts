@@ -1,5 +1,13 @@
 declare module PIXI {
 	interface Sprite {
+	    _texture: PIXI.Texture;
+        vertexData: Float32Array;
+        vertexTrimmedData: Float32Array;
+        _transformID?: number;
+        _textureID?: number;
+        _transformTrimmedID?: number;
+        _textureTrimmedID?: number;
+        _anchor?: ObservablePoint;
 		convertTo2d?(): void;
 	}
 

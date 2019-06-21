@@ -3,11 +3,12 @@ namespace pixi_projection {
         constructor(text?: string, style?: PIXI.TextStyle, canvas?: HTMLCanvasElement) {
             super(text, style, canvas);
             this.proj = new Projection2d(this.transform);
+            this.vertexData2d = null;
             this.pluginName = 'sprite2d';
-            this.vertexData = new Float32Array(12);
         }
 
         proj: Projection2d;
+        vertexData2d: Float32Array;
 
         get worldTransform() {
 	        return this.proj.affine ? this.transform.worldTransform : this.proj.world as any;

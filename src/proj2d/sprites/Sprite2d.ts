@@ -4,9 +4,9 @@ namespace pixi_projection {
 			super(texture);
 			this.proj = new Projection2d(this.transform);
 			this.pluginName = 'sprite2d';
-			this.vertexData = new Float32Array(12);
 		}
 
+        vertexData2d: Float32Array = null;
 		proj: Projection2d;
 
 		_calculateBounds() {
@@ -16,15 +16,12 @@ namespace pixi_projection {
 
 		calculateVertices() {
 			if (this.proj._affine) {
-				if (this.vertexData.length != 8) {
-					this.vertexData = new Float32Array(8);
-				}
-
+			    this.vertexData2d = null;
 				super.calculateVertices();
 				return;
 			}
-			if (this.vertexData.length != 12) {
-				this.vertexData = new Float32Array(12);
+			if (!this.vertexData2d) {
+				this.vertexData2d = new Float32Array(12);
 			}
 
 			const wid = (this.transform as any)._worldID;
@@ -38,7 +35,8 @@ namespace pixi_projection {
 
 			const texture = this._texture;
 			const wt = this.proj.world.mat3;
-			const vertexData = this.vertexData;
+			const vertexData2d = this.vertexData2d;
+            const vertexData = this.vertexData;
 			const trim = texture.trim;
 			const orig = texture.orig;
 			const anchor = this._anchor;
@@ -63,21 +61,33 @@ namespace pixi_projection {
 				h0 = h1 + orig.height;
 			}
 
-			vertexData[0] = (wt[0] * w1) + (wt[3] * h1) + wt[6];
-			vertexData[1] = (wt[1] * w1) + (wt[4] * h1) + wt[7];
-			vertexData[2] = (wt[2] * w1) + (wt[5] * h1) + wt[8];
+            vertexData2d[0] = (wt[0] * w1) + (wt[3] * h1) + wt[6];
+            vertexData2d[1] = (wt[1] * w1) + (wt[4] * h1) + wt[7];
+            vertexData2d[2] = (wt[2] * w1) + (wt[5] * h1) + wt[8];
 
-			vertexData[3] = (wt[0] * w0) + (wt[3] * h1) + wt[6];
-			vertexData[4] = (wt[1] * w0) + (wt[4] * h1) + wt[7];
-			vertexData[5] = (wt[2] * w0) + (wt[5] * h1) + wt[8];
+            vertexData2d[3] = (wt[0] * w0) + (wt[3] * h1) + wt[6];
+            vertexData2d[4] = (wt[1] * w0) + (wt[4] * h1) + wt[7];
+            vertexData2d[5] = (wt[2] * w0) + (wt[5] * h1) + wt[8];
 
-			vertexData[6] = (wt[0] * w0) + (wt[3] * h0) + wt[6];
-			vertexData[7] = (wt[1] * w0) + (wt[4] * h0) + wt[7];
-			vertexData[8] = (wt[2] * w0) + (wt[5] * h0) + wt[8];
+            vertexData2d[6] = (wt[0] * w0) + (wt[3] * h0) + wt[6];
+            vertexData2d[7] = (wt[1] * w0) + (wt[4] * h0) + wt[7];
+            vertexData2d[8] = (wt[2] * w0) + (wt[5] * h0) + wt[8];
 
-			vertexData[9] = (wt[0] * w1) + (wt[3] * h0) + wt[6];
-			vertexData[10] = (wt[1] * w1) + (wt[4] * h0) + wt[7];
-			vertexData[11] = (wt[2] * w1) + (wt[5] * h0) + wt[8];
+            vertexData2d[9] = (wt[0] * w1) + (wt[3] * h0) + wt[6];
+            vertexData2d[10] = (wt[1] * w1) + (wt[4] * h0) + wt[7];
+            vertexData2d[11] = (wt[2] * w1) + (wt[5] * h0) + wt[8];
+
+            vertexData[0] = vertexData2d[0] / vertexData2d[2];
+            vertexData[1] = vertexData2d[1] / vertexData2d[2];
+
+            vertexData[2] = vertexData2d[3] / vertexData2d[5];
+            vertexData[3] = vertexData2d[4] / vertexData2d[5];
+
+            vertexData[4] = vertexData2d[6] / vertexData2d[8];
+            vertexData[5] = vertexData2d[7] / vertexData2d[8];
+
+            vertexData[6] = vertexData2d[9] / vertexData2d[11];
+            vertexData[7] = vertexData2d[10] / vertexData2d[11];
 		}
 
 		calculateTrimmedVertices() {

@@ -54,110 +54,105 @@ void main(void)
 	import WRAP_MODES = PIXI.WRAP_MODES;
 	import utils = PIXI.utils;
 
-	export class TilingSprite2dRenderer extends PIXI.extras.TilingSpriteRenderer {
+    export class TilingSprite2dRenderer extends PIXI.ObjectRenderer
+    {
+        constructor(renderer: PIXI.Renderer)
+        {
+            super(renderer);
 
-		shader: PIXI.Shader;
-		simpleShader: PIXI.Shader;
-		quad: PIXI.Quad;
+            const uniforms = { globals: this.renderer.globalUniforms };
 
-		onContextChange()
-		{
-			const gl = this.renderer.gl;
+            this.shader = PIXI.Shader.from(shaderVert, shaderFrag, uniforms);
 
-			this.shader = new PIXI.Shader(gl, shaderVert, shaderFrag);
-			this.simpleShader = new PIXI.Shader(gl, shaderVert, shaderSimpleFrag);
+            this.simpleShader = PIXI.Shader.from(shaderVert, shaderSimpleFrag, uniforms);
+        }
 
-			this.renderer.bindVao(null);
-			this.quad = new (PIXI.Quad as any)(gl, this.renderer.state.attribState);
-			this.quad.initVao(this.shader);
-		}
+        shader: PIXI.Shader;
+        simpleShader: PIXI.Shader;
+        quad = new PIXI.QuadUv();
 
-		render(ts: any)
-		{
-			const renderer = this.renderer;
-			const quad = this.quad;
+        render(ts: any)
+        {
+            const renderer = this.renderer;
+            const quad = this.quad;
 
-			renderer.bindVao(quad.vao);
+            let vertices = quad.vertices;
 
-			let vertices = quad.vertices;
+            vertices[0] = vertices[6] = (ts._width) * -ts.anchor.x;
+            vertices[1] = vertices[3] = ts._height * -ts.anchor.y;
 
-			vertices[0] = vertices[6] = (ts._width) * -ts.anchor.x;
-			vertices[1] = vertices[3] = ts._height * -ts.anchor.y;
+            vertices[2] = vertices[4] = (ts._width) * (1.0 - ts.anchor.x);
+            vertices[5] = vertices[7] = ts._height * (1.0 - ts.anchor.y);
 
-			vertices[2] = vertices[4] = (ts._width) * (1.0 - ts.anchor.x);
-			vertices[5] = vertices[7] = ts._height * (1.0 - ts.anchor.y);
+            if (ts.uvRespectAnchor)
+            {
+                vertices = quad.uvs;
 
-			if (ts.uvRespectAnchor)
-			{
-				vertices = quad.uvs;
+                vertices[0] = vertices[6] = -ts.anchor.x;
+                vertices[1] = vertices[3] = -ts.anchor.y;
 
-				vertices[0] = vertices[6] = -ts.anchor.x;
-				vertices[1] = vertices[3] = -ts.anchor.y;
+                vertices[2] = vertices[4] = 1.0 - ts.anchor.x;
+                vertices[5] = vertices[7] = 1.0 - ts.anchor.y;
+            }
 
-				vertices[2] = vertices[4] = 1.0 - ts.anchor.x;
-				vertices[5] = vertices[7] = 1.0 - ts.anchor.y;
-			}
+            quad.invalidate();
 
-			quad.upload();
+            const tex = ts._texture;
+            const baseTex = tex.baseTexture;
+            const lt = ts.tileProj.world;
+            const uv = ts.uvMatrix;
+            let isSimple = baseTex.isPowerOfTwo
+                && tex.frame.width === baseTex.width && tex.frame.height === baseTex.height;
 
-			const tex = ts._texture;
-			const baseTex = tex.baseTexture;
-			const lt = ts.tileProj.world;
-			const uv = ts.uvTransform;
-			let isSimple = baseTex.isPowerOfTwo
-				&& tex.frame.width === baseTex.width && tex.frame.height === baseTex.height;
+            // auto, force repeat wrapMode for big tiling textures
+            if (isSimple)
+            {
+                if (!baseTex._glTextures[(renderer as any).CONTEXT_UID])
+                {
+                    if (baseTex.wrapMode === WRAP_MODES.CLAMP)
+                    {
+                        baseTex.wrapMode = WRAP_MODES.REPEAT;
+                    }
+                }
+                else
+                {
+                    isSimple = baseTex.wrapMode !== WRAP_MODES.CLAMP;
+                }
+            }
 
-			// auto, force repeat wrapMode for big tiling textures
-			if (isSimple)
-			{
-				if (!baseTex._glTextures[renderer.CONTEXT_UID])
-				{
-					if (baseTex.wrapMode === WRAP_MODES.CLAMP)
-					{
-						baseTex.wrapMode = WRAP_MODES.REPEAT;
-					}
-				}
-				else
-				{
-					isSimple = baseTex.wrapMode !== WRAP_MODES.CLAMP;
-				}
-			}
+            const shader = isSimple ? this.simpleShader : this.shader;
 
-			const shader = isSimple ? this.simpleShader : this.shader;
+            // changed
+            tempMat.identity();
+            tempMat.scale(tex.width, tex.height);
+            tempMat.prepend(lt);
+            tempMat.scale(1.0 / ts._width, 1.0 / ts._height);
 
-			renderer.bindShader(shader);
+            tempMat.invert();
+            if (isSimple)
+            {
+                tempMat.prepend(uv.mapCoord);
+            }
+            else
+            {
+                shader.uniforms.uMapCoord = uv.mapCoord.toArray(true);
+                shader.uniforms.uClampFrame = uv.uClampFrame;
+                shader.uniforms.uClampOffset = uv.uClampOffset;
+            }
 
-			// changed
-			tempMat.identity();
-			tempMat.scale(tex.width, tex.height);
-			tempMat.prepend(lt);
-			tempMat.scale(1.0 / ts._width, 1.0 / ts._height);
+            shader.uniforms.uTransform = tempMat.toArray(true);
+            shader.uniforms.uColor = utils.premultiplyTintToRgba(ts.tint, ts.worldAlpha,
+                shader.uniforms.uColor, baseTex.premultiplyAlpha);
+            shader.uniforms.translationMatrix = ts.transform.worldTransform.toArray(true);
+            shader.uniforms.uSampler = tex;
 
-			tempMat.invert();
-			if (isSimple)
-			{
-				tempMat.prepend(uv.mapCoord);
-			}
-			else
-			{
-				shader.uniforms.uMapCoord = uv.mapCoord.toArray(true);
-				shader.uniforms.uClampFrame = uv.uClampFrame;
-				shader.uniforms.uClampOffset = uv.uClampOffset;
-			}
+            renderer.shader.bind(shader, false);
+            renderer.geometry.bind(quad as any, undefined);// , renderer.shader.getGLShader());
 
-			shader.uniforms.uTransform = tempMat.toArray(true);
-			shader.uniforms.uColor = utils.premultiplyTintToRgba(ts.tint, ts.worldAlpha,
-				shader.uniforms.uColor, baseTex.premultipliedAlpha);
-			// changed
-			shader.uniforms.translationMatrix = ts.proj.world.toArray(true);
+            renderer.state.setBlendMode(utils.correctBlendMode(ts.blendMode, baseTex.premultiplyAlpha));
+            renderer.geometry.draw(PIXI.DRAW_MODES.TRIANGLES, 6, 0);
+        }
+    }
 
-			shader.uniforms.uSampler = renderer.bindTexture(tex);
-
-			renderer.setBlendMode(utils.correctBlendMode(ts.blendMode, baseTex.premultipliedAlpha));
-
-			quad.vao.draw(this.renderer.gl.TRIANGLES, 6, 0);
-		}
-	}
-
-	PIXI.WebGLRenderer.registerPlugin('tilingSprite2d', TilingSprite2dRenderer);
+	PIXI.Renderer.registerPlugin('tilingSprite2d', TilingSprite2dRenderer as any);
 }
