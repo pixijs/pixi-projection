@@ -47,14 +47,7 @@ void main(void)
 
 	const tempMat = new Matrix2d();
 
-	export interface SpriteMaskFilter2dUniforms {
-		mask: PIXI.Texture;
-		otherMatrix: PIXI.Matrix | Matrix2d;
-		alpha: number;
-		maskClamp: Float32Array;
-	}
-
-	export class SpriteMaskFilter2d extends PIXI.Filter<SpriteMaskFilter2dUniforms> {
+	export class SpriteMaskFilter2d extends PIXI.Filter {
 		constructor(sprite: PIXI.Sprite) {
 			super(spriteMaskVert, spriteMaskFrag);
 
@@ -66,8 +59,8 @@ void main(void)
 		maskSprite: PIXI.Sprite;
 		maskMatrix = new Matrix2d();
 
-		apply(filterManager: PIXI.FilterManager, input: PIXI.RenderTarget, output: PIXI.RenderTarget,
-		      clear?: boolean, currentState?: any) {
+		apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture,
+		      clear?: boolean) {
 			const maskSprite = this.maskSprite;
 			const tex = this.maskSprite.texture;
 
@@ -79,9 +72,9 @@ void main(void)
 			{
 				// margin = 0.0, let it bleed a bit, shader code becomes easier
 				// assuming that atlas textures were made with 1-pixel padding
-				tex.transform = new PIXI.TextureMatrix(tex, 0.0);
+				tex.uvMatrix = new PIXI.TextureMatrix(tex, 0.0);
 			}
-			tex.transform.update();
+			tex.uvMatrix.update();
 
 			this.uniforms.mask = maskSprite.texture;
 			this.uniforms.otherMatrix = SpriteMaskFilter2d.calculateSpriteMatrix(currentState, this.maskMatrix, maskSprite)

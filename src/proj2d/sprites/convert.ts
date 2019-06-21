@@ -17,7 +17,7 @@ declare module PIXI {
 		convertSubtreeTo2d?(): void;
 	}
 
-	interface Mesh {
+	interface SimpleMesh {
 		convertTo2d?(): void;
 	}
 
@@ -52,16 +52,28 @@ namespace pixi_projection {
 		convertTo2d.call(this);
 	};
 
-	(PIXI as any).mesh.Mesh.prototype.convertTo2d = function () {
-		if (this.proj) return;
-		this.material.pluginName = 'mesh2d';
-		convertTo2d.call(this);
-	};
-
 	(PIXI as any).Container.prototype.convertSubtreeTo2d = function () {
 		this.convertTo2d();
 		for (let i = 0; i < this.children.length; i++) {
 			this.children[i].convertSubtreeTo2d();
 		}
 	};
+
+    if (PIXI.SimpleMesh) {
+        (PIXI as any).SimpleMesh.prototype.convertTo2d =
+            (PIXI as any).SimpleRope.prototype.convertTo2d =
+                function () {
+                    if (this.proj) return;
+                    this.calculateVertices = Mesh2d.prototype.calculateVertices;
+                    this._renderDefault = Mesh2d.prototype._renderDefault;
+                    if (this.material.pluginName !== 'batch2d') {
+                        this.material = new PIXI.MeshMaterial(this.material.texture, {
+                            program: PIXI.Program.from(Mesh2d.defaultVertexShader, Mesh2d.defaultFragmentShader),
+                            pluginName: 'batch2d'
+                        });
+                    }
+                    convertTo2d.call(this);
+                };
+    }
+
 }

@@ -1,5 +1,5 @@
 namespace pixi_projection {
-    export class Mesh extends PIXI.Mesh {
+    export class Mesh2d extends PIXI.Mesh {
         static defaultVertexShader =
             `precision highp float;
 attribute vec2 aVertexPosition;
@@ -35,7 +35,7 @@ void main(void)
             this.proj = new Projection2d(this.transform);
         }
 
-        vertexData2d = new Float32Array(1);
+        vertexData2d = null;
         proj: Projection2d;
 
         calculateVertices()
@@ -92,6 +92,35 @@ void main(void)
             thisAny.vertexDirty = geometry.vertexDirtyId;
         }
 
+        _renderDefault(renderer: PIXI.Renderer) {
+            const shader = this.shader as PIXI.MeshMaterial;
+
+            shader.alpha = this.worldAlpha;
+            if (shader.update)
+            {
+                shader.update();
+            }
+
+            renderer.batch.flush();
+
+            if (shader.program.uniformData.translationMatrix)
+            {
+                shader.uniforms.translationMatrix = this.worldTransform.toArray(true);
+            }
+
+            // bind and sync uniforms..
+            renderer.shader.bind(shader);
+
+            // set state..
+            renderer.state.set(this.state);
+
+            // bind the geometry...
+            renderer.geometry.bind(this.geometry, shader);
+
+            // then render it
+            renderer.geometry.draw(this.drawMode, this.size, this.start, (this.geometry as any).instanceCount);
+        }
+
         toLocal<T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject,
                                        point?: T, skipUpdate?: boolean,
                                        step = TRANSFORM_STEP.ALL): T {
@@ -103,12 +132,13 @@ void main(void)
         }
     }
 
-	export class SimpleMesh2d extends Mesh {
+	export class SimpleMesh2d extends Mesh2d {
 		constructor(texture: PIXI.Texture, vertices?: Float32Array, uvs?: Float32Array,
 		            indices?: Uint16Array, drawMode?: number) {
             super(new PIXI.MeshGeometry(vertices, uvs, indices),
                 new PIXI.MeshMaterial(texture, {
-                    program: PIXI.Program.from(Mesh.defaultVertexShader, Mesh.defaultFragmentShader)
+                    program: PIXI.Program.from(Mesh2d.defaultVertexShader, Mesh2d.defaultFragmentShader),
+                    pluginName: 'batch2d'
                 }),
                 null,
                 drawMode);
