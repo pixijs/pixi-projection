@@ -84,6 +84,8 @@ gl_FragColor = color * vColor;
                     this.vertexSize = vertexSize;
                 }
 
+                vertexSize: number;
+
                 packGeometry(element: any, float32View: Float32Array, uint32View: Uint32Array,
                              indexBuffer: Uint16Array, index: number, indexCount: number)
                 {
@@ -132,5 +134,5 @@ gl_FragColor = color * vColor;
         }
     }
 
-	PIXI.WebGLRenderer.registerPlugin('batch2d', Batch2dPluginFactory);
+	PIXI.Renderer.registerPlugin('batch2d', Batch2dPluginFactory.create({}) as any);
 }
