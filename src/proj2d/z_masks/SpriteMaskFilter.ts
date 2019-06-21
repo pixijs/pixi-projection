@@ -68,7 +68,7 @@ void main(void)
 			{
 				return;
 			}
-			if (!tex.transform)
+			if (!tex.uvMatrix)
 			{
 				// margin = 0.0, let it bleed a bit, shader code becomes easier
 				// assuming that atlas textures were made with 1-pixel padding
@@ -77,24 +77,23 @@ void main(void)
 			tex.uvMatrix.update();
 
 			this.uniforms.mask = maskSprite.texture;
-			this.uniforms.otherMatrix = SpriteMaskFilter2d.calculateSpriteMatrix(currentState, this.maskMatrix, maskSprite)
-				.prepend(tex.transform.mapCoord);
+			this.uniforms.otherMatrix = SpriteMaskFilter2d.calculateSpriteMatrix(input, this.maskMatrix, maskSprite)
+				.prepend((tex.uvMatrix as any).mapCoord);
 			this.uniforms.alpha = maskSprite.worldAlpha;
-			this.uniforms.maskClamp = tex.transform.uClampFrame;
+			this.uniforms.maskClamp = (tex.uvMatrix as any).uClampFrame;
 
-			filterManager.applyFilter(this, input, output);
+			filterManager.applyFilter(this, input, output, clear);
 		}
 
-		static calculateSpriteMatrix(currentState: any, mappedMatrix: Matrix2d, sprite: PIXI.Sprite) {
+		static calculateSpriteMatrix(input: PIXI.RenderTexture, mappedMatrix: Matrix2d, sprite: PIXI.Sprite) {
 			let proj = (sprite as any).proj as Projection2d;
 
-			const filterArea = currentState.sourceFrame;
-			const textureSize = currentState.renderTarget.size;
+			const filterArea = (input as any).filterFrame;
 
 			const worldTransform = proj && !proj._affine ? proj.world.copyTo2dOr3d(tempMat) : tempMat.copyFrom(sprite.transform.worldTransform);
 			const texture = sprite.texture.orig;
 
-			mappedMatrix.set(textureSize.width, 0, 0, textureSize.height, filterArea.x, filterArea.y);
+			mappedMatrix.set(input.width, 0, 0, input.height, filterArea.x, filterArea.y);
 			worldTransform.invert();
 			mappedMatrix.setToMult(worldTransform, mappedMatrix);
 			mappedMatrix.scaleAndTranslate(1.0 / texture.width, 1.0 / texture.height,
