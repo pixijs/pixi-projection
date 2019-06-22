@@ -38,10 +38,10 @@ namespace pixi_projection {
 			}
 		}
 
-		position = new PIXI.ObservablePoint(this.onChange, this, 0, 0);
-		scale = new PIXI.ObservablePoint(this.onChange, this, 1, 1);
+		position = new ObservablePoint3d(this.onChange, this, 0, 0);
+		scale = new ObservablePoint3d(this.onChange, this, 1, 1);
 		euler = new ObservableEuler(this.onChange, this, 0, 0, 0);
-		pivot = new PIXI.ObservablePoint(this.onChange, this, 0, 0);
+		pivot = new ObservablePoint3d(this.onChange, this, 0, 0);
 
 		onChange() {
 			this._projID++;

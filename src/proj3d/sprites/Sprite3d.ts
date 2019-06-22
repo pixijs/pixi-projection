@@ -148,14 +148,14 @@ namespace pixi_projection {
             culled = culled || z < 0;
 
             w = 1.0 / ((wt[3] * w0) + (wt[7] * h1) + wt[15]);
-            vertexData[3] = w * ((wt[0] * w0) + (wt[4] * h1) + wt[12]);
-            vertexData[4] = w * ((wt[1] * w0) + (wt[5] * h1) + wt[13]);
+            vertexData[2] = w * ((wt[0] * w0) + (wt[4] * h1) + wt[12]);
+            vertexData[3] = w * ((wt[1] * w0) + (wt[5] * h1) + wt[13]);
             z = (wt[2] * w0) + (wt[6] * h1) + wt[14];
             culled = culled || z < 0;
 
             w = 1.0 / ((wt[3] * w0) + (wt[7] * h0) + wt[15]);
-            vertexData[6] = w * ((wt[0] * w0) + (wt[4] * h0) + wt[12]);
-            vertexData[7] = w * ((wt[1] * w0) + (wt[5] * h0) + wt[13]);
+            vertexData[4] = w * ((wt[0] * w0) + (wt[4] * h0) + wt[12]);
+            vertexData[5] = w * ((wt[1] * w0) + (wt[5] * h0) + wt[13]);
             z = (wt[2] * w0) + (wt[6] * h0) + wt[14];
             culled = culled || z < 0;
 
@@ -171,6 +171,15 @@ namespace pixi_projection {
         _calculateBounds() {
             this.calculateVertices();
             if (this.culledByFrustrum) {
+                return;
+            }
+
+            const trim = this._texture.trim;
+            const orig = this._texture.orig;
+            if (!trim || (trim.width === orig.width && trim.height === orig.height))
+            {
+                // no trim! lets use the usual calculations..
+                this._bounds.addQuad(this.vertexData);
                 return;
             }
 

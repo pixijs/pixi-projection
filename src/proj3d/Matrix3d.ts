@@ -214,7 +214,7 @@ namespace pixi_projection {
 			const mat4 = this.mat4;
 			const x = pos.x;
 			const y = pos.y;
-			const z = pos.z;
+			const z = pos.z || 0;
 
 			//TODO: apply for 2d point
 
@@ -289,7 +289,7 @@ namespace pixi_projection {
 			const a = this.mat4;
 			const x = pos.x;
 			const y = pos.y;
-			let z = pos.z;
+			let z = pos.z || 0;
 
 			if (!this.cacheInverse || this._updateId !== this._dirtyId) {
 				this._updateId = this._dirtyId;
