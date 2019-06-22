@@ -21,17 +21,17 @@ It even works with CanvasRenderer, though result can be strange.
 
 3d Projection (Yummy!)
 
-[Cards](http://pixijs.github.io/examples/#/projection/cards.js)
+[Cards](http://pixijs.github.io/examples/#/plugin-projection/cards.js)
 
-[Runner](http://pixijs.github.io/examples/#/projection/runner.js)
+[Runner](http://pixijs.github.io/examples/#/plugin-projection/runner.js)
 
 Projective sprites: Container2d, Sprite2d, Text2d
 
-[Two-point projection](http://pixijs.github.io/examples/#/projection/basic.js)
+[Two-point projection](http://pixijs.github.io/examples/#/plugin-projection/basic.js)
 
-[One-point with return to affine](http://pixijs.github.io/examples/#/projection/plane.js)
+[One-point with return to affine](http://pixijs.github.io/examples/#/plugin-projection/plane.js)
 
-[Projective transform of quad](http://pixijs.github.io/examples/#/projection/quad-homo.js)
+[Projective transform of quad](http://pixijs.github.io/examples/#/plugin-projection/quad-homo.js)
 
 ## Bilinear projection
 
@@ -41,7 +41,7 @@ There are many ways to define projections even when we use only 2 dimensions.
 
 Surface sprites: Container2s, Sprite2s, Text2s for now only bilinear
 
-[Bilinear transform of quad](http://pixijs.github.io/examples/#/projection/quad-bi.js)
+[Bilinear transform of quad](http://pixijs.github.io/examples/#/plugin-projection/quad-bi.js)
 
 ## Usage
 
