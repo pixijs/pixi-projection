@@ -4,13 +4,18 @@
 
 Collection of projections, both 2d and 3d.
 
-There are many ways to define projections even when we use only 2 dimensions.
-
 To-do:
 
 - Docs
 - Graphics support
-- PixiJS v5
+
+## Compatibility
+
+It works with PixiJS v5. 
+
+For v4 please see [v4.x branch](https://github.com/pixijs/pixi-projection/tree/v4.x), npm version `0.2.8`
+
+It even works with CanvasRenderer, though result can be strange.
 
 ## Examples
 
@@ -28,6 +33,12 @@ Projective sprites: Container2d, Sprite2d, Text2d
 
 [Projective transform of quad](http://pixijs.github.io/examples/#/projection/quad-homo.js)
 
+## Bilinear projection
+
+There are many ways to define projections even when we use only 2 dimensions.
+
+**WORK IN PROGRESS, BEING PORTED TO v5**
+
 Surface sprites: Container2s, Sprite2s, Text2s for now only bilinear
 
 [Bilinear transform of quad](http://pixijs.github.io/examples/#/projection/quad-bi.js)
@@ -39,8 +50,8 @@ Surface sprites: Container2s, Sprite2s, Text2s for now only bilinear
 For every projective way, there are corresponding classes:
 
 * Container2d, Sprite2d, Text2d, TilingSprite2d, Mesh2d, Spine2d
-* Container2s, Sprite2s
 * Sprite3d, Text3d, Mesh3d2d, Spine3d, Camera3d
+* Container2s, Sprite2s **WORK IN PROGRESS*
 
 We dont support Graphics yet :(
 
@@ -134,7 +145,7 @@ This way is also **more performant** because **Sprite works faster than Sprite3d
 
 `pixi-projection` provides extra fields to handle sorting. 
  
-* `getDepth` returns the distance from near plane to the object local (0,0,0)
+* `getDepth` returns the distance from near plane to the object local (0,0,0), you can pass it to zIndex or zOrder as `element.zIndex = -element.getDepth()`
 * `isFrontFace` detects the face of the object plane
 
 Those fields can be used with custom sorting solution or with [pixi-layers](https://github.com/pixijs/pixi-display/tree/layers/)
