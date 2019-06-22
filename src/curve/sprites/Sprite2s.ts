@@ -3,7 +3,7 @@ namespace pixi_projection {
 		constructor(texture: PIXI.Texture) {
 			super(texture);
 			this.proj = new ProjectionSurface(this.transform);
-			this.pluginName = 'sprite_bilinear';
+			this.pluginName = 'batch_bilinear';
 		}
 
 		proj: ProjectionSurface;
@@ -81,10 +81,10 @@ namespace pixi_projection {
 				}
 			}
 
-			if (!texture.transform) {
-				texture.transform = new PIXI.TextureMatrix(texture);
+			if (!texture.uvMatrix) {
+				texture.uvMatrix = new PIXI.TextureMatrix(texture);
 			}
-			texture.transform.update();
+			texture.uvMatrix.update();
 
 			const aTrans = this.aTrans;
 			aTrans.set(orig.width, 0, 0, orig.height, w1, h1);
@@ -92,7 +92,7 @@ namespace pixi_projection {
 				aTrans.prepend(this.transform.worldTransform);
 			}
 			aTrans.invert();
-			aTrans.prepend(texture.transform.mapCoord);
+			aTrans.prepend((texture.uvMatrix as any).mapCoord);
 		}
 
 		calculateTrimmedVertices() {

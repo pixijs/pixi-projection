@@ -52,7 +52,7 @@ namespace pixi_projection {
 
 			let wa = ta.worldTransform;
 
-			proj.world.copy(wa, proj._affine, proj.affinePreserveOrientation);
+			proj.world.copyToAffine(wa, proj._affine, proj.affinePreserveOrientation);
 
 			if (scaleAfterAffine) {
 				wa.a *= ta.scale._x;

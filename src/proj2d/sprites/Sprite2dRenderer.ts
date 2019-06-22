@@ -49,7 +49,7 @@ gl_FragColor = color * vColor;
 
             this._indexBuffer = new PIXI.Buffer(null, _static, true);
 
-            this.addAttribute('aVertexPosition', this._buffer, 2, false, TYPES.FLOAT)
+            this.addAttribute('aVertexPosition', this._buffer, 3, false, TYPES.FLOAT)
                 .addAttribute('aTextureCoord', this._buffer, 2, false, TYPES.FLOAT)
                 .addAttribute('aColor', this._buffer, 4, true, TYPES.UNSIGNED_BYTE)
                 .addAttribute('aTextureId', this._buffer, 1, true, TYPES.FLOAT)
@@ -96,13 +96,14 @@ gl_FragColor = color * vColor;
                         : element._tintRGB + (alpha * 255 << 24);
 
                     if (vertexData2d) {
-                        for (let i = 0; i < vertexData2d.length; i += 3)
+                        let j = 0;
+                        for (let i = 0; i < vertexData2d.length; i += 3, j += 2)
                         {
                             float32View[index++] = vertexData2d[i];
                             float32View[index++] = vertexData2d[i + 1];
                             float32View[index++] = vertexData2d[i + 2];
-                            float32View[index++] = uvs[i];
-                            float32View[index++] = uvs[i + 1];
+                            float32View[index++] = uvs[j];
+                            float32View[index++] = uvs[j + 1];
                             uint32View[index++] = argb;
                             float32View[index++] = textureId;
                         }

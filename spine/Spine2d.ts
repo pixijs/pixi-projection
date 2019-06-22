@@ -31,7 +31,7 @@ module pixi_projection {
 		}
 
 		newMesh(texture: PIXI.Texture, vertices?: Float32Array, uvs?: Float32Array, indices?: Uint16Array, drawMode?: number) {
-			return new SimpleMesh2d(texture, vertices, uvs, indices, drawMode);
+			return new SimpleMesh2d(texture, vertices, uvs, indices, drawMode) as any;
 		}
 
 		transformHack() {

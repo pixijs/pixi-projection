@@ -7,10 +7,6 @@ declare namespace PIXI {
         _x?: number;
         _y?: number;
     }
-
-    export interface Container {
-		displayObjectUpdateTransform?(): void;
-	}
 }
 
 namespace pixi_projection {

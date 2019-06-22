@@ -3,7 +3,7 @@ namespace pixi_projection {
 		constructor(texture: PIXI.Texture) {
 			super(texture);
 			this.proj = new Projection2d(this.transform);
-			this.pluginName = 'sprite2d';
+			this.pluginName = 'batch2d';
 		}
 
         vertexData2d: Float32Array = null;

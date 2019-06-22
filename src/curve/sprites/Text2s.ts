@@ -3,7 +3,7 @@ namespace pixi_projection {
 		constructor(text?: string, style?: PIXI.TextStyle, canvas?: HTMLCanvasElement) {
 			super(text, style, canvas);
 			this.proj = new ProjectionSurface(this.transform);
-			this.pluginName = 'sprite_bilinear';
+			this.pluginName = 'batch_bilinear';
 		}
 
 		proj: ProjectionSurface;

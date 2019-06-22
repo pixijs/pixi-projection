@@ -4,7 +4,7 @@ module pixi_projection {
 		region: PIXI.spine.core.TextureRegion;
 	}
 
-	export interface Mesh3d {
+	export interface SimpleMesh3d2d {
 		region: PIXI.spine.core.TextureRegion;
 	}
 
@@ -31,7 +31,7 @@ module pixi_projection {
 		}
 
 		newMesh(texture: PIXI.Texture, vertices?: Float32Array, uvs?: Float32Array, indices?: Uint16Array, drawMode?: number) {
-			return new Mesh3d(texture, vertices, uvs, indices, drawMode);
+			return new SimpleMesh3d2d(texture, vertices, uvs, indices, drawMode) as any;
 		}
 
 		transformHack() {

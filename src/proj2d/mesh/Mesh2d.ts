@@ -35,7 +35,7 @@ void main(void)
             this.proj = new Projection2d(this.transform);
         }
 
-        vertexData2d = null;
+        vertexData2d: Float32Array = null;
         proj: Projection2d;
 
         calculateVertices()
@@ -103,13 +103,13 @@ void main(void)
 
             renderer.batch.flush();
 
-            if (shader.program.uniformData.translationMatrix)
+            if ((shader as any).program.uniformData.translationMatrix)
             {
                 shader.uniforms.translationMatrix = this.worldTransform.toArray(true);
             }
 
             // bind and sync uniforms..
-            renderer.shader.bind(shader);
+            renderer.shader.bind(shader, false);
 
             // set state..
             renderer.state.set(this.state);
@@ -150,21 +150,21 @@ void main(void)
 
         get vertices()
         {
-            return this.geometry.getBuffer('aVertexPosition').data;
+            return this.geometry.getBuffer('aVertexPosition').data as Float32Array;
         }
         set vertices(value)
         {
             this.geometry.getBuffer('aVertexPosition').data = value;
         }
 
-        _render(renderer?: PIXI.Renderer)
+        protected _render(renderer?: PIXI.Renderer)
         {
             if (this.autoUpdate)
             {
                 this.geometry.getBuffer('aVertexPosition').update();
             }
 
-            super._render(renderer);
+            (super._render as any)(renderer);
         }
 	}
 }

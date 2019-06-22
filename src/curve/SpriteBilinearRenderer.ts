@@ -1,11 +1,10 @@
 namespace pixi_projection {
-    import MultiTextureSpriteRenderer = pixi_projection.webgl.MultiTextureSpriteRenderer;
+    import TYPES = PIXI.TYPES;
+    import premultiplyTint = PIXI.utils.premultiplyTint;
 
-    class SpriteBilinearRenderer extends MultiTextureSpriteRenderer {
-        size = 100;
-        MAX_TEXTURES_LOCAL = 1;
+    //TODO: Work in progress
 
-        shaderVert = `precision highp float;
+    const shaderVert = `precision highp float;
 attribute vec2 aVertexPosition;
 attribute vec3 aTrans1;
 attribute vec3 aTrans2;
@@ -35,9 +34,8 @@ void main(void){
     vFrame = aFrame;
 }
 `;
-        //TODO: take non-premultiplied case into account
 
-        shaderFrag = `precision highp float;
+    const shaderFrag = `precision highp float;
 varying vec2 vTextureCoord;
 varying vec3 vTrans1;
 varying vec3 vTrans2;
@@ -110,84 +108,120 @@ float alpha = 1.0; //edge.x * edge.y * edge.z * edge.w;
 vec4 rColor = vColor * alpha;
 
 float textureId = floor(vTextureId+0.5);
-vec4 color;
-vec2 textureCoord = uv;
 %forloop%
 gl_FragColor = color * rColor;
 }`;
 
-        defUniforms = {
-            worldTransform: new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]),
-            distortion: new Float32Array([0, 0])
-        };
+    export class BatchBilineardGeometry extends PIXI.Geometry
+    {
+        _buffer: PIXI.Buffer;
+        _indexBuffer : PIXI.Buffer;
 
-        getUniforms(sprite: PIXI.Sprite) {
-            let proj = (sprite as Sprite2s).proj;
-            let shader = this.shader;
+        constructor(_static = false)
+        {
+            super();
 
-            if (proj.surface !== null) {
-                return proj.uniforms;
-            }
-            if (proj._activeProjection !== null) {
-                return proj._activeProjection.uniforms;
-            }
-            return this.defUniforms;
-        }
+            this._buffer = new PIXI.Buffer(null, _static, false);
 
-        createVao(vertexBuffer: PIXI.glCore.GLBuffer) {
-            const attrs = this.shader.attributes;
-            this.vertSize = 14;
-            this.vertByteSize = this.vertSize * 4;
+            this._indexBuffer = new PIXI.Buffer(null, _static, true);
 
-            const gl = this.renderer.gl;
-            const vao = this.renderer.createVao()
-                .addIndex(this.indexBuffer)
-                .addAttribute(vertexBuffer, attrs.aVertexPosition, gl.FLOAT, false, this.vertByteSize, 0)
-                .addAttribute(vertexBuffer, attrs.aTrans1, gl.FLOAT, false, this.vertByteSize, 2 * 4)
-                .addAttribute(vertexBuffer, attrs.aTrans2, gl.FLOAT, false, this.vertByteSize, 5 * 4)
-                .addAttribute(vertexBuffer, attrs.aFrame, gl.FLOAT, false, this.vertByteSize, 8 * 4)
-                .addAttribute(vertexBuffer, attrs.aColor, gl.UNSIGNED_BYTE, true, this.vertByteSize, 12 * 4);
-
-            if (attrs.aTextureId) {
-                vao.addAttribute(vertexBuffer, attrs.aTextureId, gl.FLOAT, false, this.vertByteSize, 13 * 4);
-            }
-
-            return vao;
-
-        }
-
-        fillVertices(float32View: Float32Array, uint32View: Uint32Array, index: number, sprite: any, argb: number, textureId: number) {
-            const vertexData = sprite.vertexData;
-            const tex = sprite._texture;
-            const w = tex.orig.width;
-            const h = tex.orig.height;
-            const ax = sprite._anchor._x;
-            const ay = sprite._anchor._y;
-            const frame = tex._frame;
-            const aTrans = sprite.aTrans;
-
-            for (let i = 0; i < 4; i++) {
-                float32View[index] = vertexData[i * 2];
-                float32View[index + 1] = vertexData[i * 2 + 1];
-
-                float32View[index + 2] = aTrans.a;
-                float32View[index + 3] = aTrans.c;
-                float32View[index + 4] = aTrans.tx;
-                float32View[index + 5] = aTrans.b;
-                float32View[index + 6] = aTrans.d;
-                float32View[index + 7] = aTrans.ty;
-
-                float32View[index + 8] = frame.x;
-                float32View[index + 9] = frame.y;
-                float32View[index + 10] = frame.x + frame.width;
-                float32View[index + 11] = frame.y + frame.height;
-
-                uint32View[index + 12] = argb;
-                float32View[index + 13] = textureId;
-                index += 14;
-            }
+            this.addAttribute('aVertexPosition', this._buffer, 2, false, TYPES.FLOAT)
+                .addAttribute('aTrans1', this._buffer, 3, false, TYPES.FLOAT)
+                .addAttribute('aTrans2', this._buffer, 3, false, TYPES.FLOAT)
+                .addAttribute('aFrame', this._buffer, 4, false, TYPES.FLOAT)
+                .addAttribute('aColor', this._buffer, 4, true, TYPES.UNSIGNED_BYTE)
+                .addIndex(this._indexBuffer);
         }
     }
 
-    PIXI.WebGLRenderer.registerPlugin('sprite_bilinear', SpriteBilinearRenderer);
+    export class BatchBilinearPluginFactory {
+        static create(options: any)
+        {
+            const { vertex, fragment, vertexSize, geometryClass } = (Object as any).assign({
+                vertex: shaderVert,
+                fragment: shaderFrag,
+                geometryClass: Batch3dGeometry,
+                vertexSize: 7,
+            }, options);
+
+            return class BatchPlugin extends PIXI.BatchRenderer
+            {
+                constructor(renderer: PIXI.Renderer)
+                {
+                    super(renderer);
+
+                    this.shaderGenerator = new PIXI.BatchShaderGenerator(vertex, fragment);
+                    this.geometryClass = geometryClass;
+                    this.vertexSize = vertexSize;
+                }
+
+                vertexSize: number;
+
+                defUniforms = {
+                    worldTransform: new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]),
+                    distortion: new Float32Array([0, 0])
+                };
+
+                getUniforms(sprite: PIXI.Sprite) {
+                    let proj = (sprite as Sprite2s).proj;
+                    let shader = this.shader;
+
+                    if (proj.surface !== null) {
+                        return proj.uniforms;
+                    }
+                    if (proj._activeProjection !== null) {
+                        return proj._activeProjection.uniforms;
+                    }
+                    return this.defUniforms;
+                }
+
+                packGeometry(element: any, float32View: Float32Array, uint32View: Uint32Array,
+                             indexBuffer: Uint16Array, index: number, indexCount: number)
+                {
+                    const p = index / this.vertexSize;// float32View.length / 6 / 2;
+                    const uvs = element.uvs;
+                    const indices = element.indices;// geometry.getIndex().data;// indicies;
+                    const vertexData = element.vertexData;
+                    const tex = element._texture;
+                    const frame = tex._frame;
+                    const aTrans = element.aTrans;
+                    // const textureId = element._texture.baseTexture._id;
+
+                    const alpha = Math.min(element.worldAlpha, 1.0);
+
+                    const argb = alpha < 1.0 && element._texture.baseTexture.premultiplyAlpha ? premultiplyTint(element._tintRGB, alpha)
+                        : element._tintRGB + (alpha * 255 << 24);
+
+                    for (let i = 0; i < vertexData.length; i += 2)
+                    {
+                        float32View[index] = vertexData[i * 2];
+                        float32View[index + 1] = vertexData[i * 2 + 1];
+
+                        float32View[index + 2] = aTrans.a;
+                        float32View[index + 3] = aTrans.c;
+                        float32View[index + 4] = aTrans.tx;
+                        float32View[index + 5] = aTrans.b;
+                        float32View[index + 6] = aTrans.d;
+                        float32View[index + 7] = aTrans.ty;
+
+                        float32View[index + 8] = frame.x;
+                        float32View[index + 9] = frame.y;
+                        float32View[index + 10] = frame.x + frame.width;
+                        float32View[index + 11] = frame.y + frame.height;
+
+                        uint32View[index + 12] = argb;
+                        // float32View[index + 13] = textureId;
+                        index += 13;
+                    }
+
+                    for (let i = 0; i < indices.length; i++)
+                    {
+                        indexBuffer[indexCount++] = p + indices[i];
+                    }
+                }
+            };
+        }
+    }
+
+    // PIXI.Renderer.registerPlugin('batch_bilinear', BatchBilinearPluginFactory.create({}) as any);
 }

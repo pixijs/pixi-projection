@@ -3,11 +3,11 @@ namespace pixi_projection {
         constructor(text?: string, style?: PIXI.TextStyle, canvas?: HTMLCanvasElement) {
             super(text, style, canvas);
             this.proj = new Projection3d(this.transform);
-            this.pluginName = 'sprite2d';
-            this.vertexData = new Float32Array(12);
+            this.pluginName = 'batch2d';
         }
 
         proj: Projection3d;
+        vertexData2d: Float32Array = null;
 
         get worldTransform() {
 	        return this.proj.affine ? this.transform.worldTransform : this.proj.world as any;
@@ -40,16 +40,16 @@ namespace pixi_projection {
 		    return this.proj.pivot;
 	    }
 	    set position3d(value: PIXI.IPoint) {
-		    this.proj.position.copy(value);
+		    this.proj.position.copyFrom(value);
 	    }
 	    set scale3d(value: PIXI.IPoint) {
-		    this.proj.scale.copy(value);
+		    this.proj.scale.copyFrom(value);
 	    }
 	    set euler(value: IEuler) {
-		    this.proj.euler.copy(value);
+		    this.proj.euler.copyFrom(value);
 	    }
 	    set pivot3d(value: PIXI.IPoint) {
-		    this.proj.pivot.copy(value);
+		    this.proj.pivot.copyFrom(value);
 	    }
     }
 

@@ -10,12 +10,7 @@
         "removeComments": true,
         "inlineSources": true,
         "declaration": true,
-        "lib": [
-            "DOM",
-            "ES5",
-            "ScriptHost",
-            "es2015.promise"
-        ]
+        "lib": ["es6", "dom"]
     },
     "include": [
         "src/**/*"
