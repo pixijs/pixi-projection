@@ -49,7 +49,6 @@ namespace pixi_projection {
 	    this._calculateBounds = Sprite3d.prototype._calculateBounds;
 	    this.containsPoint = Sprite3d.prototype.containsPoint;
 	    this.pluginName = 'batch2d';
-	    this.vertexData = new Float32Array(12);
 		convertTo3d.call(this);
     };
 

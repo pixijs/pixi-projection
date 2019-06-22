@@ -108,7 +108,7 @@ gl_FragColor = color * vColor;
                             float32View[index++] = textureId;
                         }
                     } else {
-                        for (let i = 0; i < vertexData.length; i += 3)
+                        for (let i = 0; i < vertexData.length; i += 2)
                         {
                             float32View[index++] = vertexData[i];
                             float32View[index++] = vertexData[i + 1];

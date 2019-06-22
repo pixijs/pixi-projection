@@ -48,7 +48,6 @@ namespace pixi_projection {
 		this.calculateTrimmedVertices = Sprite2d.prototype.calculateTrimmedVertices;
 		this._calculateBounds = Sprite2d.prototype._calculateBounds;
 		this.pluginName = 'sprite2d';
-		this.vertexData = new Float32Array(12);
 		convertTo2d.call(this);
 	};
 

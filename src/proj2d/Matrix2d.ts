@@ -258,14 +258,6 @@ namespace pixi_projection {
 			return new Matrix2d(this.mat3);
 		}
 
-		copyTo(matrix: Matrix2d) {
-			if (!(matrix as any).mat3 && !(matrix as any).mat4) {
-                return this.copyToAffine(matrix as any);
-            }
-
-			return this.copyTo2dOr3d(matrix);
-		}
-
 		copyTo2dOr3d(matrix: Matrix2d) {
 		    const mat3 = this.mat3;
             const ar2 = matrix.mat3;
@@ -286,7 +278,7 @@ namespace pixi_projection {
 		 * @param matrix
 		 * @return matrix
 		 */
-		copyToAffine(matrix: PIXI.Matrix, affine?: AFFINE, preserveOrientation?: boolean) {
+        copyTo(matrix: PIXI.Matrix, affine?: AFFINE, preserveOrientation?: boolean) {
 			const mat3 = this.mat3;
 			const d = 1.0 / mat3[8];
 			const tx = mat3[6] * d, ty = mat3[7] * d;
