@@ -58,7 +58,7 @@ gl_FragColor = color * vColor;
     }
 
     export class Batch2dPluginFactory {
-        static create(options: any)
+        static create(options: any): any
         {
             const { vertex, fragment, vertexSize, geometryClass } = (Object as any).assign({
                 vertex: shaderVert,
@@ -80,7 +80,7 @@ gl_FragColor = color * vColor;
 
                 vertexSize: number;
 
-                packGeometry(element: any, float32View: Float32Array, uint32View: Uint32Array,
+                packInterleavedGeometry(element: any, float32View: Float32Array, uint32View: Uint32Array,
                              indexBuffer: Uint16Array, index: number, indexCount: number)
                 {
                     const p = index / this.vertexSize;// float32View.length / 6 / 2;
@@ -129,5 +129,5 @@ gl_FragColor = color * vColor;
         }
     }
 
-	PIXI.Renderer.registerPlugin('batch2d', Batch2dPluginFactory.create({}) as any);
+	PIXI.Renderer.registerPlugin('batch2d', Batch2dPluginFactory.create({}));
 }

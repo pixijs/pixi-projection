@@ -135,7 +135,7 @@ gl_FragColor = color * rColor;
     }
 
     export class BatchBilinearPluginFactory {
-        static create(options: any)
+        static create(options: any): any
         {
             const { vertex, fragment, vertexSize, geometryClass } = (Object as any).assign({
                 vertex: shaderVert,
@@ -164,7 +164,7 @@ gl_FragColor = color * rColor;
 
                 getUniforms(sprite: PIXI.Sprite) {
                     let proj = (sprite as Sprite2s).proj;
-                    let shader = this.shader;
+                    let shader = this._shader;
 
                     if (proj.surface !== null) {
                         return proj.uniforms;
@@ -223,5 +223,5 @@ gl_FragColor = color * rColor;
         }
     }
 
-    // PIXI.Renderer.registerPlugin('batch_bilinear', BatchBilinearPluginFactory.create({}) as any);
+    // PIXI.Renderer.registerPlugin('batch_bilinear', BatchBilinearPluginFactory.create({}));
 }
