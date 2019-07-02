@@ -40,6 +40,21 @@ declare module PIXI.projection {
     }
 }
 declare module PIXI.projection {
+    class Batch3dGeometry extends PIXI.Geometry {
+        _buffer: PIXI.Buffer;
+        _indexBuffer: PIXI.Buffer;
+        constructor(_static?: boolean);
+    }
+    class Batch2dPluginFactory {
+        static create(options: any): any;
+    }
+}
+declare module PIXI.projection {
+    class UniformBatchRenderer extends PIXI.BatchRenderer {
+        addToBatch(sprite: PIXI.Sprite): void;
+    }
+}
+declare module PIXI.projection {
     import IPoint = PIXI.IPoint;
     abstract class Surface implements IWorldTransform {
         surfaceID: string;
@@ -109,30 +124,7 @@ declare module PIXI.projection {
         constructor(_static?: boolean);
     }
     class BatchBilinearPluginFactory {
-        static create(options: any): {
-            new (renderer: PIXI.Renderer): {
-                vertexSize: number;
-                defUniforms: {
-                    worldTransform: Float32Array;
-                    distortion: Float32Array;
-                };
-                getUniforms(sprite: PIXI.Sprite): any;
-                packGeometry(element: any, float32View: Float32Array, uint32View: Uint32Array, indexBuffer: Uint16Array, index: number, indexCount: number): void;
-                size: number;
-                onlySprites: Uint16Array;
-                shader: PIXI.Shader;
-                shaderGenerator: PIXI.BatchShaderGenerator;
-                geometryClass: any;
-                contextChange(): void;
-                onPrerender(): void;
-                render(sprite: PIXI.Sprite): void;
-                flush(): void;
-                start(): void;
-                stop(): void;
-                destroy(): void;
-                renderer: PIXI.Renderer;
-            };
-        };
+        static create(options: any): any;
     }
 }
 declare module PIXI {
@@ -286,34 +278,6 @@ declare module PIXI.projection {
         calculateTrimmedVertices(): void;
         toLocal<T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
         readonly worldTransform: any;
-    }
-}
-declare module PIXI.projection {
-    class Batch3dGeometry extends PIXI.Geometry {
-        _buffer: PIXI.Buffer;
-        _indexBuffer: PIXI.Buffer;
-        constructor(_static?: boolean);
-    }
-    class Batch2dPluginFactory {
-        static create(options: any): {
-            new (renderer: PIXI.Renderer): {
-                vertexSize: number;
-                packGeometry(element: any, float32View: Float32Array, uint32View: Uint32Array, indexBuffer: Uint16Array, index: number, indexCount: number): void;
-                size: number;
-                onlySprites: Uint16Array;
-                shader: PIXI.Shader;
-                shaderGenerator: PIXI.BatchShaderGenerator;
-                geometryClass: any;
-                contextChange(): void;
-                onPrerender(): void;
-                render(sprite: PIXI.Sprite): void;
-                flush(): void;
-                start(): void;
-                stop(): void;
-                destroy(): void;
-                renderer: PIXI.Renderer;
-            };
-        };
     }
 }
 declare module PIXI.projection {
