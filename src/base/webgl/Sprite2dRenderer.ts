@@ -80,10 +80,14 @@ gl_FragColor = color * vColor;
 
                 vertexSize: number;
 
-                packInterleavedGeometry(element: any, float32View: Float32Array, uint32View: Uint32Array,
-                             indexBuffer: Uint16Array, index: number, indexCount: number)
+                packInterleavedGeometry(element: any, attributeBuffer: PIXI.ViewableBuffer, indexBuffer: Uint16Array, aIndex: number, iIndex: number)
                 {
-                    const p = index / this.vertexSize;// float32View.length / 6 / 2;
+                    const {
+                        uint32View,
+                        float32View,
+                    } = attributeBuffer;
+
+                    const p = aIndex / this.vertexSize;// float32View.length / 6 / 2;
                     const uvs = element.uvs;
                     const indicies = element.indices;// geometry.getIndex().data;// indicies;
                     const vertexData = element.vertexData;
@@ -99,30 +103,30 @@ gl_FragColor = color * vColor;
                         let j = 0;
                         for (let i = 0; i < vertexData2d.length; i += 3, j += 2)
                         {
-                            float32View[index++] = vertexData2d[i];
-                            float32View[index++] = vertexData2d[i + 1];
-                            float32View[index++] = vertexData2d[i + 2];
-                            float32View[index++] = uvs[j];
-                            float32View[index++] = uvs[j + 1];
-                            uint32View[index++] = argb;
-                            float32View[index++] = textureId;
+                            float32View[aIndex++] = vertexData2d[i];
+                            float32View[aIndex++] = vertexData2d[i + 1];
+                            float32View[aIndex++] = vertexData2d[i + 2];
+                            float32View[aIndex++] = uvs[j];
+                            float32View[aIndex++] = uvs[j + 1];
+                            uint32View[aIndex++] = argb;
+                            float32View[aIndex++] = textureId;
                         }
                     } else {
                         for (let i = 0; i < vertexData.length; i += 2)
                         {
-                            float32View[index++] = vertexData[i];
-                            float32View[index++] = vertexData[i + 1];
-                            float32View[index++] = 1.0;
-                            float32View[index++] = uvs[i];
-                            float32View[index++] = uvs[i + 1];
-                            uint32View[index++] = argb;
-                            float32View[index++] = textureId;
+                            float32View[aIndex++] = vertexData[i];
+                            float32View[aIndex++] = vertexData[i + 1];
+                            float32View[aIndex++] = 1.0;
+                            float32View[aIndex++] = uvs[i];
+                            float32View[aIndex++] = uvs[i + 1];
+                            uint32View[aIndex++] = argb;
+                            float32View[aIndex++] = textureId;
                         }
                     }
 
                     for (let i = 0; i < indicies.length; i++)
                     {
-                        indexBuffer[indexCount++] = p + indicies[i];
+                        indexBuffer[iIndex++] = p + indicies[i];
                     }
                 }
             };
