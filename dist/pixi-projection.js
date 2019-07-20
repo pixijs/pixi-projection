@@ -34,14 +34,6 @@ var pixi_projection;
     })(utils = pixi_projection.utils || (pixi_projection.utils = {}));
 })(pixi_projection || (pixi_projection = {}));
 PIXI.projection = pixi_projection;
-var pixi_heaven;
-(function (pixi_heaven) {
-    if (!PIXI.spine) {
-        PIXI.spine = {
-            Spine: function () { }
-        };
-    }
-})(pixi_heaven || (pixi_heaven = {}));
 var pixi_projection;
 (function (pixi_projection) {
     var AbstractProjection = (function () {
@@ -277,7 +269,7 @@ var pixi_projection;
                     }
                 };
                 return BatchPlugin;
-            }(PIXI.BatchRenderer));
+            }(PIXI.AbstractBatchRenderer));
         };
         return Batch2dPluginFactory;
     }());
@@ -294,7 +286,7 @@ var pixi_projection;
         UniformBatchRenderer.prototype.addToBatch = function (sprite) {
         };
         return UniformBatchRenderer;
-    }(PIXI.BatchRenderer));
+    }(PIXI.AbstractBatchRenderer));
     pixi_projection.UniformBatchRenderer = UniformBatchRenderer;
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
@@ -736,7 +728,7 @@ var pixi_projection;
                     }
                 };
                 return BatchPlugin;
-            }(PIXI.BatchRenderer));
+            }(PIXI.AbstractBatchRenderer));
         };
         return BatchBilinearPluginFactory;
     }());

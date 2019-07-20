@@ -1,5 +1,3 @@
-declare namespace pixi_heaven {
-}
 declare namespace PIXI {
     interface Transform {
         proj?: PIXI.projection.AbstractProjection;
@@ -50,7 +48,7 @@ declare module PIXI.projection {
     }
 }
 declare module PIXI.projection {
-    class UniformBatchRenderer extends PIXI.BatchRenderer {
+    class UniformBatchRenderer extends PIXI.AbstractBatchRenderer {
         addToBatch(sprite: PIXI.Sprite): void;
     }
 }

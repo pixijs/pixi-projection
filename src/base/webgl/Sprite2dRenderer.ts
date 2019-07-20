@@ -67,7 +67,7 @@ gl_FragColor = color * vColor;
                 vertexSize: 7,
             }, options);
 
-            return class BatchPlugin extends PIXI.BatchRenderer
+            return class BatchPlugin extends PIXI.AbstractBatchRenderer
             {
                 constructor(renderer: PIXI.Renderer)
                 {
