@@ -128,6 +128,18 @@ That's why it can follow elements - its transform negates the element transform.
 
 There's special build `pixi-projection-spine` to support Spine objects, please browse `dist` folder.
 
+### AngularJS
+
+How to use PixiJS typescript plugins in angular.
+
+[Demo](https://codesandbox.io/s/pixi-projection-cmulu)
+
+```js
+import * as PIXI from "pixi.js";
+global.PIXI = PIXI;
+require("pixi-projection");
+```
+
 ### Heaven
 
 No, we dont support `pixi-heaven` sprites yet.
