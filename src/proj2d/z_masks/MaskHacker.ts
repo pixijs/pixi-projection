@@ -12,7 +12,7 @@ namespace pixi_projection {
 		// TODO - may cause issues!
 		target.filterArea = maskData.getBounds(true);
 
-		this.renderer.filterManager.pushFilter(target, alphaMaskFilter);
+		this.renderer.filter.push(target, alphaMaskFilter);
 
 		this.alphaMaskIndex++;
 	}
