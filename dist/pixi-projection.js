@@ -34,6 +34,14 @@ var pixi_projection;
     })(utils = pixi_projection.utils || (pixi_projection.utils = {}));
 })(pixi_projection || (pixi_projection = {}));
 PIXI.projection = pixi_projection;
+var pixi_heaven;
+(function (pixi_heaven) {
+    if (!PIXI.spine) {
+        PIXI.spine = {
+            Spine: function () { }
+        };
+    }
+})(pixi_heaven || (pixi_heaven = {}));
 var pixi_projection;
 (function (pixi_projection) {
     var AbstractProjection = (function () {
@@ -1883,7 +1891,7 @@ var pixi_projection;
         alphaMaskFilter[0].resolution = this.renderer.resolution;
         alphaMaskFilter[0].maskSprite = maskData;
         target.filterArea = maskData.getBounds(true);
-        this.renderer.filterManager.pushFilter(target, alphaMaskFilter);
+        this.renderer.filter.push(target, alphaMaskFilter);
         this.alphaMaskIndex++;
     };
 })(pixi_projection || (pixi_projection = {}));
