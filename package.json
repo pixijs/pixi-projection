@@ -47,6 +47,6 @@
     "pixi-spine": "~2.0.2",
     "parallelshell": "^2.0.0",
     "rimraf": "^2.5.3",
-    "typescript": "^2.8.3"
+    "typescript": "^3.5.3"
   }
 }
