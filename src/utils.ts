@@ -25,6 +25,19 @@ namespace pixi_projection.utils {
 		return !(v & (v - 1)) && (!!v);
 	}
 
+	 /** get distance between 2 3d obj */
+	export function getDistanceFrom(t1: Container3d,t2:Container3d): {a:number,d:number} {
+		const p1 = t1.position3d;
+        const p2 = t2.position3d;
+        const deltaX = p1.x - p2.x;
+        const deltaY = p1.y - p2.y;
+        const deltaZ = p1.z - p2.z;
+        return {
+            d:Math.sqrt( deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ ),
+            a:-Math.atan2(p2.z - p1.z, p2.x - p1.x),
+        }
+	}
+
 	export function nextPow2(v: number): number {
 		v += +(v === 0);
 		--v;
