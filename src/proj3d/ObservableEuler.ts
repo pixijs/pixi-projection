@@ -11,8 +11,6 @@ namespace pixi_projection {
 
 	export class ObservableEuler implements PIXI.PointLike, Euler {
 		constructor(public cb: any, public scope: any, x?: number, y?: number, z?: number) {
-			Object.defineProperty(this, cb   , { enumerable: false });
-			Object.defineProperty(this, scope, { enumerable: false });
 			/**
 			 * @member {number}
 			 * @default 0
