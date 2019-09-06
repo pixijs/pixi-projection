@@ -34,14 +34,6 @@ var pixi_projection;
     })(utils = pixi_projection.utils || (pixi_projection.utils = {}));
 })(pixi_projection || (pixi_projection = {}));
 PIXI.projection = pixi_projection;
-var pixi_heaven;
-(function (pixi_heaven) {
-    if (!PIXI.spine) {
-        PIXI.spine = {
-            Spine: function () { }
-        };
-    }
-})(pixi_heaven || (pixi_heaven = {}));
 var pixi_projection;
 (function (pixi_projection) {
     var AbstractProjection = (function () {
@@ -78,12 +70,9 @@ var pixi_projection;
     })(TRANSFORM_STEP = pixi_projection.TRANSFORM_STEP || (pixi_projection.TRANSFORM_STEP = {}));
 })(pixi_projection || (pixi_projection = {}));
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -1584,6 +1573,7 @@ var pixi_projection;
             this._bounds.addQuad(this.vertexTrimmedData);
         };
         Sprite2d.prototype.calculateVertices = function () {
+            var texture = this._texture;
             if (this.proj._affine) {
                 this.vertexData2d = null;
                 _super.prototype.calculateVertices.call(this);
@@ -1593,13 +1583,15 @@ var pixi_projection;
                 this.vertexData2d = new Float32Array(12);
             }
             var wid = this.transform._worldID;
-            var tuid = this._texture._updateID;
+            var tuid = texture._updateID;
             if (this._transformID === wid && this._textureID === tuid) {
                 return;
             }
+            if (this._textureID !== tuid) {
+                this.uvs = texture._uvs.uvsFloat32;
+            }
             this._transformID = wid;
             this._textureID = tuid;
-            var texture = this._texture;
             var wt = this.proj.world.mat3;
             var vertexData2d = this.vertexData2d;
             var vertexData = this.vertexData;
@@ -3296,6 +3288,7 @@ var pixi_projection;
             return _this;
         }
         Sprite3d.prototype.calculateVertices = function () {
+            var texture = this._texture;
             if (this.proj._affine) {
                 this.vertexData2d = null;
                 _super.prototype.calculateVertices.call(this);
@@ -3305,13 +3298,15 @@ var pixi_projection;
                 this.vertexData2d = new Float32Array(12);
             }
             var wid = this.transform._worldID;
-            var tuid = this._texture._updateID;
+            var tuid = texture._updateID;
             if (this._transformID === wid && this._textureID === tuid) {
                 return;
             }
+            if (this._textureID !== tuid) {
+                this.uvs = texture._uvs.uvsFloat32;
+            }
             this._transformID = wid;
             this._textureID = tuid;
-            var texture = this._texture;
             var wt = this.proj.world.mat4;
             var vertexData2d = this.vertexData2d;
             var vertexData = this.vertexData;

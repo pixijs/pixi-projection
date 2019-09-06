@@ -1,5 +1,3 @@
-declare namespace pixi_heaven {
-}
 declare namespace PIXI {
     interface Transform {
         proj?: PIXI.projection.AbstractProjection;
