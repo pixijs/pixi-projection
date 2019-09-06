@@ -17,6 +17,8 @@ namespace pixi_projection {
         trimmedCulledByFrustrum = false;
 
         calculateVertices() {
+            const texture = this._texture;
+
             if (this.proj._affine) {
                 this.vertexData2d = null;
                 super.calculateVertices();
@@ -27,15 +29,18 @@ namespace pixi_projection {
             }
 
             const wid = (this.transform as any)._worldID;
-            const tuid = (this._texture as any)._updateID;
+            const tuid = (texture as any)._updateID;
             if (this._transformID === wid && this._textureID === tuid) {
                 return;
+            }
+            // update texture UV here, because base texture can be changed without calling `_onTextureUpdate`
+            if (this._textureID !== tuid) {
+                (this as any).uvs = (texture as any)._uvs.uvsFloat32;
             }
 
             this._transformID = wid;
             this._textureID = tuid;
 
-            const texture = this._texture;
             const wt = this.proj.world.mat4;
             const vertexData2d = this.vertexData2d;
             const vertexData = this.vertexData;
