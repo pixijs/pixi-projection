@@ -150,7 +150,7 @@ namespace pixi_projection {
         }
 
         get worldTransform() {
-            return this.proj.affine ? this.transform.worldTransform : this.proj.world as any;
+            return isNaN(this.proj.affine) ? this.proj.world : this.transform.worldTransform as any;
         }
     }
 }
