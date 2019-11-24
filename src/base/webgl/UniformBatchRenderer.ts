@@ -89,7 +89,7 @@ namespace pixi_projection {
 
         drawBatches() {
             const dcCount = this._dcIndex;
-            const {gl, state: stateSystem} = this.renderer;
+            const {gl, state: stateSystem, shader: shaderSystem} = this.renderer;
             const drawCalls = AbstractBatchRenderer._drawCallPool;
             let curUniforms: any = null;
             let curTexArray: PIXI.BatchTextureArray = null;
@@ -105,6 +105,7 @@ namespace pixi_projection {
                 if (curUniforms !== uniforms) {
                     curUniforms = uniforms;
                     this.syncUniforms(uniforms);
+                    (shaderSystem as any).syncUniformGroup((this._shader as any).uniformGroup);
                 }
 
                 stateSystem.setBlendMode(blend);

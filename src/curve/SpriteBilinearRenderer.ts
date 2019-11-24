@@ -14,7 +14,7 @@ attribute vec4 aColor;
 attribute float aTextureId;
 
 uniform mat3 projectionMatrix;
-uniform mat3 worldTransform;
+uniform mat3 translationMatrix;
 
 varying vec2 vertexPosition;
 varying vec3 vTrans1;
@@ -25,7 +25,7 @@ varying vec4 vColor;
 varying float vTextureId;
 
 void main(void){
-    gl_Position.xyw = projectionMatrix * worldTransform * vec3(aVertexPosition, 1.0);
+    gl_Position.xyw = projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0);
     gl_Position.z = 0.0;
     
     vertexPosition = aVertexPosition;
@@ -68,16 +68,16 @@ if (distortion.x == 0.0) {
 } else
 if (distortion.y == 0.0) {
     surface.y = vy;
-    surface.x = vx/ (1.0 + dx * vy);
+    surface.x = vx / (1.0 + dx * vy);
     surface2 = surface;
 } else {
     float c = vy * dx - vx * dy;
     float b = (c + 1.0) * 0.5;
     float b2 = (-c + 1.0) * 0.5;
     float d = b * b + vx * dy;
-    if (d < -0.00001) {
-        discard;
-    }
+    //if (d < -0.00001) {
+    //    discard;
+    //}
     d = sqrt(max(d, 0.0));
     surface.x = (- b + d) * revy;
     surface2.x = (- b - d) * revy;
@@ -97,10 +97,10 @@ if (pixels.x < vFrame.x || pixels.x > vFrame.z ||
     uv.y = vTrans2.x * surface2.x + vTrans2.y * surface2.y + vTrans2.z;
     pixels = uv * vSamplerSize;
     
-    if (pixels.x < vFrame.x || pixels.x > vFrame.z ||
-        pixels.y < vFrame.y || pixels.y > vFrame.w) {
-        discard;
-    }
+//    if (pixels.x < vFrame.x || pixels.x > vFrame.z ||
+//        pixels.y < vFrame.y || pixels.y > vFrame.w) {
+//        discard;
+//    }
 }
 
 vec4 edge;
@@ -114,7 +114,8 @@ float textureId = floor(vTextureId+0.5);
 vec2 vTextureCoord = uv;
 vec4 color;
 %forloop%
-gl_FragColor = color * rColor;
+gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+//gl_FragColor = color * rColor;
 }`;
 
     export class BatchBilineardGeometry extends PIXI.Geometry
@@ -163,7 +164,7 @@ gl_FragColor = color * rColor;
                 }
 
                 defUniforms = {
-                    worldTransform: new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]),
+                    translationMatrix: new PIXI.Matrix(),
                     distortion: new Float32Array([0, 0])
                 };
                 size = 1000;

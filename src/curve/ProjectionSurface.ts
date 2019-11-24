@@ -140,7 +140,7 @@ namespace pixi_projection {
 			}
 
 			this._lastUniforms = this._lastUniforms || {};
-			this._lastUniforms.worldTransform = this.legacy.worldTransform.toArray(true)
+			this._lastUniforms.translationMatrix = this.legacy.worldTransform;
 			this._surface.fillUniforms(this._lastUniforms);
 			return this._lastUniforms;
 		}
