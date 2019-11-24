@@ -1,4 +1,9 @@
 declare namespace PIXI {
+    export interface IPoint {
+        z?: number;
+        set(x?: number, y?: number, z?: number): void;
+    }
+
 	export interface Point {
 		z?: number;
 		set(x?: number, y?: number, z?: number): void;
@@ -14,10 +19,6 @@ declare namespace PIXI {
 }
 
 namespace pixi_projection {
-	PIXI.ObservablePoint.prototype.copy = function (point?: PIXI.Point) {
-
-	};
-
 	export class Point3d extends PIXI.Point {
 		constructor(x?: number, y?: number, z?: number) {
 			super(x, y);

@@ -89,14 +89,14 @@ gl_FragColor = color * vColor;
 
                     const p = aIndex / this.vertexSize;// float32View.length / 6 / 2;
                     const uvs = element.uvs;
-                    const indicies = element.indices;// geometry.getIndex().data;// indicies;
+                    const indices = element.indices;// geometry.getIndex().data;// indicies;
                     const vertexData = element.vertexData;
                     const vertexData2d = element.vertexData2d;
-                    const textureId = element._texture.baseTexture._id;
+                    const textureId = element._texture.baseTexture._batchLocation;
 
                     const alpha = Math.min(element.worldAlpha, 1.0);
 
-                    const argb = alpha < 1.0 && element._texture.baseTexture.premultiplyAlpha ? premultiplyTint(element._tintRGB, alpha)
+                    const argb = alpha < 1.0 && element._texture.baseTexture.alphaMode ? premultiplyTint(element._tintRGB, alpha)
                         : element._tintRGB + (alpha * 255 << 24);
 
                     if (vertexData2d) {
@@ -124,9 +124,9 @@ gl_FragColor = color * vColor;
                         }
                     }
 
-                    for (let i = 0; i < indicies.length; i++)
+                    for (let i = 0; i < indices.length; i++)
                     {
-                        indexBuffer[iIndex++] = p + indicies[i];
+                        indexBuffer[iIndex++] = p + indices[i];
                     }
                 }
             };
