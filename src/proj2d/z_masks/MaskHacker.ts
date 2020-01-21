@@ -10,7 +10,7 @@ namespace pixi_projection {
 		}
 
 		alphaMaskFilter[0].resolution = this.renderer.resolution;
-		alphaMaskFilter[0].maskSprite = maskData;
+		alphaMaskFilter[0].maskSprite = maskObject;
 
         const stashFilterArea = target.filterArea;
         target.filterArea = maskObject.getBounds(true);
