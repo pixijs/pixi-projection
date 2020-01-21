@@ -1985,7 +1985,7 @@ var pixi_projection;
             alphaMaskFilter = this.alphaMaskPool[this.alphaMaskIndex] = [new pixi_projection.SpriteMaskFilter2d(maskObject)];
         }
         alphaMaskFilter[0].resolution = this.renderer.resolution;
-        alphaMaskFilter[0].maskSprite = maskData;
+        alphaMaskFilter[0].maskSprite = maskObject;
         var stashFilterArea = target.filterArea;
         target.filterArea = maskObject.getBounds(true);
         this.renderer.filter.push(target, alphaMaskFilter);
