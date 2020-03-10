@@ -47,7 +47,7 @@ namespace pixi_projection {
 		this.calculateVertices = Sprite2d.prototype.calculateVertices;
 		this.calculateTrimmedVertices = Sprite2d.prototype.calculateTrimmedVertices;
 		this._calculateBounds = Sprite2d.prototype._calculateBounds;
-		this.pluginName = 'sprite2d';
+		this.pluginName = 'batch2d';
 		convertTo2d.call(this);
 	};
 

@@ -1831,7 +1831,7 @@ var pixi_projection;
         this.calculateVertices = pixi_projection.Sprite2d.prototype.calculateVertices;
         this.calculateTrimmedVertices = pixi_projection.Sprite2d.prototype.calculateTrimmedVertices;
         this._calculateBounds = pixi_projection.Sprite2d.prototype._calculateBounds;
-        this.pluginName = 'sprite2d';
+        this.pluginName = 'batch2d';
         convertTo2d.call(this);
     };
     PIXI.Container.prototype.convertSubtreeTo2d = function () {
