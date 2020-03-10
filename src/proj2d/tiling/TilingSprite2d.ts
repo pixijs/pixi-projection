@@ -21,8 +21,8 @@ namespace pixi_projection {
 		}
 
 		toLocal<T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject,
-		                                  point?: T, skipUpdate?: boolean,
-		                                  step = TRANSFORM_STEP.ALL): T {
+										  point?: T, skipUpdate?: boolean,
+										  step = TRANSFORM_STEP.ALL): T {
 			return container2dToLocal.call(this, position, from, point, skipUpdate, step);
 		}
 
@@ -41,7 +41,7 @@ namespace pixi_projection {
 			this.uvMatrix.update();
 
 			renderer.batch.setObjectRenderer((renderer.plugins as any)[this.pluginName]);
-            (renderer.plugins as any)[this.pluginName].render(this);
+			(renderer.plugins as any)[this.pluginName].render(this);
 		}
 	}
 }

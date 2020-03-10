@@ -12,8 +12,8 @@ namespace pixi_projection {
 		proj: Projection2d;
 
 		toLocal<T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject,
-		        point?: T, skipUpdate?: boolean,
-		        step = TRANSFORM_STEP.ALL): T {
+				point?: T, skipUpdate?: boolean,
+				step = TRANSFORM_STEP.ALL): T {
 
 			if (from)
 			{

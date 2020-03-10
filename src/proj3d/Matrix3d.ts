@@ -409,7 +409,7 @@ namespace pixi_projection {
 		 * @param matrix
 		 * @return matrix
 		 */
-        copyTo(matrix: PIXI.Matrix, affine?: AFFINE, preserveOrientation?: boolean) {
+		copyTo(matrix: PIXI.Matrix, affine?: AFFINE, preserveOrientation?: boolean) {
 			const mat3 = this.mat4;
 			const d = 1.0 / mat3[15];
 			const tx = mat3[12] * d, ty = mat3[13] * d;

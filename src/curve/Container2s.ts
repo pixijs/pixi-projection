@@ -1,14 +1,14 @@
 namespace pixi_projection {
-    export class Container2s extends PIXI.Container {
-        constructor() {
-            super();
-            this.proj = new ProjectionSurface(this.transform);
-        }
+	export class Container2s extends PIXI.Container {
+		constructor() {
+			super();
+			this.proj = new ProjectionSurface(this.transform);
+		}
 
-        proj: ProjectionSurface;
+		proj: ProjectionSurface;
 
-        get worldTransform() {
-            return this.proj as any;
-        }
-    }
+		get worldTransform() {
+			return this.proj as any;
+		}
+	}
 }

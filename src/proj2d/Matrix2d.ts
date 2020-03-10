@@ -259,18 +259,18 @@ namespace pixi_projection {
 		}
 
 		copyTo2dOr3d(matrix: Matrix2d) {
-		    const mat3 = this.mat3;
-            const ar2 = matrix.mat3;
-            ar2[0] = mat3[0];
-            ar2[1] = mat3[1];
-            ar2[2] = mat3[2];
-            ar2[3] = mat3[3];
-            ar2[4] = mat3[4];
-            ar2[5] = mat3[5];
-            ar2[6] = mat3[6];
-            ar2[7] = mat3[7];
-            ar2[8] = mat3[8];
-            return matrix;
+			const mat3 = this.mat3;
+			const ar2 = matrix.mat3;
+			ar2[0] = mat3[0];
+			ar2[1] = mat3[1];
+			ar2[2] = mat3[2];
+			ar2[3] = mat3[3];
+			ar2[4] = mat3[4];
+			ar2[5] = mat3[5];
+			ar2[6] = mat3[6];
+			ar2[7] = mat3[7];
+			ar2[8] = mat3[8];
+			return matrix;
 		}
 
 		/**
@@ -278,7 +278,7 @@ namespace pixi_projection {
 		 * @param matrix
 		 * @return matrix
 		 */
-        copyTo(matrix: PIXI.Matrix, affine?: AFFINE, preserveOrientation?: boolean) {
+		copyTo(matrix: PIXI.Matrix, affine?: AFFINE, preserveOrientation?: boolean) {
 			const mat3 = this.mat3;
 			const d = 1.0 / mat3[8];
 			const tx = mat3[6] * d, ty = mat3[7] * d;

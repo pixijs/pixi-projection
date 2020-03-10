@@ -1,8 +1,8 @@
 declare module PIXI {
-    interface Container {
-        convertTo3d(): void;
-        convertSubtreeTo3d(): void;
-    }
+	interface Container {
+		convertTo3d(): void;
+		convertSubtreeTo3d(): void;
+	}
 }
 
 namespace pixi_projection {
@@ -42,37 +42,37 @@ namespace pixi_projection {
 
 	(PIXI as any).Container.prototype.convertTo3d = convertTo3d;
 
-    (PIXI as any).Sprite.prototype.convertTo3d = function () {
-        if (this.proj) return;
-        this.calculateVertices = Sprite3d.prototype.calculateVertices;
-        this.calculateTrimmedVertices = Sprite3d.prototype.calculateTrimmedVertices;
-	    this._calculateBounds = Sprite3d.prototype._calculateBounds;
-	    this.containsPoint = Sprite3d.prototype.containsPoint;
-	    this.pluginName = 'batch2d';
+	(PIXI as any).Sprite.prototype.convertTo3d = function () {
+		if (this.proj) return;
+		this.calculateVertices = Sprite3d.prototype.calculateVertices;
+		this.calculateTrimmedVertices = Sprite3d.prototype.calculateTrimmedVertices;
+		this._calculateBounds = Sprite3d.prototype._calculateBounds;
+		this.containsPoint = Sprite3d.prototype.containsPoint;
+		this.pluginName = 'batch2d';
 		convertTo3d.call(this);
-    };
+	};
 
-    (PIXI as any).Container.prototype.convertSubtreeTo3d = function () {
-        this.convertTo3d();
-        for (let i = 0; i < this.children.length; i++) {
-            this.children[i].convertSubtreeTo3d();
-        }
-    };
+	(PIXI as any).Container.prototype.convertSubtreeTo3d = function () {
+		this.convertTo3d();
+		for (let i = 0; i < this.children.length; i++) {
+			this.children[i].convertSubtreeTo3d();
+		}
+	};
 
-    if (PIXI.SimpleMesh) {
-        (PIXI as any).SimpleMesh.prototype.convertTo3d =
-            (PIXI as any).SimpleRope.prototype.convertTo3d =
-                function () {
-                    if (this.proj) return;
-                    this.calculateVertices = Mesh3d2d.prototype.calculateVertices;
-                    this._renderDefault = (Mesh3d2d.prototype as any)._renderDefault;
-                    if (this.material.pluginName !== 'batch2d') {
-                        this.material = new PIXI.MeshMaterial(this.material.texture, {
-                            program: PIXI.Program.from(Mesh2d.defaultVertexShader, Mesh2d.defaultFragmentShader),
-                            pluginName: 'batch2d'
-                        });
-                    }
-                    convertTo3d.call(this);
-                };
-    }
+	if (PIXI.SimpleMesh) {
+		(PIXI as any).SimpleMesh.prototype.convertTo3d =
+			(PIXI as any).SimpleRope.prototype.convertTo3d =
+				function () {
+					if (this.proj) return;
+					this.calculateVertices = Mesh3d2d.prototype.calculateVertices;
+					this._renderDefault = (Mesh3d2d.prototype as any)._renderDefault;
+					if (this.material.pluginName !== 'batch2d') {
+						this.material = new PIXI.MeshMaterial(this.material.texture, {
+							program: PIXI.Program.from(Mesh2d.defaultVertexShader, Mesh2d.defaultFragmentShader),
+							pluginName: 'batch2d'
+						});
+					}
+					convertTo3d.call(this);
+				};
+	}
 }

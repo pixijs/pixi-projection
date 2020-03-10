@@ -1,8 +1,8 @@
 declare namespace PIXI {
-    export interface IPoint {
-        z?: number;
-        set(x?: number, y?: number, z?: number): void;
-    }
+	export interface IPoint {
+		z?: number;
+		set(x?: number, y?: number, z?: number): void;
+	}
 
 	export interface Point {
 		z?: number;
@@ -13,7 +13,7 @@ declare namespace PIXI {
 		_z?: number;
 		z: number;
 		cb?: any;
-        scope?: any;
+		scope?: any;
 		set(x?: number, y?: number, z?: number): void;
 	}
 }
@@ -68,7 +68,7 @@ namespace pixi_projection {
 				this._z = _z;
 				this.cb.call(this.scope);
 			}
-            return this;
+			return this;
 		}
 
 		copyFrom(p: PIXI.IPoint) {

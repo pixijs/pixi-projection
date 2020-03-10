@@ -1,13 +1,13 @@
 declare module PIXI {
 	interface Sprite {
-	    _texture: PIXI.Texture;
-        vertexData: Float32Array;
-        vertexTrimmedData: Float32Array;
-        _transformID?: number;
-        _textureID?: number;
-        _transformTrimmedID?: number;
-        _textureTrimmedID?: number;
-        _anchor?: ObservablePoint;
+		_texture: PIXI.Texture;
+		vertexData: Float32Array;
+		vertexTrimmedData: Float32Array;
+		_transformID?: number;
+		_textureID?: number;
+		_transformTrimmedID?: number;
+		_textureTrimmedID?: number;
+		_anchor?: ObservablePoint;
 		convertTo2d?(): void;
 	}
 
@@ -58,21 +58,21 @@ namespace pixi_projection {
 		}
 	};
 
-    if (PIXI.SimpleMesh) {
-        (PIXI as any).SimpleMesh.prototype.convertTo2d =
-            (PIXI as any).SimpleRope.prototype.convertTo2d =
-                function () {
-                    if (this.proj) return;
-                    this.calculateVertices = Mesh2d.prototype.calculateVertices;
-                    this._renderDefault = Mesh2d.prototype._renderDefault;
-                    if (this.material.pluginName !== 'batch2d') {
-                        this.material = new PIXI.MeshMaterial(this.material.texture, {
-                            program: PIXI.Program.from(Mesh2d.defaultVertexShader, Mesh2d.defaultFragmentShader),
-                            pluginName: 'batch2d'
-                        });
-                    }
-                    convertTo2d.call(this);
-                };
-    }
+	if (PIXI.SimpleMesh) {
+		(PIXI as any).SimpleMesh.prototype.convertTo2d =
+			(PIXI as any).SimpleRope.prototype.convertTo2d =
+				function () {
+					if (this.proj) return;
+					this.calculateVertices = Mesh2d.prototype.calculateVertices;
+					this._renderDefault = Mesh2d.prototype._renderDefault;
+					if (this.material.pluginName !== 'batch2d') {
+						this.material = new PIXI.MeshMaterial(this.material.texture, {
+							program: PIXI.Program.from(Mesh2d.defaultVertexShader, Mesh2d.defaultFragmentShader),
+							pluginName: 'batch2d'
+						});
+					}
+					convertTo2d.call(this);
+				};
+	}
 
 }
