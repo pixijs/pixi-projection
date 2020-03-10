@@ -336,7 +336,7 @@ declare module PIXI.projection {
         constructor(sprite: PIXI.Sprite);
         maskSprite: PIXI.Sprite;
         maskMatrix: Matrix2d;
-        apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clear?: boolean): void;
+        apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clearMode?: boolean): void;
         static calculateSpriteMatrix(input: PIXI.RenderTexture, mappedMatrix: Matrix2d, sprite: PIXI.Sprite): Matrix2d;
     }
 }
@@ -536,7 +536,7 @@ declare namespace PIXI {
 declare module PIXI.projection {
     class Point3d extends PIXI.Point {
         constructor(x?: number, y?: number, z?: number);
-        set(x?: number, y?: number, z?: number): void;
+        set(x?: number, y?: number, z?: number): this;
         copyFrom(p: PIXI.IPoint): this;
         copyTo(p: PIXI.Point): PIXI.Point;
     }
@@ -544,7 +544,7 @@ declare module PIXI.projection {
         _z: number;
         get z(): number;
         set z(value: number);
-        set(x?: number, y?: number, z?: number): void;
+        set(x?: number, y?: number, z?: number): this;
         copyFrom(p: PIXI.IPoint): this;
         copyTo(p: PIXI.IPoint): PIXI.IPoint;
     }

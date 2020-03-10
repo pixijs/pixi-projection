@@ -1990,14 +1990,13 @@ var pixi_projection;
         target.filterArea = maskObject.getBounds(true);
         this.renderer.filter.push(target, alphaMaskFilter);
         target.filterArea = stashFilterArea;
-        this.renderer.filter.push(target, alphaMaskFilter);
         this.alphaMaskIndex++;
     };
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
 (function (pixi_projection) {
     var spriteMaskVert = "\nattribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\n\nuniform mat3 projectionMatrix;\nuniform mat3 otherMatrix;\n\nvarying vec3 vMaskCoord;\nvarying vec2 vTextureCoord;\n\nvoid main(void)\n{\n\tgl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n\n\tvTextureCoord = aTextureCoord;\n\tvMaskCoord = otherMatrix * vec3( aTextureCoord, 1.0);\n}\n";
-    var spriteMaskFrag = "\nvarying vec3 vMaskCoord;\nvarying vec2 vTextureCoord;\n\nuniform sampler2D uSampler;\nuniform sampler2D mask;\nuniform float alpha;\nuniform vec4 maskClamp;\n\nvoid main(void)\n{\n    vec2 uv = vMaskCoord.xy / vMaskCoord.z;\n    \n    float clip = step(3.5,\n        step(maskClamp.x, uv.x) +\n        step(maskClamp.y, uv.y) +\n        step(uv.x, maskClamp.z) +\n        step(uv.y, maskClamp.w));\n\n    vec4 original = texture2D(uSampler, vTextureCoord);\n    vec4 masky = texture2D(mask, uv);\n    \n    original *= (masky.r * masky.a * alpha * clip);\n\n    gl_FragColor = original;\n}\n";
+    var spriteMaskFrag = "\nvarying vec3 vMaskCoord;\nvarying vec2 vTextureCoord;\n\nuniform sampler2D uSampler;\nuniform sampler2D mask;\nuniform float alpha;\nuniform vec4 maskClamp;\n\nvoid main(void)\n{\n    vec2 uv = vMaskCoord.xy / vMaskCoord.z;\n\n    float clip = step(3.5,\n        step(maskClamp.x, uv.x) +\n        step(maskClamp.y, uv.y) +\n        step(uv.x, maskClamp.z) +\n        step(uv.y, maskClamp.w));\n\n    vec4 original = texture2D(uSampler, vTextureCoord);\n    vec4 masky = texture2D(mask, uv);\n\n    original *= (masky.r * masky.a * alpha * clip);\n\n    gl_FragColor = original;\n}\n";
     var tempMat = new pixi_projection.Matrix2d();
     var SpriteMaskFilter2d = (function (_super) {
         __extends(SpriteMaskFilter2d, _super);
@@ -2008,7 +2007,7 @@ var pixi_projection;
             _this.maskSprite = sprite;
             return _this;
         }
-        SpriteMaskFilter2d.prototype.apply = function (filterManager, input, output, clear) {
+        SpriteMaskFilter2d.prototype.apply = function (filterManager, input, output, clearMode) {
             var maskSprite = this.maskSprite;
             var tex = this.maskSprite.texture;
             if (!tex.valid) {
@@ -2018,12 +2017,13 @@ var pixi_projection;
                 tex.uvMatrix = new PIXI.TextureMatrix(tex, 0.0);
             }
             tex.uvMatrix.update();
+            this.uniforms.npmAlpha = tex.baseTexture.alphaMode ? 0.0 : 1.0;
             this.uniforms.mask = maskSprite.texture;
             this.uniforms.otherMatrix = SpriteMaskFilter2d.calculateSpriteMatrix(input, this.maskMatrix, maskSprite)
                 .prepend(tex.uvMatrix.mapCoord);
             this.uniforms.alpha = maskSprite.worldAlpha;
             this.uniforms.maskClamp = tex.uvMatrix.uClampFrame;
-            filterManager.applyFilter(this, input, output, clear);
+            filterManager.applyFilter(this, input, output, clearMode);
         };
         SpriteMaskFilter2d.calculateSpriteMatrix = function (input, mappedMatrix, sprite) {
             var proj = sprite.proj;
@@ -3101,6 +3101,7 @@ var pixi_projection;
             this.x = x || 0;
             this.y = (y === undefined) ? this.x : (y || 0);
             this.z = (y === undefined) ? this.x : (z || 0);
+            return this;
         };
         Point3d.prototype.copyFrom = function (p) {
             this.set(p.x, p.y, p.z || 0);
@@ -3143,6 +3144,7 @@ var pixi_projection;
                 this._z = _z;
                 this.cb.call(this.scope);
             }
+            return this;
         };
         ObservablePoint3d.prototype.copyFrom = function (p) {
             this.set(p.x, p.y, p.z || 0);
