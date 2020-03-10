@@ -3101,6 +3101,7 @@ var pixi_projection;
             this.x = x || 0;
             this.y = (y === undefined) ? this.x : (y || 0);
             this.z = (y === undefined) ? this.x : (z || 0);
+            return this;
         };
         Point3d.prototype.copyFrom = function (p) {
             this.set(p.x, p.y, p.z || 0);
@@ -3143,6 +3144,7 @@ var pixi_projection;
                 this._z = _z;
                 this.cb.call(this.scope);
             }
+            return this;
         };
         ObservablePoint3d.prototype.copyFrom = function (p) {
             this.set(p.x, p.y, p.z || 0);

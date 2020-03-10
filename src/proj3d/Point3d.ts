@@ -28,7 +28,9 @@ namespace pixi_projection {
 		set(x?: number, y?: number, z?: number) {
 			this.x = x || 0;
 			this.y = (y === undefined) ? this.x : (y || 0);
-			this.z = (y === undefined) ? this.x : (z || 0);
+            this.z = (y === undefined) ? this.x : (z || 0);
+
+            return this
 		}
 
 		copyFrom(p: PIXI.IPoint) {
@@ -66,7 +68,9 @@ namespace pixi_projection {
 				this._y = _y;
 				this._z = _z;
 				this.cb.call(this.scope);
-			}
+            }
+
+            return this
 		}
 
 		copyFrom(p: PIXI.IPoint) {
