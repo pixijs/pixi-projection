@@ -13,11 +13,10 @@ namespace pixi_projection {
 		alphaMaskFilter[0].maskSprite = maskObject;
 
         const stashFilterArea = target.filterArea;
+
         target.filterArea = maskObject.getBounds(true);
         this.renderer.filter.push(target, alphaMaskFilter);
         target.filterArea = stashFilterArea;
-
-		this.renderer.filter.push(target, alphaMaskFilter);
 
 		this.alphaMaskIndex++;
 	}

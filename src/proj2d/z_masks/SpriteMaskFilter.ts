@@ -29,7 +29,7 @@ uniform vec4 maskClamp;
 void main(void)
 {
     vec2 uv = vMaskCoord.xy / vMaskCoord.z;
-    
+
     float clip = step(3.5,
         step(maskClamp.x, uv.x) +
         step(maskClamp.y, uv.y) +
@@ -38,7 +38,7 @@ void main(void)
 
     vec4 original = texture2D(uSampler, vTextureCoord);
     vec4 masky = texture2D(mask, uv);
-    
+
     original *= (masky.r * masky.a * alpha * clip);
 
     gl_FragColor = original;
@@ -60,7 +60,7 @@ void main(void)
 		maskMatrix = new Matrix2d();
 
 		apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture,
-		      clear?: boolean) {
+              clearMode?: boolean) {
 			const maskSprite = this.maskSprite;
 			const tex = this.maskSprite.texture;
 
@@ -76,13 +76,14 @@ void main(void)
 			}
 			tex.uvMatrix.update();
 
+            this.uniforms.npmAlpha = tex.baseTexture.alphaMode ? 0.0 : 1.0;
 			this.uniforms.mask = maskSprite.texture;
 			this.uniforms.otherMatrix = SpriteMaskFilter2d.calculateSpriteMatrix(input, this.maskMatrix, maskSprite)
-				.prepend((tex.uvMatrix as any).mapCoord);
+				.prepend(tex.uvMatrix.mapCoord);
 			this.uniforms.alpha = maskSprite.worldAlpha;
-			this.uniforms.maskClamp = (tex.uvMatrix as any).uClampFrame;
+			this.uniforms.maskClamp = tex.uvMatrix.uClampFrame;
 
-			filterManager.applyFilter(this, input, output, clear);
+			filterManager.applyFilter(this, input, output, clearMode);
 		}
 
 		static calculateSpriteMatrix(input: PIXI.RenderTexture, mappedMatrix: Matrix2d, sprite: PIXI.Sprite) {
