@@ -1,7 +1,7 @@
 {
   "name": "pixi-projection",
-  "version": "0.3.8",
-  "description": "Projections (2.5d, 3d and bilinear) for pixi v^4",
+  "version": "0.3.10",
+  "description": "Projections (2.5d, 3d and bilinear) for pixi v^5",
   "author": "Ivan Popelyshev",
   "contributors": [
     "Ivan Popelyshev <ivan.popelyshev@gmail.com>"
