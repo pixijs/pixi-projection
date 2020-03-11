@@ -43,7 +43,7 @@ namespace pixi_projection {
 
 				if (d <= 0.00001) {
 					newPos.set(NaN, NaN);
-					return;
+					return newPos;
 				}
 				if (dy > 0.0) {
 					newPos.x = - b + Math.sqrt(d);

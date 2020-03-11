@@ -33,7 +33,7 @@ namespace pixi_projection {
 		if (pp._surface) {
 			proj._activeProjection = pp;
 			this.updateLocalTransform();
-			this.localTransform.copyFrom(this.worldTransform);
+			this.localTransform.copyTo(this.worldTransform);
 			if (ta._parentID < 0) {
 				++ta._worldID;
 			}
