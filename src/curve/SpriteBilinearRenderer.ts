@@ -75,9 +75,9 @@ if (distortion.y == 0.0) {
 	float b = (c + 1.0) * 0.5;
 	float b2 = (-c + 1.0) * 0.5;
 	float d = b * b + vx * dy;
-	//if (d < -0.00001) {
-	//    discard;
-	//}
+	if (d < -0.00001) {
+	    discard;
+	}
 	d = sqrt(max(d, 0.0));
 	surface.x = (- b + d) * revy;
 	surface2.x = (- b - d) * revy;
@@ -97,10 +97,10 @@ if (pixels.x < vFrame.x || pixels.x > vFrame.z ||
 	uv.y = vTrans2.x * surface2.x + vTrans2.y * surface2.y + vTrans2.z;
 	pixels = uv * vSamplerSize;
 
-//    if (pixels.x < vFrame.x || pixels.x > vFrame.z ||
-//        pixels.y < vFrame.y || pixels.y > vFrame.w) {
-//        discard;
-//    }
+   if (pixels.x < vFrame.x || pixels.x > vFrame.z ||
+       pixels.y < vFrame.y || pixels.y > vFrame.w) {
+       discard;
+   }
 }
 
 vec4 edge;
@@ -114,8 +114,7 @@ float textureId = floor(vTextureId+0.5);
 vec2 vTextureCoord = uv;
 vec4 color;
 %forloop%
-gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
-//gl_FragColor = color * rColor;
+gl_FragColor = color * rColor;
 }`;
 
 	export class BatchBilineardGeometry extends PIXI.Geometry
@@ -165,7 +164,7 @@ gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
 
 				defUniforms = {
 					translationMatrix: new PIXI.Matrix(),
-					distortion: new Float32Array([0, 0])
+					distortion: new Float32Array([0, 0, Infinity, Infinity])
 				};
 				size = 1000;
 				forceMaxTextures = 1;
@@ -202,8 +201,8 @@ gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
 
 					for (let i = 0; i < vertexData.length; i += 2)
 					{
-						float32View[aIndex] = vertexData[i * 2];
-						float32View[aIndex + 1] = vertexData[i * 2 + 1];
+						float32View[aIndex] = vertexData[i];
+						float32View[aIndex + 1] = vertexData[i + 1];
 
 						float32View[aIndex + 2] = aTrans.a;
 						float32View[aIndex + 3] = aTrans.c;

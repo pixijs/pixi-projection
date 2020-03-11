@@ -108,7 +108,8 @@ namespace pixi_projection {
 					(shaderSystem as any).syncUniformGroup((this._shader as any).uniformGroup);
 				}
 
-				stateSystem.setBlendMode(blend);
+				this.state.blendMode = blend;
+				stateSystem.set(this.state);
 				gl.drawElements(type, size, gl.UNSIGNED_SHORT, start * 2);
 			}
 		}
