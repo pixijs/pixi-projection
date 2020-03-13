@@ -1621,7 +1621,7 @@ var pixi_projection;
             enumerable: true,
             configurable: true
         });
-        Mesh2d.defaultVertexShader = "precision highp float;\nattribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\n\nuniform mat3 projectionMatrix;\nuniform mat3 translationMatrix;\nuniform mat3 uTransform;\n\nvarying vec2 vTextureCoord;\n\nvoid main(void)\n{\n\tgl_Position.xyw = projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0);\n\tgl_Position.z = 0.0;\n\n\tvTextureCoord = (uTransform * vec3(aTextureCoord, 1.0)).xy;\n}\n";
+        Mesh2d.defaultVertexShader = "precision highp float;\nattribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\n\nuniform mat3 projectionMatrix;\nuniform mat3 translationMatrix;\nuniform mat3 uTextureMatrix;\n\nvarying vec2 vTextureCoord;\n\nvoid main(void)\n{\n\tgl_Position.xyw = projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0);\n\tgl_Position.z = 0.0;\n\n\tvTextureCoord = (uTextureMatrix * vec3(aTextureCoord, 1.0)).xy;\n}\n";
         Mesh2d.defaultFragmentShader = "\nvarying vec2 vTextureCoord;\nuniform vec4 uColor;\n\nuniform sampler2D uSampler;\n\nvoid main(void)\n{\n\tgl_FragColor = texture2D(uSampler, vTextureCoord) * uColor;\n}";
         return Mesh2d;
     }(PIXI.Mesh));
