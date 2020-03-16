@@ -32,8 +32,7 @@ namespace pixi_projection {
 			{
 				thisAny.vertexData = new Float32Array(vertices.length);
 			}
-
-			if (this.vertexData2d.length  !== vertices.length * 3 / 2)
+			if (!this.vertexData2d || this.vertexData2d.length  !== vertices.length * 3 / 2)
 			{
 				this.vertexData2d = new Float32Array(vertices.length * 3);
 			}
