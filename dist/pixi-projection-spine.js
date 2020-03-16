@@ -3267,7 +3267,7 @@ var pixi_projection;
             if (thisAny.vertexData.length !== vertices.length) {
                 thisAny.vertexData = new Float32Array(vertices.length);
             }
-            if (this.vertexData2d.length !== vertices.length * 3 / 2) {
+            if (!this.vertexData2d || this.vertexData2d.length !== vertices.length * 3 / 2) {
                 this.vertexData2d = new Float32Array(vertices.length * 3);
             }
             var wt = this.proj.world.mat4;
