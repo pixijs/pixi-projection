@@ -53,7 +53,7 @@ var pixi_projection;
             set: function (value) {
                 this._enabled = value;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         AbstractProjection.prototype.clear = function () {
@@ -162,7 +162,7 @@ var pixi_projection;
                 this._currentProjID = -1;
                 this.legacy._currentLocalID = -1;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(LinearProjection.prototype, "enabled", {
@@ -180,7 +180,7 @@ var pixi_projection;
                     this.legacy._parentID = -1;
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         LinearProjection.prototype.clear = function () {
@@ -593,7 +593,7 @@ var pixi_projection;
             get: function () {
                 return this.proj;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return Container2s;
@@ -650,7 +650,7 @@ var pixi_projection;
                     this.legacy._parentID = -1;
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(ProjectionSurface.prototype, "surface", {
@@ -664,7 +664,7 @@ var pixi_projection;
                 this._surface = value || null;
                 this.legacy._parentID = -1;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         ProjectionSurface.prototype.applyPartial = function (pos, newPos) {
@@ -723,7 +723,7 @@ var pixi_projection;
                 this._surface.fillUniforms(this._lastUniforms);
                 return this._lastUniforms;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return ProjectionSurface;
@@ -976,7 +976,7 @@ var pixi_projection;
             get: function () {
                 return this.proj;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return Sprite2s;
@@ -998,7 +998,7 @@ var pixi_projection;
             get: function () {
                 return this.proj;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return Text2s;
@@ -1084,7 +1084,7 @@ var pixi_projection;
             get: function () {
                 return this.proj.affine ? this.transform.worldTransform : this.proj.world;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return Container2d;
@@ -1117,7 +1117,7 @@ var pixi_projection;
             set: function (value) {
                 this.mat3[0] = value * this.mat3[8];
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Matrix2d.prototype, "b", {
@@ -1127,7 +1127,7 @@ var pixi_projection;
             set: function (value) {
                 this.mat3[1] = value * this.mat3[8];
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Matrix2d.prototype, "c", {
@@ -1137,7 +1137,7 @@ var pixi_projection;
             set: function (value) {
                 this.mat3[3] = value * this.mat3[8];
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Matrix2d.prototype, "d", {
@@ -1147,7 +1147,7 @@ var pixi_projection;
             set: function (value) {
                 this.mat3[4] = value * this.mat3[8];
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Matrix2d.prototype, "tx", {
@@ -1157,7 +1157,7 @@ var pixi_projection;
             set: function (value) {
                 this.mat3[6] = value * this.mat3[8];
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Matrix2d.prototype, "ty", {
@@ -1167,7 +1167,7 @@ var pixi_projection;
             set: function (value) {
                 this.mat3[7] = value * this.mat3[8];
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Matrix2d.prototype.set = function (a, b, c, d, tx, ty) {
@@ -1575,7 +1575,7 @@ var pixi_projection;
             if (thisAny.vertexData.length !== vertices.length) {
                 thisAny.vertexData = new Float32Array(vertices.length);
             }
-            if (this.vertexData2d.length !== vertices.length * 3 / 2) {
+            if (!this.vertexData2d || this.vertexData2d.length !== vertices.length * 3 / 2) {
                 this.vertexData2d = new Float32Array(vertices.length * 3);
             }
             var wt = this.proj.world.mat3;
@@ -1618,7 +1618,7 @@ var pixi_projection;
             get: function () {
                 return this.proj.affine ? this.transform.worldTransform : this.proj.world;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Mesh2d.defaultVertexShader = "precision highp float;\nattribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\n\nuniform mat3 projectionMatrix;\nuniform mat3 translationMatrix;\nuniform mat3 uTextureMatrix;\n\nvarying vec2 vTextureCoord;\n\nvoid main(void)\n{\n\tgl_Position.xyw = projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0);\n\tgl_Position.z = 0.0;\n\n\tvTextureCoord = (uTextureMatrix * vec3(aTextureCoord, 1.0)).xy;\n}\n";
@@ -1644,7 +1644,7 @@ var pixi_projection;
             set: function (value) {
                 this.geometry.getBuffer('aVertexPosition').data = value;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         SimpleMesh2d.prototype._render = function (renderer) {
@@ -1780,7 +1780,7 @@ var pixi_projection;
             get: function () {
                 return this.proj.affine ? this.transform.worldTransform : this.proj.world;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return Sprite2d;
@@ -1802,7 +1802,7 @@ var pixi_projection;
             get: function () {
                 return this.proj.affine ? this.transform.worldTransform : this.proj.world;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return Text2d;
@@ -1877,7 +1877,7 @@ var pixi_projection;
             get: function () {
                 return this.proj.affine ? this.transform.worldTransform : this.proj.world;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         TilingSprite2d.prototype.toLocal = function (position, from, point, skipUpdate, step) {
@@ -2112,7 +2112,7 @@ var pixi_projection;
             get: function () {
                 return this.proj.affine ? this.transform.worldTransform : this.proj.world;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Container3d.prototype, "position3d", {
@@ -2122,7 +2122,7 @@ var pixi_projection;
             set: function (value) {
                 this.proj.position.copyFrom(value);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Container3d.prototype, "scale3d", {
@@ -2132,7 +2132,7 @@ var pixi_projection;
             set: function (value) {
                 this.proj.scale.copyFrom(value);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Container3d.prototype, "euler", {
@@ -2142,7 +2142,7 @@ var pixi_projection;
             set: function (value) {
                 this.proj.euler.copyFrom(value);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Container3d.prototype, "pivot3d", {
@@ -2152,7 +2152,7 @@ var pixi_projection;
             set: function (value) {
                 this.proj.pivot.copyFrom(value);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return Container3d;
@@ -2180,28 +2180,28 @@ var pixi_projection;
             get: function () {
                 return this._far;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Camera3d.prototype, "near", {
             get: function () {
                 return this._near;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Camera3d.prototype, "focus", {
             get: function () {
                 return this._focus;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Camera3d.prototype, "ortographic", {
             get: function () {
                 return this._orthographic;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Camera3d.prototype.setPlanes = function (focus, near, far, orthographic) {
@@ -2252,7 +2252,7 @@ var pixi_projection;
                     this._quatDirtyId++;
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Euler.prototype, "y", {
@@ -2265,7 +2265,7 @@ var pixi_projection;
                     this._quatDirtyId++;
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Euler.prototype, "z", {
@@ -2278,7 +2278,7 @@ var pixi_projection;
                     this._quatDirtyId++;
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Euler.prototype, "pitch", {
@@ -2291,7 +2291,7 @@ var pixi_projection;
                     this._quatDirtyId++;
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Euler.prototype, "yaw", {
@@ -2304,7 +2304,7 @@ var pixi_projection;
                     this._quatDirtyId++;
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Euler.prototype, "roll", {
@@ -2317,7 +2317,7 @@ var pixi_projection;
                     this._quatDirtyId++;
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Euler.prototype.set = function (x, y, z) {
@@ -2400,7 +2400,7 @@ var pixi_projection;
             set: function (value) {
                 this.mat4[0] = value * this.mat4[15];
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Matrix3d.prototype, "b", {
@@ -2410,7 +2410,7 @@ var pixi_projection;
             set: function (value) {
                 this.mat4[1] = value * this.mat4[15];
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Matrix3d.prototype, "c", {
@@ -2420,7 +2420,7 @@ var pixi_projection;
             set: function (value) {
                 this.mat4[4] = value * this.mat4[15];
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Matrix3d.prototype, "d", {
@@ -2430,7 +2430,7 @@ var pixi_projection;
             set: function (value) {
                 this.mat4[5] = value * this.mat4[15];
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Matrix3d.prototype, "tx", {
@@ -2440,7 +2440,7 @@ var pixi_projection;
             set: function (value) {
                 this.mat4[12] = value * this.mat4[15];
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Matrix3d.prototype, "ty", {
@@ -2450,7 +2450,7 @@ var pixi_projection;
             set: function (value) {
                 this.mat4[13] = value * this.mat4[15];
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Matrix3d.prototype.set = function (a, b, c, d, tx, ty) {
@@ -2956,7 +2956,7 @@ var pixi_projection;
                     this.cb.call(this.scope);
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(ObservableEuler.prototype, "y", {
@@ -2970,7 +2970,7 @@ var pixi_projection;
                     this.cb.call(this.scope);
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(ObservableEuler.prototype, "z", {
@@ -2984,7 +2984,7 @@ var pixi_projection;
                     this.cb.call(this.scope);
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(ObservableEuler.prototype, "pitch", {
@@ -2998,7 +2998,7 @@ var pixi_projection;
                     this.cb.call(this.scope);
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(ObservableEuler.prototype, "yaw", {
@@ -3012,7 +3012,7 @@ var pixi_projection;
                     this.cb.call(this.scope);
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(ObservableEuler.prototype, "roll", {
@@ -3026,7 +3026,7 @@ var pixi_projection;
                     this.cb.call(this.scope);
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         ObservableEuler.prototype.set = function (x, y, z) {
@@ -3132,7 +3132,7 @@ var pixi_projection;
                     this.cb.call(this.scope);
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         ObservablePoint3d.prototype.set = function (x, y, z) {
@@ -3196,7 +3196,7 @@ var pixi_projection;
                     this.cameraMatrix = new pixi_projection.Matrix3d();
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Projection3d.prototype.onChange = function () {
@@ -3291,7 +3291,7 @@ var pixi_projection;
             get: function () {
                 return this.proj.affine ? this.transform.worldTransform : this.proj.world;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Mesh3d2d.prototype.toLocal = function (position, from, point, skipUpdate, step) {
@@ -3311,7 +3311,7 @@ var pixi_projection;
             set: function (value) {
                 this.proj.position.copyFrom(value);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Mesh3d2d.prototype, "scale3d", {
@@ -3321,7 +3321,7 @@ var pixi_projection;
             set: function (value) {
                 this.proj.scale.copyFrom(value);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Mesh3d2d.prototype, "euler", {
@@ -3331,7 +3331,7 @@ var pixi_projection;
             set: function (value) {
                 this.proj.euler.copyFrom(value);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Mesh3d2d.prototype, "pivot3d", {
@@ -3341,7 +3341,7 @@ var pixi_projection;
             set: function (value) {
                 this.proj.pivot.copyFrom(value);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return Mesh3d2d;
@@ -3366,7 +3366,7 @@ var pixi_projection;
             set: function (value) {
                 this.geometry.getBuffer('aVertexPosition').data = value;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         SimpleMesh3d2d.prototype._render = function (renderer) {
@@ -3548,7 +3548,7 @@ var pixi_projection;
             get: function () {
                 return this.proj.affine ? this.transform.worldTransform : this.proj.world;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Sprite3d.prototype.toLocal = function (position, from, point, skipUpdate, step) {
@@ -3568,7 +3568,7 @@ var pixi_projection;
             set: function (value) {
                 this.proj.position.copyFrom(value);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Sprite3d.prototype, "scale3d", {
@@ -3578,7 +3578,7 @@ var pixi_projection;
             set: function (value) {
                 this.proj.scale.copyFrom(value);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Sprite3d.prototype, "euler", {
@@ -3588,7 +3588,7 @@ var pixi_projection;
             set: function (value) {
                 this.proj.euler.copyFrom(value);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Sprite3d.prototype, "pivot3d", {
@@ -3598,7 +3598,7 @@ var pixi_projection;
             set: function (value) {
                 this.proj.pivot.copyFrom(value);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return Sprite3d;
@@ -3620,7 +3620,7 @@ var pixi_projection;
             get: function () {
                 return this.proj.affine ? this.transform.worldTransform : this.proj.world;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Text3d.prototype.toLocal = function (position, from, point, skipUpdate, step) {
@@ -3640,7 +3640,7 @@ var pixi_projection;
             set: function (value) {
                 this.proj.position.copyFrom(value);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Text3d.prototype, "scale3d", {
@@ -3650,7 +3650,7 @@ var pixi_projection;
             set: function (value) {
                 this.proj.scale.copyFrom(value);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Text3d.prototype, "euler", {
@@ -3660,7 +3660,7 @@ var pixi_projection;
             set: function (value) {
                 this.proj.euler.copyFrom(value);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Text3d.prototype, "pivot3d", {
@@ -3670,7 +3670,7 @@ var pixi_projection;
             set: function (value) {
                 this.proj.pivot.copyFrom(value);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return Text3d;
