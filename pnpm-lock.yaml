@@ -15,6 +15,7 @@ devDependencies:
   '@pixi/utils': 5.3.3
   '@typescript-eslint/eslint-plugin': 3.10.1_cbb4625841c21d2fda3cac0b05035458
   '@typescript-eslint/parser': 3.10.1_eslint@7.7.0+typescript@3.9.7
+  awesome-typescript-loader: 5.2.1_typescript@3.9.7
   checkpack: 0.3.0
   del: 2.2.2
   eslint: 7.7.0
@@ -1169,6 +1170,22 @@ packages:
       mkdirp: 0.5.5
       source-map-support: 0.5.19
       typescript: 2.9.2
+      webpack-log: 1.2.0
+    dev: true
+    peerDependencies:
+      typescript: ^2.7 || ^3
+    resolution:
+      integrity: sha512-slv66OAJB8orL+UUaTI3pKlLorwIvS4ARZzYR9iJJyGsEgOqueMfOMdKySWzZ73vIkEe3fcwFgsKMg4d8zyb1g==
+  /awesome-typescript-loader/5.2.1_typescript@3.9.7:
+    dependencies:
+      chalk: 2.4.2
+      enhanced-resolve: 4.3.0
+      loader-utils: 1.4.0
+      lodash: 4.17.20
+      micromatch: 3.1.10
+      mkdirp: 0.5.5
+      source-map-support: 0.5.19
+      typescript: 3.9.7
       webpack-log: 1.2.0
     dev: true
     peerDependencies:
@@ -5423,6 +5440,7 @@ specifiers:
   '@pixi/utils': ^5.3.3
   '@typescript-eslint/eslint-plugin': ^3.10.1
   '@typescript-eslint/parser': ^3.10.1
+  awesome-typescript-loader: ^5.2.1
   checkpack: ^0.3
   del: ^2.2.0
   eslint: ^7.7.0
