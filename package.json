@@ -42,6 +42,7 @@
     "@pixi/core": "^5.3.3",
     "@pixi/display": "^5.3.3",
     "@pixi/eslint-config": "^1.0.1",
+    "@pixi/graphics": "^5.3.3",
     "@pixi/math": "^5.3.3",
     "@pixi/mesh-extras": "^5.3.3",
     "@pixi/sprite": "^5.3.3",

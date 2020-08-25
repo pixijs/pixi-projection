@@ -2,6 +2,7 @@ devDependencies:
   '@pixi/core': 5.3.3
   '@pixi/display': 5.3.3
   '@pixi/eslint-config': 1.0.1_eslint@7.7.0+typescript@3.9.7
+  '@pixi/graphics': 5.3.3
   '@pixi/math': 5.3.3
   '@pixi/mesh-extras': 5.3.3
   '@pixi/sprite': 5.3.3
@@ -175,6 +176,17 @@ packages:
     dev: true
     resolution:
       integrity: sha512-jASQ2M9+Zzm4GmBE+h6lw30xY/0N1GjAn2Dxd8LJZoeeUjAoVQYbN1CavecPGMRW/Rd0QkkHB5B8iWqZX2Uuxg==
+  /@pixi/graphics/5.3.3:
+    dependencies:
+      '@pixi/constants': 5.3.3
+      '@pixi/core': 5.3.3
+      '@pixi/display': 5.3.3
+      '@pixi/math': 5.3.3
+      '@pixi/sprite': 5.3.3
+      '@pixi/utils': 5.3.3
+    dev: true
+    resolution:
+      integrity: sha512-1bn9Jptg3JXgVOw0SrEMdmjSwkTBYDm6fPnPnh4goF3yDozh0xEqmXobVtCgy2fulMfHRzIfbgtRxrBf2mkCAg==
   /@pixi/interaction/5.2.4:
     dependencies:
       '@pixi/core': 5.2.4
@@ -5021,6 +5033,7 @@ specifiers:
   '@pixi/core': ^5.3.3
   '@pixi/display': ^5.3.3
   '@pixi/eslint-config': ^1.0.1
+  '@pixi/graphics': ^5.3.3
   '@pixi/math': ^5.3.3
   '@pixi/mesh-extras': ^5.3.3
   '@pixi/sprite': ^5.3.3
