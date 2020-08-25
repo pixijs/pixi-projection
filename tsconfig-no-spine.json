@@ -1,8 +1,6 @@
 {
     "compilerOptions": {
         "target": "es5",
-        "module": "none",
-        "outFile": "dist/pixi-projection.js",
         "experimentalDecorators": true,
         "sourceMap": true,
         "preserveConstEnums": true,
@@ -10,7 +8,10 @@
         "removeComments": true,
         "inlineSources": true,
         "declaration": true,
-        "lib": ["es6", "dom"]
+        "lib": [
+            "es6",
+            "dom"
+        ]
     },
     "include": [
         "src/**/*"

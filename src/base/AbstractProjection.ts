@@ -1,56 +1,33 @@
-declare namespace PIXI {
-	export interface Transform {
-		proj?: pixi_projection.AbstractProjection;
-	}
+import { Transform } from '@pixi/math';
 
-	export interface ObservablePoint {
-		_x?: number;
-		_y?: number;
-	}
+export class ProjectedTransform extends Transform {
+	proj: AbstractProjection;
 }
 
-namespace pixi_projection {
-	export class AbstractProjection {
+export class AbstractProjection {
+	legacy: ProjectedTransform;
 
-		constructor(legacy: PIXI.Transform, enable: boolean = true) {
-			this.legacy = legacy;
+	protected _enabled: boolean = false;
 
-			if (enable) {
-				this.enabled = true;
-			}
+	constructor(legacy: Transform, enable: boolean = true) {
+		this.legacy = legacy as ProjectedTransform;
 
-			// sorry for hidden class, it would be good to have special projection field in official pixi
-			this.legacy.proj = this;
+		if (enable) {
+			this.enabled = true;
 		}
 
-		legacy: PIXI.Transform;
-
-		_enabled: boolean = false;
-
-		get enabled() {
-			return this._enabled;
-		}
-
-		set enabled(value: boolean) {
-			this._enabled = value;
-		}
-
-		clear() {
-		}
+		// sorry for hidden class, it would be good to have special projection field in official pixi
+		this.legacy.proj = this;
 	}
 
-	export enum TRANSFORM_STEP {
-		NONE = 0,
-		// POS = 1,
-		// ROT = 2,
-		// SCALE = 3,
-		// PIVOT = 4,
-		BEFORE_PROJ = 4,
-		PROJ = 5,
-		// POS_2 = 6,
-		// ROT_2 = 7,
-		// SCALE_2 = 8,
-		// PIVOT_2 = 9,
-		ALL = 9
+	get enabled() {
+		return this._enabled;
+	}
+
+	set enabled(value: boolean) {
+		this._enabled = value;
+	}
+
+	clear() {
 	}
 }

@@ -4,7 +4,8 @@
   "description": "Projections (2.5d, 3d and bilinear) for pixi v^5",
   "author": "Ivan Popelyshev",
   "contributors": [
-    "Ivan Popelyshev <ivan.popelyshev@gmail.com>"
+    "Ivan Popelyshev <ivan.popelyshev@gmail.com>",
+    "Shukant K. Pal <shukantpal@outlook.com>"
   ],
   "main": "./dist/pixi-projection.js",
   "types": "./dist/pixi-projection.d.ts",
@@ -19,17 +20,17 @@
   },
   "scripts": {
     "cleanup": "rimraf bin && mkdirp dist",
-    "prestart": "yarn cleanup",
-    "start": "parallelshell \"yarn watch\"",
+    "prestart": "pnpm cleanup",
+    "start": "parallelshell \"pnpm watch\"",
     "watch": "tsc -w",
-    "prebuild": "yarn cleanup",
+    "prebuild": "pnpm cleanup",
     "make:dts": "node scripts/make_dts.js && node scripts/make_dts_no_spine.js",
-    "build": "tsc && tsc -p tsconfig-no-spine.json && yarn make:dts",
+    "build": "tsc && tsc -p tsconfig-no-spine.json && pnpm make:dts",
     "docs": "jsdoc -c scripts/jsdoc.conf.json -R README.md",
-    "check:browserify": "yarn checkpack -- browserify -e test/checkpack.ts",
-    "check:webpack": "yarn checkpack -- webpack -e test/checkpack.ts",
-    "check:vanillajs": "yarn checkpack -- vanillajs -e test/checkpack.ts",
-    "check:all": "yarn build && yarn check:browserify && yarn check:webpack && yarn check:vanillajs"
+    "check:browserify": "pnpm checkpack -- browserify -e test/checkpack.ts",
+    "check:webpack": "pnpm checkpack -- webpack -e test/checkpack.ts",
+    "check:vanillajs": "pnpm checkpack -- vanillajs -e test/checkpack.ts",
+    "check:all": "pnpm build && pnpm check:browserify && pnpm check:webpack && pnpm check:vanillajs"
   },
   "files": [
     "dist/",
@@ -38,14 +39,22 @@
     "README.md"
   ],
   "devDependencies": {
+    "@pixi/core": "^5.3.3",
+    "@pixi/display": "^5.3.3",
+    "@pixi/eslint-config": "^1.0.1",
+    "@pixi/math": "^5.3.3",
+    "@pixi/sprite": "^5.3.3",
+    "@typescript-eslint/eslint-plugin": "^3.10.1",
+    "@typescript-eslint/parser": "^3.10.1",
     "checkpack": "^0.3",
     "del": "^2.2.0",
+    "eslint": "^7.7.0",
     "jaguarjs-jsdoc": "^1.0.1",
     "jsdoc": "^3.4.0",
     "mkdirp": "^0.5.1",
-    "pixi.js": "~5.2.1",
-    "pixi-spine": "~2.0.2",
     "parallelshell": "^2.0.0",
+    "pixi-spine": "~2.0.2",
+    "pixi.js": "~5.2.1",
     "rimraf": "^2.5.3",
     "typescript": "^3.5.3"
   }
