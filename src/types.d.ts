@@ -7,13 +7,17 @@ declare module "@pixi/constants" {
         ALPHA_MODES,
         DRAW_MODES,
         WRAP_MODES,
-        SCALE_MODES
+        SCALE_MODES,
+        TYPES
     } from 'pixi.js';
 }
 
 declare module "@pixi/core" {
     export { 
+        AbstractBatchRenderer, 
+        BatchShaderGenerator,
         BaseTexture,
+        BatchTextureArray,
         Buffer,
         Texture,
         ObjectRenderer,
@@ -28,7 +32,8 @@ declare module "@pixi/core" {
         Shader,
         State,
         resources,
-        systems
+        systems,
+        ViewableBuffer
     } from 'pixi.js';
 }
 
@@ -79,4 +84,12 @@ declare module "@pixi/utils" {
     export function correctBlendMode(blendMode: number, premultiplied: boolean): number;
     export function premultiplyTint(tint: number, alpha: number): number;
     export function premultiplyTintToRgba(tint: number, alpha: number, out: Float32Array, premultiply: boolean): Float32Array;
+    export const premultiplyBlendMode: number[][];
+}
+
+declare module "@pixi/text" {
+    export {
+        Text,
+        TextStyle
+    } from 'pixi.js';
 }

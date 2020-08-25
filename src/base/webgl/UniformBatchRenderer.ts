@@ -1,141 +1,142 @@
-namespace pixi_projection {
-	import AbstractBatchRenderer = PIXI.AbstractBatchRenderer;
-	import premultiplyBlendMode = PIXI.utils.premultiplyBlendMode;
+/// <reference path="../../types.d.ts" />
 
-	export class UniformBatchRenderer extends AbstractBatchRenderer {
-		_iIndex: number;
-		_aIndex: number;
-		_dcIndex: number;
-		_bufferedElements: Array<any>;
-		_attributeBuffer: PIXI.ViewableBuffer;
-		_indexBuffer: Uint16Array;
-		vertexSize: number;
-		forceMaxTextures = 0;
+import { AbstractBatchRenderer, BatchTextureArray, ViewableBuffer } from '@pixi/core';
+import { Sprite } from '@pixi/sprite';
+import { premultiplyBlendMode } from '@pixi/utils';
 
-		getUniforms(sprite: PIXI.Sprite): any {
-			return this.defUniforms;
+export class UniformBatchRenderer extends AbstractBatchRenderer {
+	_iIndex: number;
+	_aIndex: number;
+	_dcIndex: number;
+	_bufferedElements: Array<any>;
+	_attributeBuffer: ViewableBuffer;
+	_indexBuffer: Uint16Array;
+	vertexSize: number;
+	forceMaxTextures = 0;
+
+	getUniforms(sprite: Sprite): any {
+		return this.defUniforms;
+	}
+
+	syncUniforms(obj: any) {
+		if (!obj) return;
+		let sh = this._shader;
+		for (let key in obj) {
+			sh.uniforms[key] = obj[key];
 		}
+	}
 
-		syncUniforms(obj: any) {
-			if (!obj) return;
-			let sh = this._shader;
-			for (let key in obj) {
-				sh.uniforms[key] = obj[key];
-			}
-		}
+	defUniforms = {};
 
-		defUniforms = {};
+	buildDrawCalls(texArray: BatchTextureArray, start: number, finish: number)
+	{
+		const thisAny = this as any;
 
-		buildDrawCalls(texArray: PIXI.BatchTextureArray, start: number, finish: number)
+		const {
+			_bufferedElements: elements,
+			_attributeBuffer,
+			_indexBuffer,
+			vertexSize,
+		} = this;
+		const drawCalls = AbstractBatchRenderer._drawCallPool;
+
+		let dcIndex: number = this._dcIndex;
+		let aIndex: number = this._aIndex;
+		let iIndex: number = this._iIndex;
+
+		let drawCall = drawCalls[dcIndex] as any;
+
+		drawCall.start = this._iIndex;
+		drawCall.texArray = texArray;
+
+		for (let i = start; i < finish; ++i)
 		{
-			const thisAny = this as any;
+			const sprite = elements[i];
+			const tex = sprite._texture.baseTexture;
+			const spriteBlendMode = premultiplyBlendMode[
+				tex.alphaMode ? 1 : 0][sprite.blendMode];
+			const uniforms = this.getUniforms(sprite);
 
-			const {
-				_bufferedElements: elements,
-				_attributeBuffer,
-				_indexBuffer,
-				vertexSize,
-			} = this;
-			const drawCalls = AbstractBatchRenderer._drawCallPool;
+			elements[i] = null;
 
-			let dcIndex: number = this._dcIndex;
-			let aIndex: number = this._aIndex;
-			let iIndex: number = this._iIndex;
-
-			let drawCall = drawCalls[dcIndex] as any;
-
-			drawCall.start = this._iIndex;
-			drawCall.texArray = texArray;
-
-			for (let i = start; i < finish; ++i)
-			{
-				const sprite = elements[i];
-				const tex = sprite._texture.baseTexture;
-				const spriteBlendMode = premultiplyBlendMode[
-					tex.alphaMode ? 1 : 0][sprite.blendMode];
-				const uniforms = this.getUniforms(sprite);
-
-				elements[i] = null;
-
-				// here is the difference
-				if (start < i && (drawCall.blend !== spriteBlendMode || drawCall.uniforms !== uniforms))
-				{
-					drawCall.size = iIndex - drawCall.start;
-					start = i;
-					drawCall = drawCalls[++dcIndex];
-					drawCall.texArray = texArray;
-					drawCall.start = iIndex;
-				}
-
-				this.packInterleavedGeometry(sprite, _attributeBuffer, _indexBuffer, aIndex, iIndex);
-				aIndex += sprite.vertexData.length / 2 * vertexSize;
-				iIndex += sprite.indices.length;
-
-				drawCall.blend = spriteBlendMode;
-				// here is the difference
-				drawCall.uniforms = uniforms;
-			}
-
-			if (start < finish)
+			// here is the difference
+			if (start < i && (drawCall.blend !== spriteBlendMode || drawCall.uniforms !== uniforms))
 			{
 				drawCall.size = iIndex - drawCall.start;
-				++dcIndex;
+				start = i;
+				drawCall = drawCalls[++dcIndex];
+				drawCall.texArray = texArray;
+				drawCall.start = iIndex;
 			}
 
-			thisAny._dcIndex = dcIndex;
-			thisAny._aIndex = aIndex;
-			thisAny._iIndex = iIndex;
+			this.packInterleavedGeometry(sprite, _attributeBuffer, _indexBuffer, aIndex, iIndex);
+			aIndex += sprite.vertexData.length / 2 * vertexSize;
+			iIndex += sprite.indices.length;
+
+			drawCall.blend = spriteBlendMode;
+			// here is the difference
+			drawCall.uniforms = uniforms;
 		}
 
-		drawBatches() {
-			const dcCount = this._dcIndex;
-			const {gl, state: stateSystem, shader: shaderSystem} = this.renderer;
-			const drawCalls = AbstractBatchRenderer._drawCallPool;
-			let curUniforms: any = null;
-			let curTexArray: PIXI.BatchTextureArray = null;
-
-			for (let i = 0; i < dcCount; i++) {
-				const {texArray, type, size, start, blend, uniforms} = drawCalls[i] as any;
-
-				if (curTexArray !== texArray) {
-					curTexArray = texArray;
-					this.bindAndClearTexArray(texArray);
-				}
-				// here is the difference
-				if (curUniforms !== uniforms) {
-					curUniforms = uniforms;
-					this.syncUniforms(uniforms);
-					(shaderSystem as any).syncUniformGroup((this._shader as any).uniformGroup);
-				}
-
-				this.state.blendMode = blend;
-				stateSystem.set(this.state);
-				gl.drawElements(type, size, gl.UNSIGNED_SHORT, start * 2);
-			}
-		}
-
-		contextChange()
+		if (start < finish)
 		{
-			if (!this.forceMaxTextures) {
-				super.contextChange();
-				this.syncUniforms(this.defUniforms);
-				return;
-			}
-
-			// we can override MAX_TEXTURES with this hack
-
-			const gl = this.renderer.gl;
-			const thisAny = this as any;
-
-			thisAny.MAX_TEXTURES = this.forceMaxTextures;
-			this._shader = thisAny.shaderGenerator.generateShader(this.MAX_TEXTURES);
-			this.syncUniforms(this.defUniforms);
-			for (let i = 0; i < thisAny._packedGeometryPoolSize; i++)
-			{
-				/* eslint-disable max-len */
-				thisAny._packedGeometries[i] = new (this.geometryClass)();
-			}
-			this.initFlushBuffers();
+			drawCall.size = iIndex - drawCall.start;
+			++dcIndex;
 		}
+
+		thisAny._dcIndex = dcIndex;
+		thisAny._aIndex = aIndex;
+		thisAny._iIndex = iIndex;
+	}
+
+	drawBatches() {
+		const dcCount = this._dcIndex;
+		const {gl, state: stateSystem, shader: shaderSystem} = this.renderer;
+		const drawCalls = AbstractBatchRenderer._drawCallPool;
+		let curUniforms: any = null;
+		let curTexArray: BatchTextureArray = null;
+
+		for (let i = 0; i < dcCount; i++) {
+			const {texArray, type, size, start, blend, uniforms} = drawCalls[i] as any;
+
+			if (curTexArray !== texArray) {
+				curTexArray = texArray;
+				this.bindAndClearTexArray(texArray);
+			}
+			// here is the difference
+			if (curUniforms !== uniforms) {
+				curUniforms = uniforms;
+				this.syncUniforms(uniforms);
+				(shaderSystem as any).syncUniformGroup((this._shader as any).uniformGroup);
+			}
+
+			this.state.blendMode = blend;
+			stateSystem.set(this.state);
+			gl.drawElements(type, size, gl.UNSIGNED_SHORT, start * 2);
+		}
+	}
+
+	contextChange()
+	{
+		if (!this.forceMaxTextures) {
+			super.contextChange();
+			this.syncUniforms(this.defUniforms);
+			return;
+		}
+
+		// we can override MAX_TEXTURES with this hack
+
+		const gl = this.renderer.gl;
+		const thisAny = this as any;
+
+		thisAny.MAX_TEXTURES = this.forceMaxTextures;
+		this._shader = thisAny.shaderGenerator.generateShader(this.MAX_TEXTURES);
+		this.syncUniforms(this.defUniforms);
+		for (let i = 0; i < thisAny._packedGeometryPoolSize; i++)
+		{
+			/* eslint-disable max-len */
+			thisAny._packedGeometries[i] = new (this.geometryClass)();
+		}
+		this.initFlushBuffers();
 	}
 }

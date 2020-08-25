@@ -14,10 +14,13 @@ declare namespace PIXI {
     interface Container {
         convertTo2d(): void;
         convertSubtreeTo2d(): void;
+        convertTo2s(): void;
+		convertSubtreeTo2s(): void;
     }
 
     interface Sprite {
         convertTo2d(): void;
+        convertTo2s(): void;
     }
 
     interface Sprite {
