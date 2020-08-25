@@ -17,4 +17,4 @@ script:
   - pnpm build
   - pnpm check:webpack
   - pnpm check:browserify
-  - pnpm check:vanilla
+  - pnpm check:vanillajs
