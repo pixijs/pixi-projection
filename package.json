@@ -7,7 +7,10 @@
     "Ivan Popelyshev <ivan.popelyshev@gmail.com>",
     "Shukant K. Pal <shukantpal@outlook.com>"
   ],
-  "main": "./dist/pixi-projection.js",
+  "main": "./lib/pixi-projection.js",
+  "module": "./lib/pixi-projection.es.js",
+  "bundle": "./dist/pixi-projection.umd.js",
+  "namespace": "PIXI.projection",
   "types": "./dist/pixi-projection.d.ts",
   "homepage": "https://github.com/pixijs/pixi-projection",
   "bugs": {
@@ -24,8 +27,10 @@
     "start": "parallelshell \"pnpm watch\"",
     "watch": "tsc -w",
     "prebuild": "pnpm cleanup",
-    "make:dts": "node scripts/make_dts.js && node scripts/make_dts_no_spine.js",
-    "build": "tsc && tsc -p tsconfig-no-spine.json && pnpm make:dts",
+    "build": "pnpm build:integration-none && pnpm build:integration-pixi-spine && pnpm build:types",
+    "build:integration-none": "rollup -c",
+    "build:integration-pixi-spine": "rollup -c --integration pixi-spine",
+    "build:types": "rm -rf compile && tsc && api-extractor run",
     "docs": "jsdoc -c scripts/jsdoc.conf.json -R README.md",
     "check:browserify": "pnpm checkpack -- browserify -e test/checkpack.ts",
     "check:webpack": "pnpm checkpack -- webpack -e test/checkpack.ts",
@@ -38,14 +43,34 @@
     "package.json",
     "README.md"
   ],
+  "peerDependencies": {
+    "@pixi/constants": "^5.0.0",
+    "@pixi/core": "^5.0.0",
+    "@pixi/display": "^5.0.0",
+    "@pixi/graphics": "^5.0.0",
+    "@pixi/math": "^5.0.0",
+    "@pixi/mesh": "^5.0.0",
+    "@pixi/mesh-extras": "^5.0.0",
+    "@pixi/sprite": "^5.0.0",
+    "@pixi/sprite-tiling": "^5.0.0",
+    "@pixi/text": "^5.0.0",
+    "@pixi/utils": "^5.0.0"
+  },
   "devDependencies": {
+    "@microsoft/api-extractor": "^7.9.10",
+    "@pixi-build-tools/rollup-configurator": "1.0.4",
+    "@pixi/constants": "^5.3.3",
     "@pixi/core": "^5.3.3",
     "@pixi/display": "^5.3.3",
     "@pixi/eslint-config": "^1.0.1",
     "@pixi/graphics": "^5.3.3",
     "@pixi/math": "^5.3.3",
+    "@pixi/mesh": "^5.3.3",
     "@pixi/mesh-extras": "^5.3.3",
     "@pixi/sprite": "^5.3.3",
+    "@pixi/sprite-tiling": "^5.3.3",
+    "@pixi/text": "^5.3.3",
+    "@pixi/utils": "^5.3.3",
     "@typescript-eslint/eslint-plugin": "^3.10.1",
     "@typescript-eslint/parser": "^3.10.1",
     "checkpack": "^0.3",
@@ -58,6 +83,7 @@
     "pixi-spine": "~2.0.2",
     "pixi.js": "~5.2.1",
     "rimraf": "^2.5.3",
+    "rollup": "^2.26.5",
     "typescript": "^3.5.3"
   }
 }

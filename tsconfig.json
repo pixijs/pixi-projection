@@ -11,11 +11,12 @@
         "lib": [
             "es6",
             "dom"
-        ]
+        ],
+        "outDir": "compile"
     },
     "include": [
         "src/**/*",
-        "spine/**/*",
+        "integration-spine/**/*",
         "./global.d.ts"
     ],
     "exclude": [

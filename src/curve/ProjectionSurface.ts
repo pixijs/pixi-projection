@@ -80,39 +80,39 @@ export class ProjectionSurface extends AbstractProjection {
 
 	applyPartial(pos: IPoint, newPos?: IPoint): IPoint {
 		if (this._activeProjection !== null) {
-			newPos = this.legacy.worldTransform.apply(pos, newPos);
+			newPos = this.legacy.worldTransform.apply(pos as any, newPos as any);
 			return this._activeProjection.surface.apply(newPos, newPos);
 		}
 		if (this._surface !== null) {
 			return this.surface.apply(pos, newPos);
 		}
-		return this.legacy.worldTransform.apply(pos, newPos);
+		return this.legacy.worldTransform.apply(pos as any, newPos as any);
 	}
 
 	apply(pos: IPoint, newPos?: IPoint): IPoint {
 		if (this._activeProjection !== null) {
-			newPos = this.legacy.worldTransform.apply(pos, newPos);
+			newPos = this.legacy.worldTransform.apply(pos as any, newPos as any);
 			this._activeProjection.surface.apply(newPos, newPos);
-			return this._activeProjection.legacy.worldTransform.apply(newPos, newPos);
+			return this._activeProjection.legacy.worldTransform.apply(newPos as any, newPos as any);
 		}
 		if (this._surface !== null) {
 			newPos = this.surface.apply(pos, newPos);
-			return this.legacy.worldTransform.apply(newPos, newPos);
+			return this.legacy.worldTransform.apply(newPos as any, newPos as any);
 		}
-		return this.legacy.worldTransform.apply(pos, newPos);
+		return this.legacy.worldTransform.apply(pos as any, newPos as any);
 	}
 
 	applyInverse(pos: IPoint, newPos: IPoint) {
 		if (this._activeProjection !== null) {
-			newPos = this._activeProjection.legacy.worldTransform.applyInverse(pos, newPos);
+			newPos = this._activeProjection.legacy.worldTransform.applyInverse(pos as any, newPos as any);
 			this._activeProjection._surface.applyInverse(newPos, newPos);
-			return this.legacy.worldTransform.applyInverse(newPos, newPos);
+			return this.legacy.worldTransform.applyInverse(newPos as any, newPos as any);
 		}
 		if (this._surface !== null) {
-			newPos = this.legacy.worldTransform.applyInverse(pos, newPos);
+			newPos = this.legacy.worldTransform.applyInverse(pos as any, newPos as any);
 			return this._surface.applyInverse(newPos, newPos);
 		}
-		return this.legacy.worldTransform.applyInverse(pos, newPos);
+		return this.legacy.worldTransform.applyInverse(pos as any, newPos as any);
 	}
 
 	mapBilinearSprite(sprite: Sprite, quad: Array<IPoint>) {
