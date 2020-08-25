@@ -5,16 +5,16 @@ node_js:
   - "12"
 
 cache:
-  yarn: true
+  pnpm: true
   directories:
     - node_modules
 
 install:
-  - npm install -g yarn
-  - yarn
+  - npm install -g pnpm
+  - pnpm i
 
 script:
-  - yarn build
-  - yarn checkpack -- vanillajs -e test/checkpack.ts --validate
-  - yarn checkpack -- browserify -e test/checkpack.ts --validate
-  - yarn checkpack -- webpack -e test/checkpack.ts --validate
+  - pnpm build
+  - pnpm check:webpack
+  - pnpm check:browserify
+  - pnpm check:vanilla
