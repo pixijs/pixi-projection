@@ -2,9 +2,12 @@
 
 import { Projection2d } from '../Projection2d';
 import { Sprite2d } from './Sprite2d';
+import { Text } from '@pixi/text';
 
-export class Text2d extends PIXI.Text {
-	constructor(text?: string, style?: PIXI.TextStyle, canvas?: HTMLCanvasElement) {
+import type { TextStyle } from '@pixi/text';
+
+export class Text2d extends Text {
+	constructor(text?: string, style?: TextStyle, canvas?: HTMLCanvasElement) {
 		super(text, style, canvas);
 		this.proj = new Projection2d(this.transform);
 		this.pluginName = 'batch2d';

@@ -6,6 +6,9 @@ import { Texture } from '@pixi/core';
 import { TRANSFORM_STEP } from '../../constants';
 import { container2dToLocal } from '../Container2d';
 
+import type { DisplayObject } from '@pixi/display';
+import type { IPoint } from '@pixi/math';
+
 export class Sprite2d extends Sprite {
 	constructor(texture: Texture) {
 		super(texture);
@@ -151,7 +154,7 @@ export class Sprite2d extends Sprite {
 		vertexData[7] = z * ((wt[1] * w1) + (wt[4] * h0) + wt[7]);
 	}
 
-	toLocal<T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject,
+	toLocal<T extends IPoint>(position: IPoint, from?: DisplayObject,
 									point?: T, skipUpdate?: boolean,
 									step = TRANSFORM_STEP.ALL): T {
 		return container2dToLocal.call(this, position, from, point, skipUpdate, step);

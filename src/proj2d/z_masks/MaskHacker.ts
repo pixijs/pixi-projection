@@ -3,6 +3,8 @@
 import { MaskData, systems } from '@pixi/core';
 import { SpriteMaskFilter2d } from './SpriteMaskFilter';
 
+import type { Sprite } from '@pixi/sprite';
+
 systems.MaskSystem.prototype.pushSpriteMask =  function(maskData: MaskData): void {
 	const { maskObject } = maskData;
 	const target = (maskData as any)._target;
@@ -10,7 +12,7 @@ systems.MaskSystem.prototype.pushSpriteMask =  function(maskData: MaskData): voi
 	let alphaMaskFilter = this.alphaMaskPool[this.alphaMaskIndex];
 
 	if (!alphaMaskFilter) {
-		alphaMaskFilter = this.alphaMaskPool[this.alphaMaskIndex] = [new SpriteMaskFilter2d(maskObject as PIXI.Sprite)];
+		alphaMaskFilter = this.alphaMaskPool[this.alphaMaskIndex] = [new SpriteMaskFilter2d(maskObject as Sprite)];
 	}
 
 	alphaMaskFilter[0].resolution = this.renderer.resolution;

@@ -33,6 +33,7 @@ declare module "@pixi/core" {
         State,
         resources,
         systems,
+        Program,
         ViewableBuffer
     } from 'pixi.js';
 }
@@ -70,7 +71,9 @@ declare module "@pixi/sprite" {
 
 declare module "@pixi/mesh" {
     export {
-        Mesh
+        Mesh,
+        MeshGeometry,
+        MeshMaterial
     } from 'pixi.js';
 }
 
@@ -91,5 +94,12 @@ declare module "@pixi/text" {
     export {
         Text,
         TextStyle
+    } from 'pixi.js';
+}
+
+declare module "@pixi/mesh-extras" {
+    export {
+        SimpleMesh,
+        SimpleRope
     } from 'pixi.js';
 }

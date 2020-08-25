@@ -4,7 +4,7 @@
 import { AFFINE } from '../constants';
 import { Point } from '@pixi/math';
 
-import type { IPoint  } from '@pixi/math';
+import type { IPoint, Matrix } from '@pixi/math';
 
 const mat3id = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 
@@ -134,7 +134,7 @@ export class Matrix2d {
 
 	//TODO: remove props
 	apply(pos: IPoint, newPos: IPoint): IPoint {
-		newPos = newPos || new PIXI.Point();
+		newPos = newPos || new Point();
 
 		const mat3 = this.mat3;
 		const x = pos.x;
@@ -270,7 +270,7 @@ export class Matrix2d {
 	 * @param matrix
 	 * @return matrix
 	 */
-	copyTo(matrix: PIXI.Matrix, affine?: AFFINE, preserveOrientation?: boolean) {
+	copyTo(matrix: Matrix, affine?: AFFINE, preserveOrientation?: boolean) {
 		const mat3 = this.mat3;
 		const d = 1.0 / mat3[8];
 		const tx = mat3[6] * d, ty = mat3[7] * d;
@@ -316,7 +316,7 @@ export class Matrix2d {
 	 * @param matrix
 	 * @return
 	 */
-	copyFrom(matrix: PIXI.Matrix) {
+	copyFrom(matrix: Matrix) {
 		const mat3 = this.mat3;
 		mat3[0] = matrix.a;
 		mat3[1] = matrix.b;
@@ -330,7 +330,7 @@ export class Matrix2d {
 		return this;
 	}
 
-	setToMultLegacy(pt: PIXI.Matrix, lt: Matrix2d) {
+	setToMultLegacy(pt: Matrix, lt: Matrix2d) {
 		const out = this.mat3;
 		const b = lt.mat3;
 
@@ -358,7 +358,7 @@ export class Matrix2d {
 		return this;
 	}
 
-	setToMultLegacy2(pt: Matrix2d, lt: PIXI.Matrix) {
+	setToMultLegacy2(pt: Matrix2d, lt: Matrix) {
 		const out = this.mat3;
 		const a = pt.mat3;
 

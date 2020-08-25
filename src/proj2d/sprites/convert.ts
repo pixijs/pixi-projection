@@ -2,13 +2,23 @@
 /// <reference path="../../../global.d.ts" />
 
 import { Container } from '@pixi/display';
+import { Program } from '@pixi/core';
 import { Sprite } from '@pixi/sprite';
 import { Sprite2d } from './Sprite2d';
+import { Mesh2d } from '../mesh/Mesh2d';
+import { MeshMaterial } from '@pixi/mesh';
+import { SimpleMesh, SimpleRope } from '@pixi/mesh-extras';
+
+import { Projection2d } from '../Projection2d';
+import { Container2d, container2dWorldTransform } from '../Container2d';
 
 function convertTo2d(this: Container | Sprite) {
-	if (this.proj) return;
-	this.proj = new Projection2d(this.transform);
-	this.toLocal = Container2d.prototype.toLocal;
+	const _this = this as Container2d;
+	
+	if (_this.proj) return;
+
+	_this.proj = new Projection2d(this.transform);
+	_this.toLocal = Container2d.prototype.toLocal;
 
 	Object.defineProperty(this, "worldTransform", {
 		get: container2dWorldTransform,
@@ -36,16 +46,16 @@ Container.prototype.convertSubtreeTo2d = function () {
 	}
 };
 
-if (PIXI.SimpleMesh) {
-	(PIXI as any).SimpleMesh.prototype.convertTo2d =
-		(PIXI as any).SimpleRope.prototype.convertTo2d =
+if (SimpleMesh) {
+	SimpleMesh.prototype.convertTo2d =
+		SimpleRope.prototype.convertTo2d =
 			function () {
 				if (this.proj) return;
 				this.calculateVertices = Mesh2d.prototype.calculateVertices;
 				this._renderDefault = Mesh2d.prototype._renderDefault;
 				if (this.material.pluginName !== 'batch2d') {
-					this.material = new PIXI.MeshMaterial(this.material.texture, {
-						program: PIXI.Program.from(Mesh2d.defaultVertexShader, Mesh2d.defaultFragmentShader),
+					this.material = new MeshMaterial(this.material.texture, {
+						program: Program.from(Mesh2d.defaultVertexShader, Mesh2d.defaultFragmentShader),
 						pluginName: 'batch2d'
 					});
 				}

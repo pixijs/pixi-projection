@@ -15,7 +15,9 @@ declare namespace PIXI {
         convertTo2d(): void;
         convertSubtreeTo2d(): void;
         convertTo2s(): void;
-		convertSubtreeTo2s(): void;
+        convertSubtreeTo2s(): void;
+        convertTo3d(): void;
+		convertSubtreeTo3d(): void;
     }
 
     interface Sprite {

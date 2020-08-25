@@ -2,7 +2,9 @@
 
 import { AFFINE } from '../constants';
 import { AbstractProjection } from './AbstractProjection';
+import { Transform } from '@pixi/math';
 
+import type { Matrix } from '@pixi/math';
 import type { ProjectedTransform } from './AbstractProjection';
 import type { Projection2d } from '../proj2d/Projection2d';
 
@@ -82,7 +84,7 @@ export class LinearProjection<T> extends AbstractProjection {
 	affinePreserveOrientation = false;
 	scaleAfterAffine = true;
 
-	updateLocalTransform(lt: PIXI.Matrix) {
+	updateLocalTransform(lt: Matrix) {
 
 	}
 
@@ -110,7 +112,7 @@ export class LinearProjection<T> extends AbstractProjection {
 			this.legacy.updateTransform = transformHack;
 			(this.legacy as any)._parentID = -1;
 		} else {
-			this.legacy.updateTransform = PIXI.Transform.prototype.updateTransform;
+			this.legacy.updateTransform = Transform.prototype.updateTransform;
 			(this.legacy as any)._parentID = -1;
 		}
 	}

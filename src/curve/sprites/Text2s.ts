@@ -1,5 +1,6 @@
 /// <reference path="../../types.d.ts" />
 
+import { Matrix } from '@pixi/math';
 import { ProjectionSurface } from '../ProjectionSurface';
 import { Sprite2s } from './Sprite2s';
 import { Text, TextStyle } from '@pixi/text';
@@ -13,7 +14,7 @@ export class Text2s extends Text {
 
 	proj: ProjectionSurface;
 
-	aTrans = new PIXI.Matrix();
+	aTrans = new Matrix();
 
 	get worldTransform() {
 		return this.proj as any;

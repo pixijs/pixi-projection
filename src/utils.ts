@@ -1,5 +1,7 @@
 /// <reference path="types.d.ts" />
 
+import { Point } from '@pixi/math';
+
 import type { IPoint } from '@pixi/math';
 
 export const utils = {
@@ -26,7 +28,7 @@ export const utils = {
 		return 1;
 	},
 	getPositionFromQuad(p: Array<IPoint>, anchor: IPoint, out: IPoint) {
-		out = out || new PIXI.Point();
+		out = out || new Point();
 		let a1 = 1.0 - anchor.x, a2 = 1.0 - a1;
 		let b1 = 1.0 - anchor.y, b2 = 1.0 - b1;
 		out.x = (p[0].x * a1 + p[1].x * a2) * b1 + (p[3].x * a1 + p[2].x * a2) * b2;

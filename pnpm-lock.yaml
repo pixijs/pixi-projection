@@ -3,6 +3,7 @@ devDependencies:
   '@pixi/display': 5.3.3
   '@pixi/eslint-config': 1.0.1_eslint@7.7.0+typescript@3.9.7
   '@pixi/math': 5.3.3
+  '@pixi/mesh-extras': 5.3.3
   '@pixi/sprite': 5.3.3
   '@typescript-eslint/eslint-plugin': 3.10.1_cbb4625841c21d2fda3cac0b05035458
   '@typescript-eslint/parser': 3.10.1_eslint@7.7.0+typescript@3.9.7
@@ -210,6 +211,16 @@ packages:
     dev: true
     resolution:
       integrity: sha512-WQ7H5K4TMeAQyiUJfzZ5UuKY0GF+6JHazhaAc2DhnF5gz2CdvmL0qOiQ4Dad21+VfKzbhC66fP2YfvMHIrWRuw==
+  /@pixi/mesh-extras/5.3.3:
+    dependencies:
+      '@pixi/constants': 5.3.3
+      '@pixi/core': 5.3.3
+      '@pixi/math': 5.3.3
+      '@pixi/mesh': 5.3.3
+      '@pixi/utils': 5.3.3
+    dev: true
+    resolution:
+      integrity: sha512-V2hARC7nUPaTEFxd+B8GDkSMrMZ38S8/IInqtYzGUy6FtFs7IYKty9Rz/G665eN7ThIq8tZrOVZOl6JRBtEC8A==
   /@pixi/mesh/5.2.4:
     dependencies:
       '@pixi/constants': 5.2.4
@@ -221,6 +232,17 @@ packages:
     dev: true
     resolution:
       integrity: sha512-OS/KcPgftOh6eE4ZHyC3dCc8nNbOXOq0Va69kwUTfHZLi63vjz03hXiYY/KRJ4tds9+/zCjLeLoBBglqLBBuvg==
+  /@pixi/mesh/5.3.3:
+    dependencies:
+      '@pixi/constants': 5.3.3
+      '@pixi/core': 5.3.3
+      '@pixi/display': 5.3.3
+      '@pixi/math': 5.3.3
+      '@pixi/settings': 5.3.3
+      '@pixi/utils': 5.3.3
+    dev: true
+    resolution:
+      integrity: sha512-q8w70oAFNdArzOHVnsn7ban68NmO5S5TMg6qSez4A8te6cebMRQsNrT/0dQ/nZcG7ACFK4jiYfbXRQivO+jgVA==
   /@pixi/mixin-cache-as-bitmap/5.2.4:
     dependencies:
       '@pixi/core': 5.2.4
@@ -5000,6 +5022,7 @@ specifiers:
   '@pixi/display': ^5.3.3
   '@pixi/eslint-config': ^1.0.1
   '@pixi/math': ^5.3.3
+  '@pixi/mesh-extras': ^5.3.3
   '@pixi/sprite': ^5.3.3
   '@typescript-eslint/eslint-plugin': ^3.10.1
   '@typescript-eslint/parser': ^3.10.1

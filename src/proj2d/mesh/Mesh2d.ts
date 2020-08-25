@@ -2,13 +2,17 @@
 
 import { container2dToLocal } from '../Container2d';
 import { DRAW_MODES } from '@pixi/constants';
-import { Geometry, Shader, State } from '@pixi/core';
+import { Geometry, Program, Renderer, Shader, State, Texture } from '@pixi/core';
+import { Mesh, MeshMaterial, MeshGeometry } from '@pixi/mesh';
 import { Projection2d } from '../Projection2d';
 import { TRANSFORM_STEP } from '../../constants';
 import defaultVertexShader from './mesh2d-default.vert';
 import defaultFragmentShader from './mesh2d-default.frag';
 
-export class Mesh2d extends PIXI.Mesh {
+import type { DisplayObject } from '@pixi/display';
+import type { IPoint } from '@pixi/math';
+
+export class Mesh2d extends Mesh {
 	static defaultVertexShader = defaultVertexShader;
 	static defaultFragmentShader = defaultFragmentShader;
 
@@ -75,8 +79,8 @@ export class Mesh2d extends PIXI.Mesh {
 		thisAny.vertexDirty = geometry.vertexDirtyId;
 	}
 
-	_renderDefault(renderer: PIXI.Renderer) {
-		const shader = this.shader as PIXI.MeshMaterial;
+	_renderDefault(renderer: Renderer) {
+		const shader = this.shader as MeshMaterial;
 
 		shader.alpha = this.worldAlpha;
 		if (shader.update)
@@ -104,7 +108,7 @@ export class Mesh2d extends PIXI.Mesh {
 		renderer.geometry.draw(this.drawMode, this.size, this.start, (this.geometry as any).instanceCount);
 	}
 
-	toLocal<T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject,
+	toLocal<T extends IPoint>(position: IPoint, from?: DisplayObject,
 									point?: T, skipUpdate?: boolean,
 									step = TRANSFORM_STEP.ALL): T {
 		return container2dToLocal.call(this, position, from, point, skipUpdate, step);
@@ -116,11 +120,11 @@ export class Mesh2d extends PIXI.Mesh {
 }
 
 export class SimpleMesh2d extends Mesh2d {
-	constructor(texture: PIXI.Texture, vertices?: Float32Array, uvs?: Float32Array,
+	constructor(texture: Texture, vertices?: Float32Array, uvs?: Float32Array,
 				indices?: Uint16Array, drawMode?: number) {
-		super(new PIXI.MeshGeometry(vertices, uvs, indices),
-			new PIXI.MeshMaterial(texture, {
-				program: PIXI.Program.from(Mesh2d.defaultVertexShader, Mesh2d.defaultFragmentShader),
+		super(new MeshGeometry(vertices, uvs, indices),
+			new MeshMaterial(texture, {
+				program: Program.from(Mesh2d.defaultVertexShader, Mesh2d.defaultFragmentShader),
 				pluginName: 'batch2d'
 			}),
 			null,
@@ -140,7 +144,7 @@ export class SimpleMesh2d extends Mesh2d {
 		this.geometry.getBuffer('aVertexPosition').data = value;
 	}
 
-	protected _render(renderer?: PIXI.Renderer)
+	protected _render(renderer?: Renderer)
 	{
 		if (this.autoUpdate)
 		{
