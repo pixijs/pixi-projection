@@ -32,9 +32,9 @@
     "build:integration-pixi-spine": "rollup -c --integration pixi-spine",
     "build:types": "rm -rf compile && tsc && api-extractor run",
     "docs": "jsdoc -c scripts/jsdoc.conf.json -R README.md",
-    "check:browserify": "pnpm checkpack -- browserify -e test/checkpack.ts",
-    "check:webpack": "pnpm checkpack -- webpack -e test/checkpack.ts",
-    "check:vanillajs": "pnpm checkpack -- vanillajs -e test/checkpack.ts",
+    "check:browserify": "checkpack browserify -e test/checkpack.ts",
+    "check:webpack": "checkpack webpack -e test/checkpack.ts",
+    "check:vanillajs": "checkpack vanillajs -e test/checkpack.ts",
     "check:all": "pnpm build && pnpm check:browserify && pnpm check:webpack && pnpm check:vanillajs"
   },
   "files": [
@@ -85,6 +85,8 @@
     "pixi.js": "~5.2.1",
     "rimraf": "^2.5.3",
     "rollup": "^2.26.5",
+    "source-map-loader": "^1.0.2",
+    "tsify": "^5.0.2",
     "typescript": "^3.5.3"
   }
 }

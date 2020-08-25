@@ -1,8 +1,18 @@
 import 'pixi.js';
-import '../dist/pixi-projection.js';
+import '../dist/pixi-projection.umd.js';
+
+declare namespace PIXI {
+	export const Application: any;
+	export const Texture: any;
+	export const Point: any;
+
+	export const loaders: any;	
+	export const projection: any;
+	export const interaction: any;
+}
 
 //@../node_modules/pixi.js/dist/pixi.min.js
-//@../dist/pixi-projection.js
+//@../dist/pixi-projection.umd.js
 
 let app = new PIXI.Application(800, 600, {backgroundColor: 0x103322, autoStart: false});
 document.body.appendChild(app.view);
@@ -20,6 +30,7 @@ class Square extends PIXI.projection.Sprite2d {
 loader.add('background', 'bkg.jpg');
 loader.add('bunny', 'flowerTop.png');
 
+// @ts-ignore
 let bunny: PIXI.projection.Sprite2d;
 let squarePlane: Square;
 
@@ -116,6 +127,7 @@ function addInteraction(obj: any) {
 		.on('pointermove', onDragMove);
 }
 
+// @ts-ignore
 function onDragStart(event: PIXI.interaction.InteractionEvent) {
 	let obj = event.currentTarget as any;
 	obj.dragData = event.data;
@@ -127,7 +139,7 @@ function onDragStart(event: PIXI.interaction.InteractionEvent) {
 	obj.dragGlobalStart.copy(event.data.global);
 	event.stopPropagation();
 }
-
+// @ts-ignore
 function onDragEnd(event: PIXI.interaction.InteractionEvent) {
 	let obj = event.currentTarget as any;
 	if (!obj.dragging) return;
@@ -143,7 +155,7 @@ function onDragEnd(event: PIXI.interaction.InteractionEvent) {
 	event.stopPropagation();
 	// set the interaction data to null
 }
-
+// @ts-ignore
 function onDragMove(event: PIXI.interaction.InteractionEvent) {
 	let obj = event.currentTarget as any;
 	if (!obj.dragging) return;
