@@ -1,4 +1,5 @@
 namespace pixi_projection {
+	import IPointData = PIXI.IPointData;
 	import IPoint = PIXI.IPoint;
 
 	const tempMat = new PIXI.Matrix();
@@ -16,7 +17,7 @@ namespace pixi_projection {
 			this.distortion.set(0, 0);
 		}
 
-		apply(pos: IPoint, newPos?: IPoint): IPoint {
+		apply(pos: IPointData, newPos?: IPointData): IPointData {
 			newPos = newPos || new PIXI.Point();
 			const d = this.distortion;
 			const m = pos.x * pos.y;
@@ -25,7 +26,7 @@ namespace pixi_projection {
 			return newPos;
 		}
 
-		applyInverse(pos: IPoint, newPos: IPoint): IPoint {
+		applyInverse(pos: IPointData, newPos: IPoint): IPointData {
 			newPos = newPos || new PIXI.Point();
 			const vx = pos.x, vy = pos.y;
 			const dx = this.distortion.x, dy = this.distortion.y;
@@ -55,7 +56,7 @@ namespace pixi_projection {
 			return newPos;
 		}
 
-		mapSprite(sprite: PIXI.Sprite, quad: Array<IPoint>, outTransform?: PIXI.Transform) {
+		mapSprite(sprite: PIXI.Sprite, quad: Array<IPointData>, outTransform?: PIXI.Transform) {
 			const tex = sprite.texture;
 
 			tempRect.x = -sprite.anchor.x * tex.orig.width;
@@ -66,7 +67,7 @@ namespace pixi_projection {
 			return this.mapQuad(tempRect, quad, outTransform || sprite.transform as PIXI.Transform);
 		}
 
-		mapQuad(rect: PIXI.Rectangle, quad: Array<IPoint>, outTransform: PIXI.Transform) {
+		mapQuad(rect: PIXI.Rectangle, quad: Array<IPointData>, outTransform: PIXI.Transform) {
 			const ax = -rect.x / rect.width;
 			const ay = -rect.y / rect.height;
 

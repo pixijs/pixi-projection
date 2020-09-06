@@ -1,6 +1,7 @@
 // according to https://jsperf.com/obj-vs-array-view-access/1 , Float64Array is the best here
 
 namespace pixi_projection {
+	import IPointData = PIXI.IPointData;
 	import IPoint = PIXI.IPoint;
 
 	const mat4id = [1, 0, 0, 0,
@@ -208,7 +209,7 @@ namespace pixi_projection {
 			return out;
 		}
 
-		apply(pos: IPoint, newPos: IPoint): IPoint {
+		apply(pos: IPointData, newPos: IPointData): IPointData {
 			newPos = newPos || new Point3d();
 
 			const mat4 = this.mat4;
@@ -279,7 +280,7 @@ namespace pixi_projection {
 		}
 
 		//TODO: remove props
-		applyInverse(pos: IPoint, newPos: IPoint): IPoint {
+		applyInverse(pos: IPointData, newPos: IPoint): IPointData {
 			newPos = newPos || new Point3d();
 			if (!this._mat4inv) {
 				this._mat4inv = new Float64Array(16);

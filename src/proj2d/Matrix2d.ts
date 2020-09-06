@@ -2,7 +2,7 @@
 
 namespace pixi_projection {
 	import Point = PIXI.Point;
-	import IPoint = PIXI.IPoint;
+	import IPointData = PIXI.IPointData;
 
 	const mat3id = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 
@@ -141,7 +141,7 @@ namespace pixi_projection {
 		}
 
 		//TODO: remove props
-		apply(pos: IPoint, newPos: IPoint): IPoint {
+		apply(pos: IPointData, newPos: IPointData): IPointData {
 			newPos = newPos || new PIXI.Point();
 
 			const mat3 = this.mat3;
@@ -188,7 +188,7 @@ namespace pixi_projection {
 		}
 
 		//TODO: remove props
-		applyInverse(pos: IPoint, newPos: IPoint): IPoint {
+		applyInverse(pos: IPointData, newPos: IPointData): IPointData {
 			newPos = newPos || new Point();
 
 			const a = this.mat3;

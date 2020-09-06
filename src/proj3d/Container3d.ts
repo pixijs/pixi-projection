@@ -42,7 +42,8 @@ namespace pixi_projection {
 			return mat4[14] / mat4[15];
 		}
 
-		toLocal<T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject,
+
+		toLocal<T extends PIXI.Point>(position: PIXI.IPointData, from?: PIXI.DisplayObject,
 				point?: T, skipUpdate?: boolean,
 				step = TRANSFORM_STEP.ALL): T {
 
@@ -86,28 +87,28 @@ namespace pixi_projection {
 			return this.proj.affine ? this.transform.worldTransform : this.proj.world as any;
 		}
 
-		get position3d(): PIXI.IPoint {
+		get position3d(): PIXI.IPointData {
 			return this.proj.position;
 		}
-		get scale3d(): PIXI.IPoint {
+		get scale3d(): PIXI.IPointData {
 			return this.proj.scale;
 		}
 		get euler(): IEuler {
 			return this.proj.euler;
 		}
-		get pivot3d(): PIXI.IPoint {
+		get pivot3d(): PIXI.IPointData {
 			return this.proj.pivot;
 		}
-		set position3d(value: PIXI.IPoint) {
+		set position3d(value: PIXI.IPointData) {
 			this.proj.position.copyFrom(value);
 		}
-		set scale3d(value: PIXI.IPoint) {
+		set scale3d(value: PIXI.IPointData) {
 			this.proj.scale.copyFrom(value);
 		}
 		set euler(value: IEuler) {
 			this.proj.euler.copyFrom(value);
 		}
-		set pivot3d(value: PIXI.IPoint) {
+		set pivot3d(value: PIXI.IPointData) {
 			this.proj.pivot.copyFrom(value);
 		}
 	}

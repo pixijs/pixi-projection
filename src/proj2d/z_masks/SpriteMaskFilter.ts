@@ -60,7 +60,7 @@ void main(void)
 		maskMatrix = new Matrix2d();
 
 		apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture,
-              clearMode?: boolean) {
+              clearMode?: number) {
 			const maskSprite = this.maskSprite;
 			const tex = this.maskSprite.texture;
 

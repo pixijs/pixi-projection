@@ -1,8 +1,12 @@
 declare namespace PIXI {
-	export interface IPoint {
+	export interface IPointData {
 		z?: number;
+	}
+
+	export interface IPoint {
 		set(x?: number, y?: number, z?: number): void;
 	}
+
 
 	export interface Point {
 		z?: number;
@@ -32,12 +36,12 @@ namespace pixi_projection {
 			return this;
 		}
 
-		copyFrom(p: PIXI.IPoint) {
+		copyFrom(p: PIXI.IPointData) {
 			this.set(p.x, p.y, p.z || 0);
 			return this;
 		}
 
-		copyTo(p: PIXI.Point) {
+		copyTo(p: PIXI.IPoint) {
 			p.set(this.x, this.y, this.z);
 			return p;
 		}
@@ -71,7 +75,7 @@ namespace pixi_projection {
 			return this;
 		}
 
-		copyFrom(p: PIXI.IPoint) {
+		copyFrom(p: PIXI.IPointData) {
 			this.set(p.x, p.y, p.z || 0);
 			return this;
 		}

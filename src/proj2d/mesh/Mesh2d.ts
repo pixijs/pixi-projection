@@ -29,7 +29,7 @@ void main(void)
 {
 	gl_FragColor = texture2D(uSampler, vTextureCoord) * uColor;
 }`;
-		constructor(geometry: PIXI.Geometry, shader: PIXI.Shader, state: PIXI.State, drawMode?: number)
+		constructor(geometry: PIXI.Geometry, shader: PIXI.MeshMaterial, state: PIXI.State, drawMode?: number)
 		{
 			super(geometry, shader, state, drawMode);
 			this.proj = new Projection2d(this.transform);
@@ -121,7 +121,7 @@ void main(void)
 			renderer.geometry.draw(this.drawMode, this.size, this.start, (this.geometry as any).instanceCount);
 		}
 
-		toLocal<T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject,
+		toLocal<T extends PIXI.IPointData>(position: PIXI.IPointData, from?: PIXI.DisplayObject,
 									   point?: T, skipUpdate?: boolean,
 									   step = TRANSFORM_STEP.ALL): T {
 			return container2dToLocal.call(this, position, from, point, skipUpdate, step);

@@ -1,21 +1,21 @@
 declare namespace PIXI {
 	interface Matrix extends pixi_projection.IWorldTransform {
-		apply(pos: IPoint, newPos?: IPoint): IPoint;
+		apply(pos: IPointData, newPos?: IPointData): IPointData;
 
-		applyInverse(pos: IPoint, newPos?: IPoint): IPoint;
+		applyInverse(pos: IPointData, newPos?: IPointData): IPointData;
 	}
 }
 
 namespace pixi_projection {
-	import IPoint = PIXI.IPoint;
+	import IPointData = PIXI.IPointData;
 
 	const fun = PIXI.Transform.prototype.updateTransform;
 
 	export interface IWorldTransform {
-		apply(pos: IPoint, newPos: IPoint): IPoint;
+		apply(pos: IPointData, newPos: IPointData): IPointData;
 
 		//TODO: remove props
-		applyInverse(pos: IPoint, newPos: IPoint): IPoint;
+		applyInverse(pos: IPointData, newPos: IPointData): IPointData;
 	}
 
 	function transformHack(this: PIXI.Transform, parentTransform: PIXI.Transform): IWorldTransform {
@@ -78,7 +78,7 @@ namespace pixi_projection {
 			(this.legacy as any)._parentID = -1;
 		}
 
-		applyPartial(pos: IPoint, newPos?: IPoint): IPoint {
+		applyPartial(pos: IPointData, newPos?: IPointData): IPointData {
 			if (this._activeProjection !== null) {
 				newPos = this.legacy.worldTransform.apply(pos, newPos);
 				return this._activeProjection.surface.apply(newPos, newPos);
@@ -89,7 +89,7 @@ namespace pixi_projection {
 			return this.legacy.worldTransform.apply(pos, newPos);
 		}
 
-		apply(pos: IPoint, newPos?: IPoint): IPoint {
+		apply(pos: IPointData, newPos?: IPointData): IPointData {
 			if (this._activeProjection !== null) {
 				newPos = this.legacy.worldTransform.apply(pos, newPos);
 				this._activeProjection.surface.apply(newPos, newPos);
@@ -102,7 +102,7 @@ namespace pixi_projection {
 			return this.legacy.worldTransform.apply(pos, newPos);
 		}
 
-		applyInverse(pos: IPoint, newPos: IPoint) {
+		applyInverse(pos: IPointData, newPos: IPointData) {
 			if (this._activeProjection !== null) {
 				newPos = this._activeProjection.legacy.worldTransform.applyInverse(pos, newPos);
 				this._activeProjection._surface.applyInverse(newPos, newPos);
@@ -115,7 +115,7 @@ namespace pixi_projection {
 			return this.legacy.worldTransform.applyInverse(pos, newPos);
 		}
 
-		mapBilinearSprite(sprite: PIXI.Sprite, quad: Array<IPoint>) {
+		mapBilinearSprite(sprite: PIXI.Sprite, quad: Array<IPointData>) {
 			if (!(this._surface instanceof BilinearSurface)) {
 				this.surface = new BilinearSurface();
 			}
