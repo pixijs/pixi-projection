@@ -1,6 +1,6 @@
 {
   "name": "pixi-projection",
-  "version": "0.3.12",
+  "version": "0.3.13",
   "description": "Projections (2.5d, 3d and bilinear) for pixi v^5",
   "author": "Ivan Popelyshev",
   "contributors": [
@@ -40,7 +40,7 @@
     "pixi-spine": "~2.0.2",
     "pixi.js": "^5.3.3",
     "rimraf": "^2.5.3",
-		"tmp": "^0.2.1",
+    "tmp": "^0.2.1",
     "typescript": "^3.5.3"
   }
 }
