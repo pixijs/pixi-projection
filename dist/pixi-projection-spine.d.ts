@@ -69,7 +69,7 @@ declare module PIXI.projection {
     }
 }
 declare module PIXI.projection {
-    import IPoint = PIXI.IPoint;
+    import IPointData = PIXI.IPointData;
     abstract class Surface implements IWorldTransform {
         surfaceID: string;
         _updateID: number;
@@ -78,20 +78,21 @@ declare module PIXI.projection {
         fillUniforms(uniforms: any): void;
         clear(): void;
         boundsQuad(v: ArrayLike<number>, out: any, after?: PIXI.Matrix): void;
-        abstract apply(pos: IPoint, newPos: IPoint): IPoint;
-        abstract applyInverse(pos: IPoint, newPos: IPoint): IPoint;
+        abstract apply(pos: IPointData, newPos: IPointData): IPointData;
+        abstract applyInverse(pos: IPointData, newPos: IPointData): IPointData;
     }
 }
 declare module PIXI.projection {
+    import IPointData = PIXI.IPointData;
     import IPoint = PIXI.IPoint;
     class BilinearSurface extends Surface {
         distortion: PIXI.Point;
         constructor();
         clear(): void;
-        apply(pos: IPoint, newPos?: IPoint): IPoint;
-        applyInverse(pos: IPoint, newPos: IPoint): IPoint;
-        mapSprite(sprite: PIXI.Sprite, quad: Array<IPoint>, outTransform?: PIXI.Transform): this;
-        mapQuad(rect: PIXI.Rectangle, quad: Array<IPoint>, outTransform: PIXI.Transform): this;
+        apply(pos: IPointData, newPos?: IPointData): IPointData;
+        applyInverse(pos: IPointData, newPos: IPoint): IPointData;
+        mapSprite(sprite: PIXI.Sprite, quad: Array<IPointData>, outTransform?: PIXI.Transform): this;
+        mapQuad(rect: PIXI.Rectangle, quad: Array<IPointData>, outTransform: PIXI.Transform): this;
         fillUniforms(uniforms: any): void;
     }
 }
@@ -104,15 +105,15 @@ declare module PIXI.projection {
 }
 declare namespace PIXI {
     interface Matrix extends PIXI.projection.IWorldTransform {
-        apply(pos: IPoint, newPos?: IPoint): IPoint;
-        applyInverse(pos: IPoint, newPos?: IPoint): IPoint;
+        apply(pos: IPointData, newPos?: IPointData): IPointData;
+        applyInverse(pos: IPointData, newPos?: IPointData): IPointData;
     }
 }
 declare module PIXI.projection {
-    import IPoint = PIXI.IPoint;
+    import IPointData = PIXI.IPointData;
     interface IWorldTransform {
-        apply(pos: IPoint, newPos: IPoint): IPoint;
-        applyInverse(pos: IPoint, newPos: IPoint): IPoint;
+        apply(pos: IPointData, newPos: IPointData): IPointData;
+        applyInverse(pos: IPointData, newPos: IPointData): IPointData;
     }
     class ProjectionSurface extends AbstractProjection {
         constructor(legacy: PIXI.Transform, enable?: boolean);
@@ -121,10 +122,10 @@ declare module PIXI.projection {
         set enabled(value: boolean);
         get surface(): Surface;
         set surface(value: Surface);
-        applyPartial(pos: IPoint, newPos?: IPoint): IPoint;
-        apply(pos: IPoint, newPos?: IPoint): IPoint;
-        applyInverse(pos: IPoint, newPos: IPoint): IPoint;
-        mapBilinearSprite(sprite: PIXI.Sprite, quad: Array<IPoint>): void;
+        applyPartial(pos: IPointData, newPos?: IPointData): IPointData;
+        apply(pos: IPointData, newPos?: IPointData): IPointData;
+        applyInverse(pos: IPointData, newPos: IPointData): IPointData;
+        mapBilinearSprite(sprite: PIXI.Sprite, quad: Array<IPointData>): void;
         _currentSurfaceID: number;
         _currentLegacyID: number;
         _lastUniforms: any;
@@ -177,13 +178,13 @@ declare module PIXI.projection {
     class Container2d extends PIXI.Container {
         constructor();
         proj: Projection2d;
-        toLocal<T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
+        toLocal<T extends PIXI.Point>(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
         get worldTransform(): any;
     }
-    let container2dToLocal: <T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP) => T;
+    let container2dToLocal: <T extends PIXI.Point>(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP) => T;
 }
 declare module PIXI.projection {
-    import IPoint = PIXI.IPoint;
+    import IPointData = PIXI.IPointData;
     enum AFFINE {
         NONE = 0,
         FREE = 1,
@@ -212,11 +213,11 @@ declare module PIXI.projection {
         set ty(value: number);
         set(a: number, b: number, c: number, d: number, tx: number, ty: number): this;
         toArray(transpose?: boolean, out?: Float32Array): Float32Array;
-        apply(pos: IPoint, newPos: IPoint): IPoint;
+        apply(pos: IPointData, newPos: IPointData): IPointData;
         translate(tx: number, ty: number): this;
         scale(x: number, y: number): this;
         scaleAndTranslate(scaleX: number, scaleY: number, tx: number, ty: number): void;
-        applyInverse(pos: IPoint, newPos: IPoint): IPoint;
+        applyInverse(pos: IPointData, newPos: IPointData): IPointData;
         invert(): Matrix2d;
         identity(): Matrix2d;
         clone(): Matrix2d;
@@ -233,12 +234,12 @@ declare module PIXI.projection {
     class Mesh2d extends PIXI.Mesh {
         static defaultVertexShader: string;
         static defaultFragmentShader: string;
-        constructor(geometry: PIXI.Geometry, shader: PIXI.Shader, state: PIXI.State, drawMode?: number);
+        constructor(geometry: PIXI.Geometry, shader: PIXI.MeshMaterial, state: PIXI.State, drawMode?: number);
         vertexData2d: Float32Array;
         proj: Projection2d;
         calculateVertices(): void;
         _renderDefault(renderer: PIXI.Renderer): void;
-        toLocal<T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
+        toLocal<T extends PIXI.IPointData>(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
         get worldTransform(): any;
     }
     class SimpleMesh2d extends Mesh2d {
@@ -250,17 +251,17 @@ declare module PIXI.projection {
     }
 }
 declare module PIXI.projection {
-    import IPoint = PIXI.IPoint;
+    import IPointData = PIXI.IPointData;
     class Projection2d extends LinearProjection<Matrix2d> {
         constructor(legacy: PIXI.Transform, enable?: boolean);
         matrix: Matrix2d;
         pivot: PIXI.ObservablePoint;
         reverseLocalOrder: boolean;
         onChange(): void;
-        setAxisX(p: IPoint, factor?: number): void;
-        setAxisY(p: IPoint, factor?: number): void;
-        mapSprite(sprite: PIXI.Sprite, quad: Array<IPoint>): void;
-        mapQuad(rect: PIXI.Rectangle, p: Array<IPoint>): void;
+        setAxisX(p: IPointData, factor?: number): void;
+        setAxisY(p: IPointData, factor?: number): void;
+        mapSprite(sprite: PIXI.Sprite, quad: Array<IPointData>): void;
+        mapQuad(rect: PIXI.Rectangle, p: Array<IPointData>): void;
         updateLocalTransform(lt: PIXI.Matrix): void;
         clear(): void;
     }
@@ -298,7 +299,7 @@ declare module PIXI.projection {
         _calculateBounds(): void;
         calculateVertices(): void;
         calculateTrimmedVertices(): void;
-        toLocal<T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
+        toLocal<T extends PIXI.IPointData>(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
         get worldTransform(): any;
     }
 }
@@ -316,7 +317,7 @@ declare module PIXI.projection {
         tileProj: Projection2d;
         proj: Projection2d;
         get worldTransform(): any;
-        toLocal<T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
+        toLocal<T extends PIXI.IPointData>(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
         _render(renderer: PIXI.Renderer): void;
     }
 }
@@ -336,7 +337,7 @@ declare module PIXI.projection {
         constructor(sprite: PIXI.Sprite);
         maskSprite: PIXI.Sprite;
         maskMatrix: Matrix2d;
-        apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clearMode?: boolean): void;
+        apply(filterManager: PIXI.systems.FilterSystem, input: PIXI.RenderTexture, output: PIXI.RenderTexture, clearMode?: number): void;
         static calculateSpriteMatrix(input: PIXI.RenderTexture, mappedMatrix: Matrix2d, sprite: PIXI.Sprite): Matrix2d;
     }
 }
@@ -361,18 +362,18 @@ declare module PIXI.projection {
         proj: Projection3d;
         isFrontFace(forceUpdate?: boolean): boolean;
         getDepth(forceUpdate?: boolean): number;
-        toLocal<T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
+        toLocal<T extends PIXI.Point>(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
         get worldTransform(): any;
-        get position3d(): PIXI.IPoint;
-        get scale3d(): PIXI.IPoint;
+        get position3d(): PIXI.IPointData;
+        get scale3d(): PIXI.IPointData;
         get euler(): IEuler;
-        get pivot3d(): PIXI.IPoint;
-        set position3d(value: PIXI.IPoint);
-        set scale3d(value: PIXI.IPoint);
+        get pivot3d(): PIXI.IPointData;
+        set position3d(value: PIXI.IPointData);
+        set scale3d(value: PIXI.IPointData);
         set euler(value: IEuler);
-        set pivot3d(value: PIXI.IPoint);
+        set pivot3d(value: PIXI.IPointData);
     }
-    let container3dToLocal: <T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP) => T;
+    let container3dToLocal: <T extends PIXI.Point>(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP) => T;
     let container3dGetDepth: (forceUpdate?: boolean) => number;
     let container3dIsFrontFace: (forceUpdate?: boolean) => boolean;
 }
@@ -407,6 +408,7 @@ declare module PIXI.projection {
     }
 }
 declare module PIXI.projection {
+    import IPointData = PIXI.IPointData;
     import IPoint = PIXI.IPoint;
     class Matrix3d {
         static readonly IDENTITY: Matrix3d;
@@ -434,11 +436,11 @@ declare module PIXI.projection {
         toArray(transpose?: boolean, out?: Float32Array): Float32Array;
         setToTranslation(tx: number, ty: number, tz: number): void;
         setToRotationTranslationScale(quat: Float64Array, tx: number, ty: number, tz: number, sx: number, sy: number, sz: number): Float64Array;
-        apply(pos: IPoint, newPos: IPoint): IPoint;
+        apply(pos: IPointData, newPos: IPointData): IPointData;
         translate(tx: number, ty: number, tz: number): this;
         scale(x: number, y: number, z?: number): this;
         scaleAndTranslate(scaleX: number, scaleY: number, scaleZ: number, tx: number, ty: number, tz: number): void;
-        applyInverse(pos: IPoint, newPos: IPoint): IPoint;
+        applyInverse(pos: IPointData, newPos: IPoint): IPointData;
         invert(): Matrix3d;
         invertCopyTo(matrix: Matrix3d): void;
         identity(): Matrix3d;
@@ -458,22 +460,22 @@ declare module PIXI.projection {
 }
 declare module PIXI.projection {
     class Mesh3d2d extends PIXI.Mesh {
-        constructor(geometry: PIXI.Geometry, shader: PIXI.Shader, state: PIXI.State, drawMode?: number);
+        constructor(geometry: PIXI.Geometry, shader: PIXI.MeshMaterial, state: PIXI.State, drawMode?: number);
         vertexData2d: Float32Array;
         proj: Projection3d;
         calculateVertices(): void;
         get worldTransform(): any;
-        toLocal<T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
+        toLocal<T extends PIXI.IPointData>(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
         isFrontFace(forceUpdate?: boolean): any;
         getDepth(forceUpdate?: boolean): any;
-        get position3d(): PIXI.IPoint;
-        get scale3d(): PIXI.IPoint;
+        get position3d(): PIXI.IPointData;
+        get scale3d(): PIXI.IPointData;
         get euler(): Euler;
-        get pivot3d(): PIXI.IPoint;
-        set position3d(value: PIXI.IPoint);
-        set scale3d(value: PIXI.IPoint);
+        get pivot3d(): PIXI.IPointData;
+        set position3d(value: PIXI.IPointData);
+        set scale3d(value: PIXI.IPointData);
         set euler(value: Euler);
-        set pivot3d(value: PIXI.IPoint);
+        set pivot3d(value: PIXI.IPointData);
     }
     class SimpleMesh3d2d extends Mesh3d2d {
         constructor(texture: PIXI.Texture, vertices?: Float32Array, uvs?: Float32Array, indices?: Uint16Array, drawMode?: number);
@@ -517,8 +519,10 @@ declare module PIXI.projection {
     }
 }
 declare namespace PIXI {
-    interface IPoint {
+    interface IPointData {
         z?: number;
+    }
+    interface IPoint {
         set(x?: number, y?: number, z?: number): void;
     }
     interface Point {
@@ -537,15 +541,15 @@ declare module PIXI.projection {
     class Point3d extends PIXI.Point {
         constructor(x?: number, y?: number, z?: number);
         set(x?: number, y?: number, z?: number): this;
-        copyFrom(p: PIXI.IPoint): this;
-        copyTo(p: PIXI.Point): PIXI.Point;
+        copyFrom(p: PIXI.IPointData): this;
+        copyTo(p: PIXI.IPoint): PIXI.IPoint;
     }
     class ObservablePoint3d extends PIXI.ObservablePoint {
         _z: number;
         get z(): number;
         set z(value: number);
         set(x?: number, y?: number, z?: number): this;
-        copyFrom(p: PIXI.IPoint): this;
+        copyFrom(p: PIXI.IPointData): this;
         copyTo(p: PIXI.IPoint): PIXI.IPoint;
     }
 }
@@ -584,19 +588,19 @@ declare module PIXI.projection {
         calculateTrimmedVertices(): void;
         _calculateBounds(): void;
         _render(renderer: PIXI.Renderer): void;
-        containsPoint(point: PIXI.IPoint): boolean;
+        containsPoint(point: PIXI.IPointData): boolean;
         get worldTransform(): any;
-        toLocal<T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
+        toLocal<T extends PIXI.IPointData>(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
         isFrontFace(forceUpdate?: boolean): any;
         getDepth(forceUpdate?: boolean): any;
-        get position3d(): PIXI.IPoint;
-        get scale3d(): PIXI.IPoint;
+        get position3d(): PIXI.IPointData;
+        get scale3d(): PIXI.IPointData;
         get euler(): Euler;
-        get pivot3d(): PIXI.IPoint;
-        set position3d(value: PIXI.IPoint);
-        set scale3d(value: PIXI.IPoint);
+        get pivot3d(): PIXI.IPointData;
+        set position3d(value: PIXI.IPointData);
+        set scale3d(value: PIXI.IPointData);
         set euler(value: Euler);
-        set pivot3d(value: PIXI.IPoint);
+        set pivot3d(value: PIXI.IPointData);
     }
 }
 declare module PIXI.projection {
@@ -605,23 +609,23 @@ declare module PIXI.projection {
         proj: Projection3d;
         vertexData2d: Float32Array;
         get worldTransform(): any;
-        toLocal<T extends PIXI.IPoint>(position: PIXI.IPoint, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
+        toLocal<T extends PIXI.IPointData>(position: PIXI.IPointData, from?: PIXI.DisplayObject, point?: T, skipUpdate?: boolean, step?: TRANSFORM_STEP): T;
         isFrontFace(forceUpdate?: boolean): any;
         getDepth(forceUpdate?: boolean): any;
-        get position3d(): PIXI.IPoint;
-        get scale3d(): PIXI.IPoint;
+        get position3d(): PIXI.IPointData;
+        get scale3d(): PIXI.IPointData;
         get euler(): IEuler;
-        get pivot3d(): PIXI.IPoint;
-        set position3d(value: PIXI.IPoint);
-        set scale3d(value: PIXI.IPoint);
+        get pivot3d(): PIXI.IPointData;
+        set position3d(value: PIXI.IPointData);
+        set scale3d(value: PIXI.IPointData);
         set euler(value: IEuler);
-        set pivot3d(value: PIXI.IPoint);
+        set pivot3d(value: PIXI.IPointData);
     }
 }
 declare module PIXI.projection.utils {
-    import IPoint = PIXI.IPoint;
-    function getIntersectionFactor(p1: IPoint, p2: IPoint, p3: IPoint, p4: IPoint, out: IPoint): number;
-    function getPositionFromQuad(p: Array<IPoint>, anchor: IPoint, out: IPoint): IPoint;
+    import IPointData = PIXI.IPointData;
+    function getIntersectionFactor(p1: IPointData, p2: IPointData, p3: IPointData, p4: IPointData, out: IPointData): number;
+    function getPositionFromQuad(p: Array<IPointData>, anchor: IPointData, out: IPointData): IPointData;
 }
 declare module PIXI.projection {
     interface Sprite2d {
