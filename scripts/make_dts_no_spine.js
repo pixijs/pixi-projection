@@ -18,7 +18,7 @@ for (var i in files) {
 var tmp = require('tmp');
 var process = require('child_process');
 
-tmp.file(function (err, filename) {
+tmp.file({postfix: '.ts'}, function (err, filename) {
     fs.writeFileSync(filename, filesCompilation);
 
     process.exec('tsc --module none --target es5 --declaration --removeComments node_modules/pixi.js/pixi.js.d.ts ' + filename, function(err, stdout, stderr) {
@@ -31,4 +31,4 @@ tmp.file(function (err, filename) {
                 .replace(/pixi_projection/g, 'PIXI.projection')
         );
     });
-}, {postfix: '.ts'});
+});
