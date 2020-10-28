@@ -1753,12 +1753,14 @@ var pixi_projection;
             var texture = this._texture;
             var vertexData = this.vertexTrimmedData;
             var orig = texture.orig;
+            var w = this.tileProj ? this._width : orig.width;
+            var h = this.tileProj ? this._height : orig.height;
             var anchor = this._anchor;
             var wt = this.proj.world.mat3;
-            var w1 = -anchor._x * orig.width;
-            var w0 = w1 + orig.width;
-            var h1 = -anchor._y * orig.height;
-            var h0 = h1 + orig.height;
+            var w1 = -anchor._x * w;
+            var w0 = w1 + w;
+            var h1 = -anchor._y * h;
+            var h0 = h1 + h;
             var z = 1.0 / (wt[2] * w1 + wt[5] * h1 + wt[8]);
             vertexData[0] = z * ((wt[0] * w1) + (wt[3] * h1) + wt[6]);
             vertexData[1] = z * ((wt[1] * w1) + (wt[4] * h1) + wt[7]);
@@ -1857,6 +1859,20 @@ var pixi_projection;
                     }
                     convertTo2d.call(this);
                 };
+    }
+    if (PIXI.TilingSprite) {
+        PIXI.TilingSprite.prototype.convertTo2d = function () {
+            if (this.proj)
+                return;
+            this.tileProj = new pixi_projection.Projection2d(this.tileTransform);
+            this.tileProj.reverseLocalOrder = true;
+            this.uvRespectAnchor = true;
+            this.calculateTrimmedVertices = pixi_projection.Sprite2d.prototype.calculateTrimmedVertices;
+            this._calculateBounds = pixi_projection.Sprite2d.prototype._calculateBounds;
+            this._render = pixi_projection.TilingSprite2d.prototype._render;
+            this.pluginName = 'tilingSprite2d';
+            convertTo2d.call(this);
+        };
     }
 })(pixi_projection || (pixi_projection = {}));
 var pixi_projection;
