@@ -115,16 +115,18 @@ namespace pixi_projection {
 			const texture = this._texture;
 			const vertexData = this.vertexTrimmedData;
 			const orig = texture.orig;
+			const w = (this as any).tileProj ? this._width : orig.width;
+			const h = (this as any).tileProj ? this._height : orig.height;
 			const anchor = this._anchor;
 
 			// lets calculate the new untrimmed bounds..
 			const wt = this.proj.world.mat3;
 
-			const w1 = -anchor._x * orig.width;
-			const w0 = w1 + orig.width;
+			const w1 = -anchor._x * w;
+			const w0 = w1 + w;
 
-			const h1 = -anchor._y * orig.height;
-			const h0 = h1 + orig.height;
+			const h1 = -anchor._y * h;
+			const h0 = h1 + h;
 
 			let z = 1.0 / (wt[2] * w1 + wt[5] * h1 + wt[8]);
 			vertexData[0] = z * ((wt[0] * w1) + (wt[3] * h1) + wt[6]);

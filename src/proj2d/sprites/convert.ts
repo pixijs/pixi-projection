@@ -75,4 +75,20 @@ namespace pixi_projection {
 				};
 	}
 
+	if (PIXI.TilingSprite) {
+		(PIXI as any).TilingSprite.prototype.convertTo2d = function () {
+			if (this.proj) return;
+
+			this.tileProj = new Projection2d(this.tileTransform);
+			this.tileProj.reverseLocalOrder = true;
+			this.uvRespectAnchor = true;
+
+			this.calculateTrimmedVertices = Sprite2d.prototype.calculateTrimmedVertices;
+			this._calculateBounds = Sprite2d.prototype._calculateBounds;
+			this._render = TilingSprite2d.prototype._render;
+
+			this.pluginName = 'tilingSprite2d';
+			convertTo2d.call(this);
+		};
+	}
 }
