@@ -42,7 +42,7 @@ namespace pixi_projection {
 
 		setAxisY(p: IPointData, factor: number = 1) {
 			const x = p.x, y = p.y;
-			const d = Math.sqrt(x * x + y * y);
+			const d = -Math.sqrt(x * x + y * y);
 			const mat3 = this.matrix.mat3;
 			mat3[3] = x / d;
 			mat3[4] = y / d;
