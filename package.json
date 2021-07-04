@@ -1,46 +1,113 @@
 {
-  "name": "pixi-projection",
-  "version": "0.3.15",
-  "description": "Projections (2.5d, 3d and bilinear) for pixi v^5",
-  "author": "Ivan Popelyshev",
-  "contributors": [
-    "Ivan Popelyshev <ivan.popelyshev@gmail.com>"
-  ],
-  "main": "./dist/pixi-projection.js",
-  "types": "./dist/pixi-projection.d.ts",
-  "homepage": "https://github.com/pixijs/pixi-projection",
-  "bugs": {
-    "url": "https://github.com/pixijs/pixi-projection/issues"
+	"name": "pixi-projection",
+	"version": "0.4.0",
+	"description": "Projections (2.5d, 3d and bilinear) for pixi v^5",
+	"author": "Ivan Popelyshev",
+	"contributors": [
+		"Ivan Popelyshev <ivan.popelyshev@gmail.com>"
+	],
+	"main": "./dist/pixi-projection.js",
+	"module": "./lib/pixi-projection.es.js",
+	"bundle": "./dist/pixi-projection.umd.js",
+	"namespace": "PIXI.projection",
+	"types": "./index.d.ts",
+	"homepage": "http://www.pixijs.com/",
+	"bugs": "https://github.com/pixijs/projection/issues",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/pixijs/projection.git"
+	},
+	"scripts": {
+		"clean": "rimraf dist/* lib/* compile",
+		"start": "run-s watch",
+		"watch": "rollup -cw",
+		"prebuild": "run-s clean lint types",
+		"build": "rollup -c",
+		"postbuild": "run-s build:types",
+		"build:prod": "cross-env NODE_ENV=production run-s build",
+		"prebuild:types": "rimraf compile",
+		"build:types": "tsc --outDir compile && api-extractor run && node scripts/injectGlobalMixins",
+		"lint": "eslint ./src",
+		"types": "tsc -noEmit",
+		"release:patch": "npm version patch && npm publish",
+		"release:minor": "npm version minor && npm publish",
+		"release:major": "npm version major && npm publish",
+		"postversion": "run-s build:prod",
+		"postpublish": "git push && git push --tags",
+		"prepack": "clean-package",
+		"postpack": "clean-package restore"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"engines": {
+		"node": ">=14",
+		"npm": ">=7"
+	},
+	"clean-package": {
+		"indent": 2,
+		"remove": [
+			"clean-package",
+			"scripts",
+			"engines",
+			"devDependencies",
+			"eslintConfig"
+		]
+	},
+	"eslintConfig": {
+		"extends": [
+			"@pixi/eslint-config"
+		]
+	},
+	"files": [
+		"dist/",
+		"lib/",
+		"index.d.ts",
+		"LICENSE",
+		"package.json",
+		"README.md"
+	],
+	"peerDependencies": {
+		"@pixi/constants": "^6.0.4",
+		"@pixi/core": "^6.0.4",
+		"@pixi/display": "^6.0.4",
+		"@pixi/graphics": "^6.0.4",
+		"@pixi/math": "^6.0.4",
+		"@pixi/mesh": "^6.0.4",
+		"@pixi/mesh-extras": "^6.0.4",
+		"@pixi/sprite": "^6.0.4",
+		"@pixi/sprite-tiling": "^6.0.4",
+		"@pixi/text": "^6.0.4",
+		"@pixi/utils": "^6.0.4",
+    "@pixi-spine/base": "^3.0.4"
   },
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/pixijs/pixi-projection.git"
-  },
-  "scripts": {
-    "cleanup": "rimraf bin && mkdirp dist",
-    "prestart": "yarn cleanup",
-    "start": "parallelshell \"yarn watch\"",
-    "watch": "tsc -w",
-    "prebuild": "yarn cleanup",
-    "make:dts": "node scripts/make_dts.js && node scripts/make_dts_no_spine.js",
-    "build": "tsc && tsc -p tsconfig-no-spine.json && yarn make:dts",
-    "docs": "jsdoc -c scripts/jsdoc.conf.json -R README.md"
-  },
-  "files": [
-    "dist/",
-    "src/",
-    "package.json",
-    "README.md"
-  ],
-  "devDependencies": {
-    "del": "^2.2.0",
-    "mkdirp": "^0.5.1",
-    "parallelshell": "^2.0.0",
-    "pixi-spine": "~2.0.2",
-    "pixi.js": "^5.3.3",
-    "rimraf": "^2.5.3",
-    "tmp": "^0.2.1",
-    "typescript": "^3.5.3"
-  }
+	"devDependencies": {
+		"@microsoft/api-extractor": "7.13.5",
+		"@pixi-build-tools/rollup-configurator": "~1.0.11",
+		"@pixi/constants": "^6.0.4",
+		"@pixi/core": "^6.0.4",
+		"@pixi/display": "^6.0.4",
+		"@pixi/eslint-config": "^2.0.1",
+		"@pixi/graphics": "^6.0.4",
+		"@pixi/math": "^6.0.4",
+		"@pixi/mesh": "^6.0.4",
+		"@pixi/mesh-extras": "^6.0.4",
+		"@pixi/sprite": "^6.0.4",
+		"@pixi/sprite-tiling": "^6.0.4",
+		"@pixi/text": "^6.0.4",
+		"@pixi/utils": "^6.0.4",
+    "@pixi-spine/base": "^3.0.4",
+		"@typescript-eslint/eslint-plugin": "^4.16.1",
+		"@typescript-eslint/parser": "^4.16.1",
+		"clean-package": "^1.0.1",
+		"cross-env": "^7.0.3",
+		"eslint": "^7.21.0",
+		"npm-run-all": "^4.1.5",
+		"prepend": "=1.0.2",
+		"rimraf": "^2.5.3",
+		"rollup": "^2.23.1",
+		"tslib": "^2.0.1",
+		"typescript": "^3.9.7"
+	}
 }

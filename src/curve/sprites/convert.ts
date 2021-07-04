@@ -1,43 +1,40 @@
-declare module PIXI {
-	interface Sprite {
-		convertTo2s(): void;
-	}
+import { Sprite } from '@pixi/sprite';
+import { Container } from '@pixi/display';
+import { Matrix } from '@pixi/math';
+import { Sprite2s } from './Sprite2s';
+import { ProjectionSurface } from '../ProjectionSurface';
 
-	interface Container {
-		convertTo2s(): void;
+Sprite.prototype.convertTo2s = function convertTo2s()
+{
+    if (this.proj) return;
+    // container
+    this.pluginName = 'sprite_bilinear';
+    this.aTrans = new Matrix();
+    this.calculateVertices = Sprite2s.prototype.calculateVertices;
+    this.calculateTrimmedVertices = Sprite2s.prototype.calculateTrimmedVertices;
+    this._calculateBounds = Sprite2s.prototype._calculateBounds;
+    Container.prototype.convertTo2s.call(this);
+};
 
-		convertSubtreeTo2s(): void;
-	}
-}
+Container.prototype.convertTo2s = function convertTo2s()
+{
+    if (this.proj) return;
+    this.proj = new ProjectionSurface(this.transform);
+    Object.defineProperty(this, 'worldTransform', {
+        get()
+        {
+            return this.proj;
+        },
+        enumerable: true,
+        configurable: true
+    });
+};
 
-namespace pixi_projection {
-	(PIXI as any).Sprite.prototype.convertTo2s = function () {
-		if (this.proj) return;
-		//cointainer
-		this.pluginName = 'sprite_bilinear';
-		this.aTrans = new PIXI.Matrix();
-		this.calculateVertices = Sprite2s.prototype.calculateVertices;
-		this.calculateTrimmedVertices = Sprite2s.prototype.calculateTrimmedVertices;
-		this._calculateBounds = Sprite2s.prototype._calculateBounds;
-		PIXI.Container.prototype.convertTo2s.call(this);
-	};
-
-	(PIXI as any).Container.prototype.convertTo2s = function () {
-		if (this.proj) return;
-		this.proj = new Projection2d(this.transform);
-		Object.defineProperty(this, "worldTransform", {
-			get: function () {
-				return this.proj;
-			},
-			enumerable: true,
-			configurable: true
-		});
-	};
-
-	(PIXI as any).Container.prototype.convertSubtreeTo2s = function () {
-		this.convertTo2s();
-		for (let i = 0; i < this.children.length; i++) {
-			this.children[i].convertSubtreeTo2s();
-		}
-	};
-}
+Container.prototype.convertSubtreeTo2s = function convertSubtreeTo2s()
+{
+    this.convertTo2s();
+    for (let i = 0; i < this.children.length; i++)
+    {
+        this.children[i].convertSubtreeTo2s();
+    }
+};

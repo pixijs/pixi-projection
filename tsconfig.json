@@ -1,23 +1,27 @@
 {
-    "compilerOptions": {
-        "target": "es5",
-        "module": "none",
-        "outFile": "dist/pixi-projection-spine.js",
-        "experimentalDecorators": true,
-        "sourceMap": true,
-        "preserveConstEnums": true,
-        "noImplicitAny": true,
-        "removeComments": true,
-        "inlineSources": true,
-        "declaration": true,
-        "lib": ["es6", "dom"]
+	"compilerOptions": {
+		"target": "es6",
+		"noImplicitAny": true,
+		"removeComments": true,
+		"preserveConstEnums": true,
+		"sourceMap": true,
+		"inlineSources": true,
+		"declaration": true,
+		"esModuleInterop": true,
+		"moduleResolution": "node",
+		"allowSyntheticDefaultImports": true,
+        "baseUrl": "./",
+        "paths": {
+            "pixi-projection": [
+                "src"
+            ]
+        }
     },
-    "include": [
-        "src/**/*",
-        "spine/**/*"
-    ],
-    "exclude": [
-        "node_modules/**/*",
-        "dist"
-    ]
+	"include": [
+		"src/**/*"
+	],
+	"exclude": [
+		"node_modules/**/*",
+		"dist"
+	]
 }

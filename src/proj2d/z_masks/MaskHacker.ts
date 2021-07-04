@@ -1,23 +1,27 @@
-namespace pixi_projection {
-    PIXI.systems.MaskSystem.prototype.pushSpriteMask =  function(maskData: PIXI.MaskData): void {
-        const { maskObject } = maskData;
-        const target = (maskData as any)._target;
+import { MaskData, MaskSystem } from '@pixi/core';
+import { Sprite } from '@pixi/sprite';
+import { SpriteMaskFilter2d } from './SpriteMaskFilter';
 
-		let alphaMaskFilter = this.alphaMaskPool[this.alphaMaskIndex];
+MaskSystem.prototype.pushSpriteMask = function pushSpriteMask(maskData: MaskData): void
+{
+    const { maskObject } = maskData;
+    const target = (maskData as any)._target;
 
-		if (!alphaMaskFilter) {
-			alphaMaskFilter = this.alphaMaskPool[this.alphaMaskIndex] = [new SpriteMaskFilter2d(maskObject as PIXI.Sprite)];
-		}
+    let alphaMaskFilter = this.alphaMaskPool[this.alphaMaskIndex];
 
-		alphaMaskFilter[0].resolution = this.renderer.resolution;
-		alphaMaskFilter[0].maskSprite = maskObject;
+    if (!alphaMaskFilter)
+    {
+        alphaMaskFilter = this.alphaMaskPool[this.alphaMaskIndex] = [new SpriteMaskFilter2d(maskObject as Sprite)];
+    }
 
-        const stashFilterArea = target.filterArea;
+    alphaMaskFilter[0].resolution = this.renderer.resolution;
+    alphaMaskFilter[0].maskSprite = maskObject;
 
-        target.filterArea = maskObject.getBounds(true);
-        this.renderer.filter.push(target, alphaMaskFilter);
-        target.filterArea = stashFilterArea;
+    const stashFilterArea = target.filterArea;
 
-		this.alphaMaskIndex++;
-	}
-}
+    target.filterArea = maskObject.getBounds(true);
+    this.renderer.filter.push(target, alphaMaskFilter);
+    target.filterArea = stashFilterArea;
+
+    this.alphaMaskIndex++;
+};

@@ -1,10 +1,12 @@
-namespace pixi_projection {
-	import TYPES = PIXI.TYPES;
-	import premultiplyTint = PIXI.utils.premultiplyTint;
+import { BatchShaderGenerator, Buffer, Geometry, Renderer, ViewableBuffer } from '@pixi/core';
+import { TYPES } from '@pixi/constants';
+import { premultiplyTint } from '@pixi/utils';
+import { Sprite } from '@pixi/sprite';
+import { Sprite2s } from './sprites/Sprite2s';
+import { Matrix } from '@pixi/math';
+import { UniformBatchRenderer } from '../base';
 
-	//TODO: Work in progress
-
-	const shaderVert = `precision highp float;
+const shaderVert = `precision highp float;
 attribute vec2 aVertexPosition;
 attribute vec3 aTrans1;
 attribute vec3 aTrans2;
@@ -25,20 +27,20 @@ varying vec4 vColor;
 varying float vTextureId;
 
 void main(void){
-	gl_Position.xyw = projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0);
-	gl_Position.z = 0.0;
+gl_Position.xyw = projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0);
+gl_Position.z = 0.0;
 
-	vertexPosition = aVertexPosition;
-	vTrans1 = aTrans1;
-	vTrans2 = aTrans2;
-	vTextureId = aTextureId;
-	vColor = aColor;
-	vSamplerSize = aSamplerSize;
-	vFrame = aFrame;
+vertexPosition = aVertexPosition;
+vTrans1 = aTrans1;
+vTrans2 = aTrans2;
+vTextureId = aTextureId;
+vColor = aColor;
+vSamplerSize = aSamplerSize;
+vFrame = aFrame;
 }
 `;
 
-	const shaderFrag = `precision highp float;
+const shaderFrag = `precision highp float;
 varying vec2 vertexPosition;
 varying vec3 vTrans1;
 varying vec3 vTrans2;
@@ -62,27 +64,27 @@ float revx = distortion.z;
 float revy = distortion.w;
 
 if (distortion.x == 0.0) {
-	surface.x = vx;
-	surface.y = vy / (1.0 + dy * vx);
-	surface2 = surface;
+surface.x = vx;
+surface.y = vy / (1.0 + dy * vx);
+surface2 = surface;
 } else
 if (distortion.y == 0.0) {
-	surface.y = vy;
-	surface.x = vx / (1.0 + dx * vy);
-	surface2 = surface;
+surface.y = vy;
+surface.x = vx / (1.0 + dx * vy);
+surface2 = surface;
 } else {
-	float c = vy * dx - vx * dy;
-	float b = (c + 1.0) * 0.5;
-	float b2 = (-c + 1.0) * 0.5;
-	float d = b * b + vx * dy;
-	if (d < -0.00001) {
-	    discard;
-	}
-	d = sqrt(max(d, 0.0));
-	surface.x = (- b + d) * revy;
-	surface2.x = (- b - d) * revy;
-	surface.y = (- b2 + d) * revx;
-	surface2.y = (- b2 - d) * revx;
+float c = vy * dx - vx * dy;
+float b = (c + 1.0) * 0.5;
+float b2 = (-c + 1.0) * 0.5;
+float d = b * b + vx * dy;
+if (d < -0.00001) {
+    discard;
+}
+d = sqrt(max(d, 0.0));
+surface.x = (- b + d) * revy;
+surface2.x = (- b - d) * revy;
+surface.y = (- b2 + d) * revx;
+surface2.y = (- b2 - d) * revx;
 }
 
 vec2 uv;
@@ -92,15 +94,15 @@ uv.y = vTrans2.x * surface.x + vTrans2.y * surface.y + vTrans2.z;
 vec2 pixels = uv * vSamplerSize;
 
 if (pixels.x < vFrame.x || pixels.x > vFrame.z ||
-	pixels.y < vFrame.y || pixels.y > vFrame.w) {
-	uv.x = vTrans1.x * surface2.x + vTrans1.y * surface2.y + vTrans1.z;
-	uv.y = vTrans2.x * surface2.x + vTrans2.y * surface2.y + vTrans2.z;
-	pixels = uv * vSamplerSize;
+pixels.y < vFrame.y || pixels.y > vFrame.w) {
+uv.x = vTrans1.x * surface2.x + vTrans1.y * surface2.y + vTrans1.z;
+uv.y = vTrans2.x * surface2.x + vTrans2.y * surface2.y + vTrans2.z;
+pixels = uv * vSamplerSize;
 
-   if (pixels.x < vFrame.x || pixels.x > vFrame.z ||
-       pixels.y < vFrame.y || pixels.y > vFrame.w) {
-       discard;
-   }
+if (pixels.x < vFrame.x || pixels.x > vFrame.z ||
+   pixels.y < vFrame.y || pixels.y > vFrame.w) {
+   discard;
+}
 }
 
 vec4 edge;
@@ -117,120 +119,125 @@ vec4 color;
 gl_FragColor = color * rColor;
 }`;
 
-	export class BatchBilineardGeometry extends PIXI.Geometry
-	{
-		_buffer: PIXI.Buffer;
-		_indexBuffer : PIXI.Buffer;
+export class BatchBilineardGeometry extends Geometry
+{
+    _buffer: Buffer;
+    _indexBuffer : Buffer;
 
-		constructor(_static = false)
-		{
-			super();
+    constructor(_static = false)
+    {
+        super();
 
-			this._buffer = new PIXI.Buffer(null, _static, false);
+        this._buffer = new Buffer(null, _static, false);
 
-			this._indexBuffer = new PIXI.Buffer(null, _static, true);
+        this._indexBuffer = new Buffer(null, _static, true);
 
-			this.addAttribute('aVertexPosition', this._buffer, 2, false, TYPES.FLOAT)
-				.addAttribute('aTrans1', this._buffer, 3, false, TYPES.FLOAT)
-				.addAttribute('aTrans2', this._buffer, 3, false, TYPES.FLOAT)
-				.addAttribute('aSamplerSize', this._buffer, 2, false, TYPES.FLOAT)
-				.addAttribute('aFrame', this._buffer, 4, false, TYPES.FLOAT)
-				.addAttribute('aColor', this._buffer, 4, true, TYPES.UNSIGNED_BYTE)
-				.addAttribute('aTextureId', this._buffer, 1, true, TYPES.FLOAT)
-				.addIndex(this._indexBuffer);
-		}
-	}
+        this.addAttribute('aVertexPosition', this._buffer, 2, false, TYPES.FLOAT)
+            .addAttribute('aTrans1', this._buffer, 3, false, TYPES.FLOAT)
+            .addAttribute('aTrans2', this._buffer, 3, false, TYPES.FLOAT)
+            .addAttribute('aSamplerSize', this._buffer, 2, false, TYPES.FLOAT)
+            .addAttribute('aFrame', this._buffer, 4, false, TYPES.FLOAT)
+            .addAttribute('aColor', this._buffer, 4, true, TYPES.UNSIGNED_BYTE)
+            .addAttribute('aTextureId', this._buffer, 1, true, TYPES.FLOAT)
+            .addIndex(this._indexBuffer);
+    }
+}
 
-	export class BatchBilinearPluginFactory {
-		static create(options: any): any
-		{
-			const { vertex, fragment, vertexSize, geometryClass } = (Object as any).assign({
-				vertex: shaderVert,
-				fragment: shaderFrag,
-				geometryClass: BatchBilineardGeometry,
-				vertexSize: 16,
-			}, options);
+export class BatchBilinearPluginFactory
+{
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    static create(options: any): any
+    {
+        const { vertex, fragment, vertexSize, geometryClass } = (Object as any).assign({
+            vertex: shaderVert,
+            fragment: shaderFrag,
+            geometryClass: BatchBilineardGeometry,
+            vertexSize: 16,
+        }, options);
 
-			return class BatchPlugin extends UniformBatchRenderer
-			{
-				constructor(renderer: PIXI.Renderer)
-				{
-					super(renderer);
+        return class BatchPlugin extends UniformBatchRenderer
+        {
+            constructor(renderer: Renderer)
+            {
+                super(renderer);
 
-					this.shaderGenerator = new PIXI.BatchShaderGenerator(vertex, fragment);
-					this.geometryClass = geometryClass;
-					this.vertexSize = vertexSize;
-				}
+                this.shaderGenerator = new BatchShaderGenerator(vertex, fragment);
+                this.geometryClass = geometryClass;
+                this.vertexSize = vertexSize;
+            }
 
-				defUniforms = {
-					translationMatrix: new PIXI.Matrix(),
-					distortion: new Float32Array([0, 0, Infinity, Infinity])
-				};
-				size = 1000;
-				forceMaxTextures = 1;
+            defUniforms = {
+                translationMatrix: new Matrix(),
+                distortion: new Float32Array([0, 0, Infinity, Infinity])
+            };
+            size = 1000;
+            forceMaxTextures = 1;
 
-				getUniforms(sprite: PIXI.Sprite) {
-					let  { proj } = sprite as Sprite2s;
-					if (proj.surface !== null) {
-						return proj.uniforms;
-					}
-					if (proj._activeProjection !== null) {
-						return proj._activeProjection.uniforms;
-					}
-					return this.defUniforms;
-				}
+            getUniforms(sprite: Sprite)
+            {
+                const { proj } = sprite as Sprite2s;
 
-				packInterleavedGeometry(element: any, attributeBuffer: PIXI.ViewableBuffer, indexBuffer: Uint16Array, aIndex: number, iIndex: number)
-				{
-					const {
-						uint32View,
-						float32View,
-					} = attributeBuffer;
-					const p = aIndex / this.vertexSize;
-					const indices = element.indices;
-					const vertexData = element.vertexData;
-					const tex = element._texture;
-					const frame = tex._frame;
-					const aTrans = element.aTrans;
-					const { _batchLocation, realWidth, realHeight, resolution } = element._texture.baseTexture;
+                if (proj.surface !== null)
+                {
+                    return proj.uniforms;
+                }
+                if (proj._activeProjection !== null)
+                {
+                    return proj._activeProjection.uniforms;
+                }
 
-					const alpha = Math.min(element.worldAlpha, 1.0);
+                return this.defUniforms;
+            }
 
-					const argb = alpha < 1.0 && element._texture.baseTexture.alphaMode ? premultiplyTint(element._tintRGB, alpha)
-						: element._tintRGB + (alpha * 255 << 24);
+            // eslint-disable-next-line max-len
+            packInterleavedGeometry(element: any, attributeBuffer: ViewableBuffer, indexBuffer: Uint16Array, aIndex: number, iIndex: number)
+            {
+                const {
+                    uint32View,
+                    float32View,
+                } = attributeBuffer;
+                const p = aIndex / this.vertexSize;
+                const indices = element.indices;
+                const vertexData = element.vertexData;
+                const tex = element._texture;
+                const frame = tex._frame;
+                const aTrans = element.aTrans;
+                const { _batchLocation, realWidth, realHeight, resolution } = element._texture.baseTexture;
 
-					for (let i = 0; i < vertexData.length; i += 2)
-					{
-						float32View[aIndex] = vertexData[i];
-						float32View[aIndex + 1] = vertexData[i + 1];
+                const alpha = Math.min(element.worldAlpha, 1.0);
 
-						float32View[aIndex + 2] = aTrans.a;
-						float32View[aIndex + 3] = aTrans.c;
-						float32View[aIndex + 4] = aTrans.tx;
-						float32View[aIndex + 5] = aTrans.b;
-						float32View[aIndex + 6] = aTrans.d;
-						float32View[aIndex + 7] = aTrans.ty;
+                const argb = alpha < 1.0 && element._texture.baseTexture.alphaMode ? premultiplyTint(element._tintRGB, alpha)
+                    : element._tintRGB + (alpha * 255 << 24);
 
-						float32View[aIndex + 8] = realWidth;
-						float32View[aIndex + 9] = realHeight;
-						float32View[aIndex + 10] = frame.x * resolution;
-						float32View[aIndex + 11] = frame.y * resolution;
-						float32View[aIndex + 12] = (frame.x + frame.width) * resolution;
-						float32View[aIndex + 13] = (frame.y + frame.height) * resolution;
+                for (let i = 0; i < vertexData.length; i += 2)
+                {
+                    float32View[aIndex] = vertexData[i];
+                    float32View[aIndex + 1] = vertexData[i + 1];
 
-						uint32View[aIndex + 14] = argb;
-						float32View[aIndex + 15] = _batchLocation;
-						aIndex += 16;
-					}
+                    float32View[aIndex + 2] = aTrans.a;
+                    float32View[aIndex + 3] = aTrans.c;
+                    float32View[aIndex + 4] = aTrans.tx;
+                    float32View[aIndex + 5] = aTrans.b;
+                    float32View[aIndex + 6] = aTrans.d;
+                    float32View[aIndex + 7] = aTrans.ty;
 
-					for (let i = 0; i < indices.length; i++)
-					{
-						indexBuffer[iIndex++] = p + indices[i];
-					}
-				}
-			};
-		}
-	}
+                    float32View[aIndex + 8] = realWidth;
+                    float32View[aIndex + 9] = realHeight;
+                    float32View[aIndex + 10] = frame.x * resolution;
+                    float32View[aIndex + 11] = frame.y * resolution;
+                    float32View[aIndex + 12] = (frame.x + frame.width) * resolution;
+                    float32View[aIndex + 13] = (frame.y + frame.height) * resolution;
 
-	PIXI.Renderer.registerPlugin('batch_bilinear', BatchBilinearPluginFactory.create({}));
+                    uint32View[aIndex + 14] = argb;
+                    float32View[aIndex + 15] = _batchLocation;
+                    aIndex += 16;
+                }
+
+                for (let i = 0; i < indices.length; i++)
+                {
+                    indexBuffer[iIndex++] = p + indices[i];
+                }
+            }
+        };
+    }
 }

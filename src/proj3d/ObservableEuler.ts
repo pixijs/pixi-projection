@@ -1,188 +1,225 @@
-namespace pixi_projection {
-	export type IEuler = Euler | ObservableEuler;
+import { Euler } from './Euler';
 
-	/**
-	 * The Euler angles, order is YZX. Except for projections (camera.lookEuler), its reversed XZY
-	 * @class
-	 * @namespace PIXI.projection
-	 * @param x pitch
-	 * @param y yaw
-	 * @param z roll
-	 * @constructor
-	 */
+export type IEuler = Euler | ObservableEuler;
 
-	export class ObservableEuler {
-		constructor(public cb: any, public scope: any, x?: number, y?: number, z?: number) {
-			/**
-			 * @member {number}
-			 * @default 0
-			 */
-			this._x = x || 0;
+/**
+ * The Euler angles, order is YZX. Except for projections (camera.lookEuler), its reversed XZY
+ * @class
+ * @namespace PIXI.projection
+ * @param x pitch
+ * @param y yaw
+ * @param z roll
+ * @constructor
+ */
 
-			/**
-			 * @member {number}
-			 * @default 0
-			 */
-			this._y = y || 0;
+export class ObservableEuler
+{
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    constructor(public cb: any, public scope: any, x?: number, y?: number, z?: number)
+    {
+        /**
+         * @member {number}
+         * @default 0
+         */
+        this._x = x || 0;
 
-			/**
-			 * @member {number}
-			 * @default 0
-			 */
-			this._z = z || 0;
+        /**
+         * @member {number}
+         * @default 0
+         */
+        this._y = y || 0;
 
-			this.quaternion = new Float64Array(4);
-			this.quaternion[3] = 1;
+        /**
+         * @member {number}
+         * @default 0
+         */
+        this._z = z || 0;
 
-			this.update();
-		}
+        this.quaternion = new Float64Array(4);
+        this.quaternion[3] = 1;
 
-		_quatUpdateId = -1;
-		_quatDirtyId = 0;
+        this.update();
+    }
 
-		quaternion: Float64Array;
+    _quatUpdateId = -1;
+    _quatDirtyId = 0;
 
-		_x: number;
-		_y: number;
-		_z: number;
-		_sign: number = 1;
+    quaternion: Float64Array;
 
-		get x() {
-			return this._x;
-		}
+    _x: number;
+    _y: number;
+    _z: number;
+    _sign = 1;
 
-		set x(value: number) {
-			if (this._x !== value) {
-				this._x = value;
-				this._quatDirtyId++;
-				this.cb.call(this.scope);
-			}
-		}
+    get x(): number
+    {
+        return this._x;
+    }
 
-		get y() {
-			return this._y;
-		}
+    set x(value: number)
+    {
+        if (this._x !== value)
+        {
+            this._x = value;
+            this._quatDirtyId++;
+            this.cb.call(this.scope);
+        }
+    }
 
-		set y(value: number) {
-			if (this._y !== value) {
-				this._y = value;
-				this._quatDirtyId++;
-				this.cb.call(this.scope);
-			}
-		}
+    get y(): number
+    {
+        return this._y;
+    }
 
-		get z() {
-			return this._z;
-		}
+    set y(value: number)
+    {
+        if (this._y !== value)
+        {
+            this._y = value;
+            this._quatDirtyId++;
+            this.cb.call(this.scope);
+        }
+    }
 
-		set z(value: number) {
-			if (this._z !== value) {
-				this._z = value;
-				this._quatDirtyId++;
-				this.cb.call(this.scope);
-			}
-		}
+    get z(): number
+    {
+        return this._z;
+    }
 
-		get pitch() {
-			return this._x;
-		}
+    set z(value: number)
+    {
+        if (this._z !== value)
+        {
+            this._z = value;
+            this._quatDirtyId++;
+            this.cb.call(this.scope);
+        }
+    }
 
-		set pitch(value: number) {
-			if (this._x !== value) {
-				this._x = value;
-				this._quatDirtyId++;
-				this.cb.call(this.scope);
-			}
-		}
+    get pitch(): number
+    {
+        return this._x;
+    }
 
-		get yaw() {
-			return this._y;
-		}
+    set pitch(value: number)
+    {
+        if (this._x !== value)
+        {
+            this._x = value;
+            this._quatDirtyId++;
+            this.cb.call(this.scope);
+        }
+    }
 
-		set yaw(value: number) {
-			if (this._y !== value) {
-				this._y = value;
-				this._quatDirtyId++;
-				this.cb.call(this.scope);
-			}
-		}
+    get yaw(): number
+    {
+        return this._y;
+    }
 
-		get roll() {
-			return this._z;
-		}
+    set yaw(value: number)
+    {
+        if (this._y !== value)
+        {
+            this._y = value;
+            this._quatDirtyId++;
+            this.cb.call(this.scope);
+        }
+    }
 
-		set roll(value: number) {
-			if (this._z !== value) {
-				this._z = value;
-				this._quatDirtyId++;
-				this.cb.call(this.scope);
-			}
-		}
+    get roll(): number
+    {
+        return this._z;
+    }
 
-		set(x?: number, y?: number, z?: number) {
-			const _x = x || 0;
-			const _y = y || 0;
-			const _z = z || 0;
-			if (this._x !== _x || this._y !== _y || this._z !== _z) {
-				this._x = _x;
-				this._y = _y;
-				this._z = _z;
-				this._quatDirtyId++;
-				this.cb.call(this.scope);
-			}
-		};
+    set roll(value: number)
+    {
+        if (this._z !== value)
+        {
+            this._z = value;
+            this._quatDirtyId++;
+            this.cb.call(this.scope);
+        }
+    }
 
-		copyFrom(euler: IEuler) {
-			const _x = euler.x;
-			const _y = euler.y;
-			const _z = euler.z;
-			if (this._x !== _x || this._y !== _y || this._z !== _z) {
-				this._x = _x;
-				this._y = _y;
-				this._z = _z;
-				this._quatDirtyId++;
-				this.cb.call(this.scope);
-			}
-		}
+    set(x?: number, y?: number, z?: number): this
+    {
+        const _x = x || 0;
+        const _y = y || 0;
+        const _z = z || 0;
 
-		copyTo(p: IEuler) {
-			p.set(this._x, this._y, this._z);
-			return p;
-		}
+        if (this._x !== _x || this._y !== _y || this._z !== _z)
+        {
+            this._x = _x;
+            this._y = _y;
+            this._z = _z;
+            this._quatDirtyId++;
+            this.cb.call(this.scope);
+        }
 
-		equals(euler: IEuler) {
-			return this._x === euler.x
-				&& this._y === euler.y
-				&& this._z === euler.z;
-		}
+        return this;
+    }
 
-		clone() {
-			return new Euler(this._x, this._y, this._z);
-		}
+    copyFrom(euler: IEuler): this
+    {
+        const _x = euler.x;
+        const _y = euler.y;
+        const _z = euler.z;
 
-		update() {
-			if (this._quatUpdateId === this._quatDirtyId) {
-				return false;
-			}
-			this._quatUpdateId = this._quatDirtyId;
+        if (this._x !== _x || this._y !== _y || this._z !== _z)
+        {
+            this._x = _x;
+            this._y = _y;
+            this._z = _z;
+            this._quatDirtyId++;
+            this.cb.call(this.scope);
+        }
 
-			const c1 = Math.cos(this._x / 2);
-			const c2 = Math.cos(this._y / 2);
-			const c3 = Math.cos(this._z / 2);
+        return this;
+    }
 
-			const s = this._sign;
-			const s1 = s * Math.sin(this._x / 2);
-			const s2 = s * Math.sin(this._y / 2);
-			const s3 = s * Math.sin(this._z / 2);
+    copyTo(p: IEuler): IEuler
+    {
+        p.set(this._x, this._y, this._z);
 
-			const q = this.quaternion;
+        return p;
+    }
 
-			q[0] = s1 * c2 * c3 + c1 * s2 * s3;
-			q[1] = c1 * s2 * c3 - s1 * c2 * s3;
-			q[2] = c1 * c2 * s3 + s1 * s2 * c3;
-			q[3] = c1 * c2 * c3 - s1 * s2 * s3;
+    equals(euler: IEuler): boolean
+    {
+        return this._x === euler.x
+            && this._y === euler.y
+            && this._z === euler.z;
+    }
 
-			return true;
-		}
-	}
+    clone(): Euler
+    {
+        return new Euler(this._x, this._y, this._z);
+    }
+
+    update(): boolean
+    {
+        if (this._quatUpdateId === this._quatDirtyId)
+        {
+            return false;
+        }
+        this._quatUpdateId = this._quatDirtyId;
+
+        const c1 = Math.cos(this._x / 2);
+        const c2 = Math.cos(this._y / 2);
+        const c3 = Math.cos(this._z / 2);
+
+        const s = this._sign;
+        const s1 = s * Math.sin(this._x / 2);
+        const s2 = s * Math.sin(this._y / 2);
+        const s3 = s * Math.sin(this._z / 2);
+
+        const q = this.quaternion;
+
+        q[0] = (s1 * c2 * c3) + (c1 * s2 * s3);
+        q[1] = (c1 * s2 * c3) - (s1 * c2 * s3);
+        q[2] = (c1 * c2 * s3) + (s1 * s2 * c3);
+        q[3] = (c1 * c2 * c3) - (s1 * s2 * s3);
+
+        return true;
+    }
 }

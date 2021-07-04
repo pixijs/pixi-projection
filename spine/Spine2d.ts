@@ -1,4 +1,6 @@
 ///<reference types="pixi-spine"/>
+import {Graphics} from "@pixi/graphics";
+
 module pixi_projection {
 	export interface Sprite2d {
 		region: PIXI.spine.core.TextureRegion;
@@ -21,13 +23,15 @@ module pixi_projection {
 			return new Container2d();
 		}
 
-		newSprite(tex: PIXI.Texture) {
+		newSprite(tex: Texture) {
 			return new Sprite2d(tex);
 		}
 
 		newGraphics() {
 			//TODO: make Graphics2d
-			return new PIXI.Graphics();
+			const graphics = new Graphics();
+			graphics.convertTo2d();
+			return graphics;
 		}
 
 		newMesh(texture: PIXI.Texture, vertices?: Float32Array, uvs?: Float32Array, indices?: Uint16Array, drawMode?: number) {

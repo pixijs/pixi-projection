@@ -1,47 +1,56 @@
-namespace pixi_projection {
-	const tempTransform = new PIXI.Transform();
+import { Renderer, Texture } from '@pixi/core';
+import { IPointData, Matrix, Point, Transform } from '@pixi/math';
+import { Projection2d } from '../Projection2d';
+import { DisplayObject } from '@pixi/display';
+import { TRANSFORM_STEP } from '../../base';
+import { container2dToLocal } from '../Container2d';
+import { TilingSprite } from '@pixi/sprite-tiling';
 
-	export class TilingSprite2d extends PIXI.TilingSprite {
-		constructor(texture: PIXI.Texture, width: number, height: number) {
-			super(texture, width, height);
+const tempTransform = new Transform();
 
-			this.tileProj = new Projection2d(this.tileTransform);
-			this.tileProj.reverseLocalOrder = true;
-			this.proj = new Projection2d(this.transform);
+export class TilingSprite2d extends TilingSprite
+{
+    constructor(texture: Texture, width: number, height: number)
+    {
+        super(texture, width, height);
 
-			this.pluginName = 'tilingSprite2d';
-			this.uvRespectAnchor = true;
-		}
+        this.tileProj = new Projection2d(this.tileTransform);
+        this.tileProj.reverseLocalOrder = true;
+        this.proj = new Projection2d(this.transform);
 
-		tileProj: Projection2d;
-		proj: Projection2d;
+        this.pluginName = 'tilingSprite2d';
+        this.uvRespectAnchor = true;
+    }
 
-		get worldTransform() {
-			return this.proj.affine ? this.transform.worldTransform : this.proj.world as any;
-		}
+    tileProj: Projection2d;
+    proj: Projection2d;
 
-		toLocal<T extends PIXI.IPointData>(position: PIXI.IPointData, from?: PIXI.DisplayObject,
-										  point?: T, skipUpdate?: boolean,
-										  step = TRANSFORM_STEP.ALL): T {
-			return container2dToLocal.call(this, position, from, point, skipUpdate, step);
-		}
+    get worldTransform(): Matrix
+    {
+        return this.proj.affine ? this.transform.worldTransform : this.proj.world as any;
+    }
 
-		_render(renderer: PIXI.Renderer)
-		{
-			// tweak our texture temporarily..
-			const texture = this._texture;
+    toLocal<P extends IPointData = Point>(position: IPointData, from?: DisplayObject, point?: P, skipUpdate?: boolean,
+        step = TRANSFORM_STEP.ALL): P
+    {
+        return container2dToLocal.call(this, position, from, point, skipUpdate, step);
+    }
 
-			if (!texture || !texture.valid)
-			{
-				return;
-			}
+    _render(renderer: Renderer): void
+    {
+        // tweak our texture temporarily..
+        const texture = this._texture;
 
-			// changed
-			this.tileTransform.updateTransform(tempTransform);
-			this.uvMatrix.update();
+        if (!texture || !texture.valid)
+        {
+            return;
+        }
 
-			renderer.batch.setObjectRenderer((renderer.plugins as any)[this.pluginName]);
-			(renderer.plugins as any)[this.pluginName].render(this);
-		}
-	}
+        // changed
+        this.tileTransform.updateTransform(tempTransform);
+        this.uvMatrix.update();
+
+        renderer.batch.setObjectRenderer((renderer.plugins as any)[this.pluginName]);
+        (renderer.plugins as any)[this.pluginName].render(this);
+    }
 }

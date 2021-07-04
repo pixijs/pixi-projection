@@ -1,6 +1,6 @@
 # pixi-projection
 
-[![Build Status](https://travis-ci.org/pixijs/pixi-projection.svg?branch=master)](https://travis-ci.org/pixijs/pixi-projection)
+[![Build](https://github.com/pixijs/pixi-projection/workflows/Build/badge.svg)](https://github.com/pixijs/pixi-projection/actions?query=workflow%3A%22Build%22) [![npm version](https://badge.fury.io/js/%40pixi%2Fpixi-projection.svg)](https://badge.fury.io/js/%40pixi%2Fpixi-projection)
 
 Collection of projections, both 2d and 3d.
 
@@ -11,10 +11,11 @@ To-do:
 
 ## Compatibility
 
-It works with PixiJS v5.
+Works with PixiJS v6. Compatibility with v5 is not guaranteed.
 
 For v4 please see [v4.x branch](https://github.com/pixijs/pixi-projection/tree/v4.x), npm version `0.2.8`
 For v5.1 please use npm version `0.3.5`
+For >= v5.2 please see [v5.x branch](https://github.com/pixijs/pixi-projection/tree/v5.x), npm version `0.3.15`
 
 It even works with CanvasRenderer, though result can be strange.
 
@@ -38,9 +39,7 @@ Projective sprites: Container2d, Sprite2d, Text2d
 
 There are many ways to define projections even when we use only 2 dimensions.
 
-**WORK IN PROGRESS, BEING PORTED TO v5**
-
-Surface sprites: Container2s, Sprite2s, Text2s for now only bilinear
+Surface sprites: Container2s, Sprite2s, Text2s for now only bilinear.
 
 [Bilinear transform of quad](http://pixijs.github.io/examples/#/plugin-projection/quad-bi.js)
 
@@ -56,14 +55,20 @@ For every projective way, there are corresponding classes:
 
 We dont support Graphics yet :(
 
-Also you can convert corresponding pixi objects
 
-```
-var sprite = new PIXI.Sprite();
+### Conversion of regular pixi objects
+
+Bear in mind that if you dont use at least one class from `pixi-projection`, it might be tree-shaken away.
+
+Here's how to use regular pixi projects to `3d` projection:
+
+```js
+import {Sprite, Container} from 'pixi.js';
+var sprite = new Sprite();
 sprite.convertTo3d();
 sprite.position3d.set(0, 0, 1); //available now!
 
-var container = new PIXI.Container();
+var container = new Container();
 container.convertTo3d();
 sprite.position3d.set(0, 0, 1); //available now!
 ```
@@ -71,12 +76,15 @@ sprite.position3d.set(0, 0, 1); //available now!
 You can also convert whole subtree:
 
 ```js
-var tree = new PIXI.Container();
-var child = new PIXI.Container();
+import {Container} from 'pixi.js';
+var tree = new Container();
+var child = new Container();
 tree.addChild(child);
 tree.convertSubtreeTo2d(tree);
 child.position3d.set(0, 0, 1); //available now!
 ```
+
+(`2d` projection in this example)
 
 ### 3D transforms
 
@@ -87,7 +95,8 @@ It all, starts from a camera, dont use 3d elements outside of it - it doesnt mak
 You can create several cameras if you want each element to has his own perspective parameters.
 
 ```js
-var camera = new PIXI.projection.Camera3d();
+import {Camera3d} from 'pixi-projection';
+var camera = new Camera3d();
 camera.setPlanes(400, 10, 10000, false); // true if you want orthographics projection
 // I assume you have an app or renderer already
 camera.position.set(app.screen.width / 2, app.screen.height / 2);
@@ -127,18 +136,26 @@ That's why it can follow elements - its transform negates the element transform.
 
 ### Spine
 
-There's special build `pixi-projection-spine` to support Spine objects, please browse `dist` folder.
-
-### AngularJS
-
-How to use PixiJS typescript plugins in angular.
-
-[Demo](https://codesandbox.io/s/pixi-projection-cmulu)
+You can apply mixin from `@pixi-spine/projection` to force spine objects to spawn 2d or 3d instances of sprites and meshes.
 
 ```js
-import * as PIXI from "pixi.js";
-global.PIXI = PIXI;
-require("pixi-projection");
+import {applySpine3dMixin} from 'pixi-projection';
+import {SpineBase} from '@pixi-spine/base';
+
+applySpine3dMixin(SpineBase.prototype);
+// now all spine instances can be put in 3d projective space
+```
+
+If you apply only mixin for `2d`, dont expect fields like `position3d` to be accessible.
+
+If your spine instance always exists in screen spcae, you can use it as it is, like in [Runner example](http://pixijs.github.io/examples/#/plugin-projection/runner.js)
+
+Typing are injected in `SpineBase` class of `@pixi-spine/base` package. This package is usually tree-shaken away, hope its not a problem to see it in your `node_modules` even if you dont use spine.
+
+For UMD version, you should use
+
+```js
+PIXI.projection.applySpine3dMixin(PIXI.spine.Spine.prototype);
 ```
 
 ### Heaven
@@ -165,25 +182,32 @@ Those fields can be used with custom sorting solution or with [pixi-layers](http
 
 ### Culling
 
-Will be available after we add it to `pixi-layers`
+Will be available after we add it to `@pixi/layers`
+
+## Vanilla JS, UMD build
+
+All pixiJS v6 plugins has special `umd` build suited for vanilla.
+Navigate `pixi-projection` npm package, take `dist/pixi-projection.umd.js` file.
+
+```html
+<script src='lib/pixi.js'></script>
+<script src='lib/pixi-projection.umd.js'></script>
+```
+
+all classes can be accessed through `PIXI.projection` package.
 
 ## Building
 
 You will need to have [node][node] setup on your machine.
 
-Make sure you have [yarn][yarn] installed:
-
-    npm install -g yarn
-
 Then you can install dependencies and build:
 
 ```bash
-yarn
-yarn build
+npm i
+npm run build
 ```
 
-That will output the built distributables to `./bin`.
+That will output the built distributables to `./dist`.
 
 [node]:             https://nodejs.org/
 [typescript]:       https://www.typescriptlang.org/
-[yarn]:             https://yarnpkg.com
