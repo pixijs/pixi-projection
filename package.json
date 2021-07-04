@@ -64,6 +64,7 @@
 		"dist/",
 		"lib/",
 		"index.d.ts",
+    "global.d.ts",
 		"LICENSE",
 		"package.json",
 		"README.md"
