@@ -24,7 +24,7 @@ function convertTo2d()
 
 Container.prototype.convertTo2d = convertTo2d;
 
-Sprite.prototype.convertTo2d = function convertTo2d()
+Sprite.prototype.convertTo2d = function spriteConvertTo2d()
 {
     if (this.proj) return;
     this.calculateVertices = Sprite2d.prototype.calculateVertices;
@@ -34,7 +34,7 @@ Sprite.prototype.convertTo2d = function convertTo2d()
     convertTo2d.call(this);
 };
 
-Container.prototype.convertSubtreeTo2d = function convertTo2d()
+Container.prototype.convertSubtreeTo2d = function convertSubtreeTo2d()
 {
     this.convertTo2d();
     for (let i = 0; i < this.children.length; i++)
@@ -45,7 +45,7 @@ Container.prototype.convertSubtreeTo2d = function convertTo2d()
 
 SimpleMesh.prototype.convertTo2d
     = SimpleRope.prototype.convertTo2d
-        = function convertTo2d()
+        = function meshConvertTo2d()
         {
             if (this.proj) return;
             this.calculateVertices = Mesh2d.prototype.calculateVertices;
@@ -60,7 +60,7 @@ SimpleMesh.prototype.convertTo2d
             convertTo2d.call(this);
         };
 
-TilingSprite.prototype.convertTo2d = function convertTo2d()
+TilingSprite.prototype.convertTo2d = function tilingConvertTo2d()
 {
     if (this.proj) return;
 

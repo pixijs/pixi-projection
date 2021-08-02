@@ -4,7 +4,7 @@ import { Matrix } from '@pixi/math';
 import { Sprite2s } from './Sprite2s';
 import { ProjectionSurface } from '../ProjectionSurface';
 
-Sprite.prototype.convertTo2s = function convertTo2s()
+Sprite.prototype.convertTo2s = function spriteConvertTo2s()
 {
     if (this.proj) return;
     // container

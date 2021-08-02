@@ -45,7 +45,7 @@ function convertTo3d()
 
 Container.prototype.convertTo3d = convertTo3d;
 
-Sprite.prototype.convertTo3d = function convertTo3d()
+Sprite.prototype.convertTo3d = function spriteConvertTo3d()
 {
     if (this.proj) return;
     this.calculateVertices = Sprite3d.prototype.calculateVertices;
@@ -56,7 +56,7 @@ Sprite.prototype.convertTo3d = function convertTo3d()
     convertTo3d.call(this);
 };
 
-Container.prototype.convertSubtreeTo3d = function convertTo3d()
+Container.prototype.convertSubtreeTo3d = function convertSubtreeTo3d()
 {
     this.convertTo3d();
     for (let i = 0; i < this.children.length; i++)
@@ -67,7 +67,7 @@ Container.prototype.convertSubtreeTo3d = function convertTo3d()
 
 SimpleMesh.prototype.convertTo3d
     = SimpleRope.prototype.convertTo3d
-    = function convertTo3d()
+    = function meshConvert3d()
         {
             if (this.proj) return;
             this.calculateVertices = Mesh3d2d.prototype.calculateVertices;
