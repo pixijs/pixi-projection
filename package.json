@@ -1,6 +1,6 @@
 {
 	"name": "pixi-projection",
-	"version": "0.4.1",
+	"version": "0.4.2",
 	"description": "Projections (2.5d, 3d and bilinear) for pixi v^5",
 	"author": "Ivan Popelyshev",
 	"contributors": [
