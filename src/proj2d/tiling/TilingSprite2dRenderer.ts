@@ -145,7 +145,7 @@ export class TilingSprite2dRenderer extends ObjectRenderer
         shader.uniforms.uTransform = tempMat.toArray(true);
         shader.uniforms.uColor = premultiplyTintToRgba(ts.tint, ts.worldAlpha,
             shader.uniforms.uColor, baseTex.premultiplyAlpha);
-        shader.uniforms.translationMatrix = ts.transform.worldTransform.toArray(true);
+        shader.uniforms.translationMatrix = ts.worldTransform.toArray(true);
         shader.uniforms.uSampler = tex;
 
         renderer.shader.bind(shader, false);
