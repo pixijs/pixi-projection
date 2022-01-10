@@ -1,6 +1,6 @@
 # pixi-projection
 
-[![Build](https://github.com/pixijs/pixi-projection/workflows/Build/badge.svg)](https://github.com/pixijs/pixi-projection/actions?query=workflow%3A%22Build%22) [![npm version](https://badge.fury.io/js/%40pixi%2Fpixi-projection.svg)](https://badge.fury.io/js/%40pixi%2Fpixi-projection)
+[![npm version](https://badge.fury.io/js/pixi-projection.svg)](https://badge.fury.io/js/pixi-projection)
 
 Collection of projections, both 2d and 3d.
 
