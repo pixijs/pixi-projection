@@ -1,266 +1,308 @@
-namespace pixi_projection {
-	/**
-	 * Same as Sprite2d, but
-	 * 1. uses Matrix3d in proj
-	 * 2. does not render if at least one vertex is behind camera
-	 */
-	export class Sprite3d extends PIXI.Sprite {
-		constructor(texture: PIXI.Texture) {
-			super(texture);
-			this.proj = new Projection3d(this.transform);
-			this.pluginName = 'batch2d';
-		}
+import { Sprite } from '@pixi/sprite';
+import { Renderer, Texture } from '@pixi/core';
+import { Projection3d } from '../Projection3d';
+import { IPointData, Matrix } from '@pixi/math';
+import { DisplayObject } from '@pixi/display';
+import { TRANSFORM_STEP } from '../../base';
+import { container3dGetDepth, container3dIsFrontFace, container3dToLocal } from '../Container3d';
+import { Euler } from '../Euler';
+/**
+ * Same as Sprite2d, but
+ * 1. uses Matrix3d in proj
+ * 2. does not render if at least one vertex is behind camera
+ */
+export class Sprite3d extends Sprite
+{
+    constructor(texture: Texture)
+    {
+        super(texture);
+        this.proj = new Projection3d(this.transform);
+        this.pluginName = 'batch2d';
+    }
 
-		vertexData2d: Float32Array = null;
-		proj: Projection3d;
-		culledByFrustrum = false;
-		trimmedCulledByFrustrum = false;
+    vertexData2d: Float32Array = null;
+    proj: Projection3d;
+    culledByFrustrum = false;
+    trimmedCulledByFrustrum = false;
 
-		calculateVertices() {
-			const texture = this._texture;
+    calculateVertices(): void
+    {
+        const texture = this._texture;
 
-			if (this.proj._affine) {
-				this.vertexData2d = null;
-				super.calculateVertices();
-				return;
-			}
-			if (!this.vertexData2d) {
-				this.vertexData2d = new Float32Array(12);
-			}
+        if (this.proj._affine)
+        {
+            this.vertexData2d = null;
+            super.calculateVertices();
 
-			const wid = (this.transform as any)._worldID;
-			const tuid = (texture as any)._updateID;
-			if (this._transformID === wid && this._textureID === tuid) {
-				return;
-			}
-			// update texture UV here, because base texture can be changed without calling `_onTextureUpdate`
-			if (this._textureID !== tuid) {
-				(this as any).uvs = (texture as any)._uvs.uvsFloat32;
-			}
+            return;
+        }
+        if (!this.vertexData2d)
+        {
+            this.vertexData2d = new Float32Array(12);
+        }
 
-			this._transformID = wid;
-			this._textureID = tuid;
+        const wid = (this.transform as any)._worldID;
+        const tuid = (texture as any)._updateID;
+        const thisAny = this as any;
 
-			const wt = this.proj.world.mat4;
-			const vertexData2d = this.vertexData2d;
-			const vertexData = this.vertexData;
-			const trim = texture.trim;
-			const orig = texture.orig;
-			const anchor = this._anchor;
+        if (thisAny._transformID === wid && this._textureID === tuid)
+        {
+            return;
+        }
+        // update texture UV here, because base texture can be changed without calling `_onTextureUpdate`
+        if (this._textureID !== tuid)
+        {
+            (this as any).uvs = (texture as any)._uvs.uvsFloat32;
+        }
 
-			let w0 = 0;
-			let w1 = 0;
-			let h0 = 0;
-			let h1 = 0;
+        thisAny._transformID = wid;
+        this._textureID = tuid;
 
-			if (trim) {
-				w1 = trim.x - (anchor._x * orig.width);
-				w0 = w1 + trim.width;
+        const wt = this.proj.world.mat4;
+        const vertexData2d = this.vertexData2d;
+        const vertexData = this.vertexData;
+        const trim = texture.trim;
+        const orig = texture.orig;
+        const anchor = this._anchor;
 
-				h1 = trim.y - (anchor._y * orig.height);
-				h0 = h1 + trim.height;
-			} else {
-				w1 = -anchor._x * orig.width;
-				w0 = w1 + orig.width;
+        let w0: number;
+        let w1: number;
+        let h0: number;
+        let h1: number;
 
-				h1 = -anchor._y * orig.height;
-				h0 = h1 + orig.height;
-			}
+        if (trim)
+        {
+            w1 = trim.x - (anchor._x * orig.width);
+            w0 = w1 + trim.width;
 
-			let culled = false;
+            h1 = trim.y - (anchor._y * orig.height);
+            h0 = h1 + trim.height;
+        }
+        else
+        {
+            w1 = -anchor._x * orig.width;
+            w0 = w1 + orig.width;
 
-			let z;
+            h1 = -anchor._y * orig.height;
+            h0 = h1 + orig.height;
+        }
 
-			vertexData2d[0] = (wt[0] * w1) + (wt[4] * h1) + wt[12];
-			vertexData2d[1] = (wt[1] * w1) + (wt[5] * h1) + wt[13];
-			z = (wt[2] * w1) + (wt[6] * h1) + wt[14];
-			vertexData2d[2] = (wt[3] * w1) + (wt[7] * h1) + wt[15];
-			culled = culled || z < 0;
+        let culled = false;
 
-			vertexData2d[3] = (wt[0] * w0) + (wt[4] * h1) + wt[12];
-			vertexData2d[4] = (wt[1] * w0) + (wt[5] * h1) + wt[13];
-			z = (wt[2] * w0) + (wt[6] * h1) + wt[14];
-			vertexData2d[5] = (wt[3] * w0) + (wt[7] * h1) + wt[15];
-			culled = culled || z < 0;
+        let z;
 
-			vertexData2d[6] = (wt[0] * w0) + (wt[4] * h0) + wt[12];
-			vertexData2d[7] = (wt[1] * w0) + (wt[5] * h0) + wt[13];
-			z = (wt[2] * w0) + (wt[6] * h0) + wt[14];
-			vertexData2d[8] = (wt[3] * w0) + (wt[7] * h0) + wt[15];
-			culled = culled || z < 0;
+        vertexData2d[0] = (wt[0] * w1) + (wt[4] * h1) + wt[12];
+        vertexData2d[1] = (wt[1] * w1) + (wt[5] * h1) + wt[13];
+        z = (wt[2] * w1) + (wt[6] * h1) + wt[14];
+        vertexData2d[2] = (wt[3] * w1) + (wt[7] * h1) + wt[15];
+        culled = culled || z < 0;
 
-			vertexData2d[9] = (wt[0] * w1) + (wt[4] * h0) + wt[12];
-			vertexData2d[10] = (wt[1] * w1) + (wt[5] * h0) + wt[13];
-			z = (wt[2] * w1) + (wt[6] * h0) + wt[14];
-			vertexData2d[11] = (wt[3] * w1) + (wt[7] * h0) + wt[15];
-			culled = culled || z < 0;
+        vertexData2d[3] = (wt[0] * w0) + (wt[4] * h1) + wt[12];
+        vertexData2d[4] = (wt[1] * w0) + (wt[5] * h1) + wt[13];
+        z = (wt[2] * w0) + (wt[6] * h1) + wt[14];
+        vertexData2d[5] = (wt[3] * w0) + (wt[7] * h1) + wt[15];
+        culled = culled || z < 0;
 
-			this.culledByFrustrum = culled;
+        vertexData2d[6] = (wt[0] * w0) + (wt[4] * h0) + wt[12];
+        vertexData2d[7] = (wt[1] * w0) + (wt[5] * h0) + wt[13];
+        z = (wt[2] * w0) + (wt[6] * h0) + wt[14];
+        vertexData2d[8] = (wt[3] * w0) + (wt[7] * h0) + wt[15];
+        culled = culled || z < 0;
 
-			vertexData[0] = vertexData2d[0] / vertexData2d[2];
-			vertexData[1] = vertexData2d[1] / vertexData2d[2];
+        vertexData2d[9] = (wt[0] * w1) + (wt[4] * h0) + wt[12];
+        vertexData2d[10] = (wt[1] * w1) + (wt[5] * h0) + wt[13];
+        z = (wt[2] * w1) + (wt[6] * h0) + wt[14];
+        vertexData2d[11] = (wt[3] * w1) + (wt[7] * h0) + wt[15];
+        culled = culled || z < 0;
 
-			vertexData[2] = vertexData2d[3] / vertexData2d[5];
-			vertexData[3] = vertexData2d[4] / vertexData2d[5];
+        this.culledByFrustrum = culled;
 
-			vertexData[4] = vertexData2d[6] / vertexData2d[8];
-			vertexData[5] = vertexData2d[7] / vertexData2d[8];
+        vertexData[0] = vertexData2d[0] / vertexData2d[2];
+        vertexData[1] = vertexData2d[1] / vertexData2d[2];
 
-			vertexData[6] = vertexData2d[9] / vertexData2d[11];
-			vertexData[7] = vertexData2d[10] / vertexData2d[11];
-		}
+        vertexData[2] = vertexData2d[3] / vertexData2d[5];
+        vertexData[3] = vertexData2d[4] / vertexData2d[5];
 
-		calculateTrimmedVertices() {
-			if (this.proj._affine) {
-				super.calculateTrimmedVertices();
-				return;
-			}
+        vertexData[4] = vertexData2d[6] / vertexData2d[8];
+        vertexData[5] = vertexData2d[7] / vertexData2d[8];
 
-			const wid = (this.transform as any)._worldID;
-			const tuid = (this._texture as any)._updateID;
-			if (!this.vertexTrimmedData) {
-				this.vertexTrimmedData = new Float32Array(8);
-			} else if (this._transformTrimmedID === wid && this._textureTrimmedID === tuid) {
-				return;
-			}
+        vertexData[6] = vertexData2d[9] / vertexData2d[11];
+        vertexData[7] = vertexData2d[10] / vertexData2d[11];
+    }
 
-			this._transformTrimmedID = wid;
-			this._textureTrimmedID = tuid;
+    calculateTrimmedVertices(): void
+    {
+        if (this.proj._affine)
+        {
+            super.calculateTrimmedVertices();
 
-			// lets do some special trim code!
-			const texture = this._texture;
-			const vertexData = this.vertexTrimmedData;
-			const orig = texture.orig;
-			const anchor = this._anchor;
+            return;
+        }
 
-			// lets calculate the new untrimmed bounds..
-			const wt = this.proj.world.mat4;
+        const wid = (this.transform as any)._worldID;
+        const tuid = (this._texture as any)._updateID;
+        const thisAny = this as any;
 
-			const w1 = -anchor._x * orig.width;
-			const w0 = w1 + orig.width;
+        if (!thisAny.vertexTrimmedData)
+        {
+            thisAny.vertexTrimmedData = new Float32Array(8);
+        }
+        else if (thisAny._transformTrimmedID === wid && this._textureTrimmedID === tuid)
+        {
+            return;
+        }
 
-			const h1 = -anchor._y * orig.height;
-			const h0 = h1 + orig.height;
+        thisAny._transformTrimmedID = wid;
+        this._textureTrimmedID = tuid;
 
-			let culled = false;
+        // lets do some special trim code!
+        const texture = this._texture;
+        const vertexData = thisAny.vertexTrimmedData;
+        const orig = texture.orig;
+        const anchor = this._anchor;
 
-			let z;
+        // lets calculate the new untrimmed bounds..
+        const wt = this.proj.world.mat4;
 
-			let w = 1.0 / ((wt[3] * w1) + (wt[7] * h1) + wt[15]);
-			vertexData[0] = w * ((wt[0] * w1) + (wt[4] * h1) + wt[12]);
-			vertexData[1] = w * ((wt[1] * w1) + (wt[5] * h1) + wt[13]);
-			z = (wt[2] * w1) + (wt[6] * h1) + wt[14];
-			culled = culled || z < 0;
+        const w1 = -anchor._x * orig.width;
+        const w0 = w1 + orig.width;
 
-			w = 1.0 / ((wt[3] * w0) + (wt[7] * h1) + wt[15]);
-			vertexData[2] = w * ((wt[0] * w0) + (wt[4] * h1) + wt[12]);
-			vertexData[3] = w * ((wt[1] * w0) + (wt[5] * h1) + wt[13]);
-			z = (wt[2] * w0) + (wt[6] * h1) + wt[14];
-			culled = culled || z < 0;
+        const h1 = -anchor._y * orig.height;
+        const h0 = h1 + orig.height;
 
-			w = 1.0 / ((wt[3] * w0) + (wt[7] * h0) + wt[15]);
-			vertexData[4] = w * ((wt[0] * w0) + (wt[4] * h0) + wt[12]);
-			vertexData[5] = w * ((wt[1] * w0) + (wt[5] * h0) + wt[13]);
-			z = (wt[2] * w0) + (wt[6] * h0) + wt[14];
-			culled = culled || z < 0;
+        let culled = false;
 
-			w = 1.0 / ((wt[3] * w1) + (wt[7] * h0) + wt[15]);
-			vertexData[6] = w * ((wt[0] * w1) + (wt[4] * h0) + wt[12]);
-			vertexData[7] = w * ((wt[1] * w1) + (wt[5] * h0) + wt[13]);
-			z = (wt[2] * w1) + (wt[6] * h0) + wt[14];
-			culled = culled || z < 0;
+        let z;
 
-			this.culledByFrustrum = culled;
-		}
+        let w = 1.0 / ((wt[3] * w1) + (wt[7] * h1) + wt[15]);
 
-		_calculateBounds() {
-			this.calculateVertices();
-			if (this.culledByFrustrum) {
-				return;
-			}
+        vertexData[0] = w * ((wt[0] * w1) + (wt[4] * h1) + wt[12]);
+        vertexData[1] = w * ((wt[1] * w1) + (wt[5] * h1) + wt[13]);
+        z = (wt[2] * w1) + (wt[6] * h1) + wt[14];
+        culled = culled || z < 0;
 
-			const trim = this._texture.trim;
-			const orig = this._texture.orig;
-			if (!trim || (trim.width === orig.width && trim.height === orig.height))
-			{
-				// no trim! lets use the usual calculations..
-				this._bounds.addQuad(this.vertexData);
-				return;
-			}
+        w = 1.0 / ((wt[3] * w0) + (wt[7] * h1) + wt[15]);
+        vertexData[2] = w * ((wt[0] * w0) + (wt[4] * h1) + wt[12]);
+        vertexData[3] = w * ((wt[1] * w0) + (wt[5] * h1) + wt[13]);
+        z = (wt[2] * w0) + (wt[6] * h1) + wt[14];
+        culled = culled || z < 0;
 
-			this.calculateTrimmedVertices();
-			if (!this.trimmedCulledByFrustrum) {
-				this._bounds.addQuad(this.vertexTrimmedData as any);
-			}
-		}
+        w = 1.0 / ((wt[3] * w0) + (wt[7] * h0) + wt[15]);
+        vertexData[4] = w * ((wt[0] * w0) + (wt[4] * h0) + wt[12]);
+        vertexData[5] = w * ((wt[1] * w0) + (wt[5] * h0) + wt[13]);
+        z = (wt[2] * w0) + (wt[6] * h0) + wt[14];
+        culled = culled || z < 0;
 
-		_render(renderer: PIXI.Renderer) {
-			this.calculateVertices();
+        w = 1.0 / ((wt[3] * w1) + (wt[7] * h0) + wt[15]);
+        vertexData[6] = w * ((wt[0] * w1) + (wt[4] * h0) + wt[12]);
+        vertexData[7] = w * ((wt[1] * w1) + (wt[5] * h0) + wt[13]);
+        z = (wt[2] * w1) + (wt[6] * h0) + wt[14];
+        culled = culled || z < 0;
 
-			if (this.culledByFrustrum) {
-				return;
-			}
+        this.culledByFrustrum = culled;
+    }
 
-			renderer.batch.setObjectRenderer((renderer as any).plugins[this.pluginName]);
-			(renderer as any).plugins[this.pluginName].render(this);
-		}
+    _calculateBounds(): void
+    {
+        this.calculateVertices();
+        if (this.culledByFrustrum)
+        {
+            return;
+        }
 
-		containsPoint(point: PIXI.IPointData) {
-			if (this.culledByFrustrum) {
-				return false;
-			}
+        const trim = this._texture.trim;
+        const orig = this._texture.orig;
 
-			return super.containsPoint(point as any);
-		}
+        if (!trim || (trim.width === orig.width && trim.height === orig.height))
+        {
+            // no trim! lets use the usual calculations..
+            this._bounds.addQuad(this.vertexData);
 
-		get worldTransform() {
-			return this.proj.affine ? this.transform.worldTransform : this.proj.world as any;
-		}
+            return;
+        }
 
-		toLocal<T extends PIXI.IPointData>(position: PIXI.IPointData, from?: PIXI.DisplayObject,
-									   point?: T, skipUpdate?: boolean,
-									   step = TRANSFORM_STEP.ALL): T {
-			return container3dToLocal.call(this, position, from, point, skipUpdate, step);
-		}
+        this.calculateTrimmedVertices();
+        if (!this.trimmedCulledByFrustrum)
+        {
+            this._bounds.addQuad((this as any).vertexTrimmedData as any);
+        }
+    }
 
-		isFrontFace(forceUpdate?: boolean) {
-			return container3dIsFrontFace.call(this, forceUpdate);
-		}
+    _render(renderer: Renderer): void
+    {
+        this.calculateVertices();
 
-		getDepth(forceUpdate?: boolean) {
-			return container3dGetDepth.call(this, forceUpdate);
-		}
+        if (this.culledByFrustrum)
+        {
+            return;
+        }
 
-		get position3d(): PIXI.IPointData {
-			return this.proj.position;
-		}
+        renderer.batch.setObjectRenderer((renderer as any).plugins[this.pluginName]);
+        (renderer as any).plugins[this.pluginName].render(this);
+    }
 
-		get scale3d(): PIXI.IPointData {
-			return this.proj.scale;
-		}
+    containsPoint(point: IPointData): boolean
+    {
+        if (this.culledByFrustrum)
+        {
+            return false;
+        }
 
-		get euler(): Euler {
-			return this.proj.euler;
-		}
+        return super.containsPoint(point as any);
+    }
 
-		get pivot3d(): PIXI.IPointData {
-			return this.proj.pivot;
-		}
+    get worldTransform(): Matrix
+    {
+        return this.proj.affine ? this.transform.worldTransform : this.proj.world as any;
+    }
 
-		set position3d(value: PIXI.IPointData) {
-			this.proj.position.copyFrom(value);
-		}
+    toLocal<T extends IPointData>(position: IPointData, from?: DisplayObject,
+        point?: T, skipUpdate?: boolean,
+        step = TRANSFORM_STEP.ALL): T
+    {
+        return container3dToLocal.call(this, position, from, point, skipUpdate, step);
+    }
 
-		set scale3d(value: PIXI.IPointData) {
-			this.proj.scale.copyFrom(value);
-		}
+    isFrontFace(forceUpdate?: boolean): boolean
+    {
+        return container3dIsFrontFace.call(this, forceUpdate);
+    }
 
-		set euler(value: Euler) {
-			this.proj.euler.copyFrom(value);
-		}
+    getDepth(forceUpdate?: boolean): boolean
+    {
+        return container3dGetDepth.call(this, forceUpdate);
+    }
 
-		set pivot3d(value: PIXI.IPointData) {
-			this.proj.pivot.copyFrom(value);
-		}
-	}
+    get position3d(): IPointData
+    {
+        return this.proj.position;
+    }
+    set position3d(value: IPointData)
+    {
+        this.proj.position.copyFrom(value);
+    }
+    get scale3d(): IPointData
+    {
+        return this.proj.scale;
+    }
+    set scale3d(value: IPointData)
+    {
+        this.proj.scale.copyFrom(value);
+    }
+    get euler(): Euler
+    {
+        return this.proj.euler;
+    }
+    set euler(value: Euler)
+    {
+        this.proj.euler.copyFrom(value);
+    }
+    get pivot3d(): IPointData
+    {
+        return this.proj.pivot;
+    }
+    set pivot3d(value: IPointData)
+    {
+        this.proj.pivot.copyFrom(value);
+    }
 }

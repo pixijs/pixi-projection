@@ -1,25 +1,34 @@
-# Sublime Text files
+# sublime text files
 *.sublime*
 *.*~*.TMP
 
-# OS temp files
+# temp files
 .DS_Store
 Thumbs.db
 Desktop.ini
-
-# Tool temp files
 npm-debug.log
+
+# project files
+.project
+
+# vim swap files
 *.sw*
+
+# emacs temp files
 *~
 \#*#
-yarn.lock
 
 # project ignores
 !.gitkeep
+*__temp
 node_modules
-gh-pages
-build-es6
+docs/
+
+# jetBrains IDE ignores
 .idea
 
-# build temp
-compilation.ts
+# tsc output
+compile
+dist
+lib
+index.d.ts

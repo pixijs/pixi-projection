@@ -1,126 +1,146 @@
-namespace pixi_projection {
-	import IPointData = PIXI.IPointData;
-	import IPoint = PIXI.IPoint;
+/* eslint-disable no-mixed-operators */
+import { IPoint, IPointData, Matrix, Point, Rectangle, Transform } from '@pixi/math';
+import { Sprite } from '@pixi/sprite';
+import { Surface } from './BaseSurface';
+import { Dict } from '@pixi/utils';
 
-	const tempMat = new PIXI.Matrix();
-	const tempRect = new PIXI.Rectangle();
-	const tempPoint = new PIXI.Point();
+const tempMat = new Matrix();
+const tempRect = new Rectangle();
+const tempPoint = new Point();
 
-	export class BilinearSurface extends Surface {
-		distortion = new PIXI.Point();
+export class BilinearSurface extends Surface
+{
+    distortion = new Point();
 
-		constructor() {
-			super();
-		}
+    clear(): void
+    {
+        this.distortion.set(0, 0);
+    }
 
-		clear() {
-			this.distortion.set(0, 0);
-		}
+    apply(pos: IPointData, newPos?: IPointData): IPointData
+    {
+        newPos = newPos || new Point();
+        const d = this.distortion;
+        const m = pos.x * pos.y;
 
-		apply(pos: IPointData, newPos?: IPointData): IPointData {
-			newPos = newPos || new PIXI.Point();
-			const d = this.distortion;
-			const m = pos.x * pos.y;
-			newPos.x = pos.x + d.x * m;
-			newPos.y = pos.y + d.y * m;
-			return newPos;
-		}
+        newPos.x = pos.x + d.x * m;
+        newPos.y = pos.y + d.y * m;
 
-		applyInverse(pos: IPointData, newPos: IPoint): IPointData {
-			newPos = newPos || new PIXI.Point();
-			const vx = pos.x, vy = pos.y;
-			const dx = this.distortion.x, dy = this.distortion.y;
+        return newPos;
+    }
 
-			if (dx == 0.0) {
-				newPos.x = vx;
-				newPos.y = vy / (1.0 + dy * vx);
-			} else
-			if (dy == 0.0) {
-				newPos.y = vy;
-				newPos.x = vx/ (1.0 + dx * vy);
-			} else {
-				const b = (vy * dx - vx * dy + 1.0) * 0.5 / dy;
-				const d = b * b + vx / dy;
+    applyInverse(pos: IPointData, newPos: IPoint): IPointData
+    {
+        newPos = newPos || new Point();
+        const vx = pos.x; const
+            vy = pos.y;
+        const dx = this.distortion.x; const
+            dy = this.distortion.y;
 
-				if (d <= 0.00001) {
-					newPos.set(NaN, NaN);
-					return newPos;
-				}
-				if (dy > 0.0) {
-					newPos.x = - b + Math.sqrt(d);
-				} else {
-					newPos.x = - b - Math.sqrt(d);
-				}
-				newPos.y = (vx / newPos.x - 1.0) / dx;
-			}
-			return newPos;
-		}
+        if (dx === 0.0)
+        {
+            newPos.x = vx;
+            newPos.y = vy / (1.0 + dy * vx);
+        }
+        else
+        if (dy === 0.0)
+        {
+            newPos.y = vy;
+            newPos.x = vx / (1.0 + dx * vy);
+        }
+        else
+        {
+            const b = (vy * dx - vx * dy + 1.0) * 0.5 / dy;
+            const d = b * b + vx / dy;
 
-		mapSprite(sprite: PIXI.Sprite, quad: Array<IPointData>, outTransform?: PIXI.Transform) {
-			const tex = sprite.texture;
+            if (d <= 0.00001)
+            {
+                newPos.set(NaN, NaN);
 
-			tempRect.x = -sprite.anchor.x * tex.orig.width;
-			tempRect.y = -sprite.anchor.y * tex.orig.height;
-			tempRect.width = tex.orig.width;
-			tempRect.height = tex.orig.height;
+                return newPos;
+            }
+            if (dy > 0.0)
+            {
+                newPos.x = -b + Math.sqrt(d);
+            }
+            else
+            {
+                newPos.x = -b - Math.sqrt(d);
+            }
+            newPos.y = (vx / newPos.x - 1.0) / dx;
+        }
 
-			return this.mapQuad(tempRect, quad, outTransform || sprite.transform as PIXI.Transform);
-		}
+        return newPos;
+    }
 
-		mapQuad(rect: PIXI.Rectangle, quad: Array<IPointData>, outTransform: PIXI.Transform) {
-			const ax = -rect.x / rect.width;
-			const ay = -rect.y / rect.height;
+    mapSprite(sprite: Sprite, quad: Array<IPointData>, outTransform?: Transform): this
+    {
+        const tex = sprite.texture;
 
-			const ax2 = (1.0 - rect.x) / rect.width;
-			const ay2 = (1.0 - rect.y) / rect.height;
+        tempRect.x = -sprite.anchor.x * tex.orig.width;
+        tempRect.y = -sprite.anchor.y * tex.orig.height;
+        tempRect.width = tex.orig.width;
+        tempRect.height = tex.orig.height;
 
-			const up1x = (quad[0].x * (1.0 - ax) + quad[1].x * ax);
-			const up1y = (quad[0].y * (1.0 - ax) + quad[1].y * ax);
-			const up2x = (quad[0].x * (1.0 - ax2) + quad[1].x * ax2);
-			const up2y = (quad[0].y * (1.0 - ax2) + quad[1].y * ax2);
+        return this.mapQuad(tempRect, quad, outTransform || sprite.transform as Transform);
+    }
 
-			const down1x = (quad[3].x * (1.0 - ax) + quad[2].x * ax);
-			const down1y = (quad[3].y * (1.0 - ax) + quad[2].y * ax);
-			const down2x = (quad[3].x * (1.0 - ax2) + quad[2].x * ax2);
-			const down2y = (quad[3].y * (1.0 - ax2) + quad[2].y * ax2);
+    mapQuad(rect: Rectangle, quad: Array<IPointData>, outTransform: Transform): this
+    {
+        const ax = -rect.x / rect.width;
+        const ay = -rect.y / rect.height;
 
-			const x00 = up1x * (1.0 - ay) + down1x * ay;
-			const y00 = up1y * (1.0 - ay) + down1y * ay;
+        const ax2 = (1.0 - rect.x) / rect.width;
+        const ay2 = (1.0 - rect.y) / rect.height;
 
-			const x10 = up2x * (1.0 - ay) + down2x * ay;
-			const y10 = up2y * (1.0 - ay) + down2y * ay;
+        const up1x = (quad[0].x * (1.0 - ax) + quad[1].x * ax);
+        const up1y = (quad[0].y * (1.0 - ax) + quad[1].y * ax);
+        const up2x = (quad[0].x * (1.0 - ax2) + quad[1].x * ax2);
+        const up2y = (quad[0].y * (1.0 - ax2) + quad[1].y * ax2);
 
-			const x01 = up1x * (1.0 - ay2) + down1x * ay2;
-			const y01 = up1y * (1.0 - ay2) + down1y * ay2;
+        const down1x = (quad[3].x * (1.0 - ax) + quad[2].x * ax);
+        const down1y = (quad[3].y * (1.0 - ax) + quad[2].y * ax);
+        const down2x = (quad[3].x * (1.0 - ax2) + quad[2].x * ax2);
+        const down2y = (quad[3].y * (1.0 - ax2) + quad[2].y * ax2);
 
-			const x11 = up2x * (1.0 - ay2) + down2x * ay2;
-			const y11 = up2y * (1.0 - ay2) + down2y * ay2;
+        const x00 = up1x * (1.0 - ay) + down1x * ay;
+        const y00 = up1y * (1.0 - ay) + down1y * ay;
 
-			const mat = tempMat;
-			mat.tx = x00;
-			mat.ty = y00;
-			mat.a = x10 - x00;
-			mat.b = y10 - y00;
-			mat.c = x01 - x00;
-			mat.d = y01 - y00;
-			tempPoint.set(x11, y11);
-			mat.applyInverse(tempPoint, tempPoint);
-			this.distortion.set(tempPoint.x - 1, tempPoint.y - 1);
+        const x10 = up2x * (1.0 - ay) + down2x * ay;
+        const y10 = up2y * (1.0 - ay) + down2y * ay;
 
-			outTransform.setFromMatrix(mat);
+        const x01 = up1x * (1.0 - ay2) + down1x * ay2;
+        const y01 = up1y * (1.0 - ay2) + down1y * ay2;
 
-			return this;
-		}
+        const x11 = up2x * (1.0 - ay2) + down2x * ay2;
+        const y11 = up2y * (1.0 - ay2) + down2y * ay2;
 
-		fillUniforms(uniforms: any) {
-			uniforms.distortion = uniforms.distortion || new Float32Array([0, 0, 0, 0]);
-			const ax = Math.abs(this.distortion.x);
-			const ay = Math.abs(this.distortion.y);
+        const mat = tempMat;
 
-			uniforms.distortion[0] = ax * 10000 <= ay ? 0 : this.distortion.x;
-			uniforms.distortion[1] = ay * 10000 <= ax ? 0 : this.distortion.y;
-			uniforms.distortion[2] = 1.0 / uniforms.distortion[0];
-			uniforms.distortion[3] = 1.0 / uniforms.distortion[1];
-		}
-	}
+        mat.tx = x00;
+        mat.ty = y00;
+        mat.a = x10 - x00;
+        mat.b = y10 - y00;
+        mat.c = x01 - x00;
+        mat.d = y01 - y00;
+        tempPoint.set(x11, y11);
+        mat.applyInverse(tempPoint, tempPoint);
+        this.distortion.set(tempPoint.x - 1, tempPoint.y - 1);
+
+        outTransform.setFromMatrix(mat);
+
+        return this;
+    }
+
+    fillUniforms(uniforms: Dict<any>): void
+    {
+        uniforms.distortion = uniforms.distortion || new Float32Array([0, 0, 0, 0]);
+        const ax = Math.abs(this.distortion.x);
+        const ay = Math.abs(this.distortion.y);
+
+        uniforms.distortion[0] = ax * 10000 <= ay ? 0 : this.distortion.x;
+        uniforms.distortion[1] = ay * 10000 <= ax ? 0 : this.distortion.y;
+        uniforms.distortion[2] = 1.0 / uniforms.distortion[0];
+        uniforms.distortion[3] = 1.0 / uniforms.distortion[1];
+    }
 }
