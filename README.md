@@ -17,7 +17,7 @@ For v4 please see [v4.x branch](https://github.com/pixijs/pixi-projection/tree/v
 For v5.1 please use npm version `0.3.5`
 For >= v5.2 please see [v5.x branch](https://github.com/pixijs/pixi-projection/tree/v5.x), npm version `0.3.15`
 
-It even works with CanvasRenderer, though result can be strange.
+It even works with CanvasRenderer, though results can be strange.
 
 ## Examples
 
@@ -55,7 +55,6 @@ For every projective way, there are corresponding classes:
 
 We dont support Graphics yet :(
 
-
 ### Conversion of regular pixi objects
 
 Bear in mind that if you dont use at least one class from `pixi-projection`, it might be tree-shaken away.
@@ -90,9 +89,9 @@ child.position3d.set(0, 0, 1); //available now!
 
 The most useful thing is 3D transforms.
 
-It all, starts from a camera, dont use 3d elements outside of it - it doesnt make sence.
+It all starts from a camera, dont use 3d elements outside of it - it doesn't make sense.
 
-You can create several cameras if you want each element to has his own perspective parameters.
+You can create several cameras if you want each element to have its own perspective parameters.
 
 ```js
 import {Camera3d} from 'pixi-projection';
@@ -102,11 +101,11 @@ camera.setPlanes(400, 10, 10000, false); // true if you want orthographics proje
 camera.position.set(app.screen.width / 2, app.screen.height / 2);
 ```
 
-In this case, 400 is focus distance. If width of the screen is 800, that means 90 degrees horizontal FOV.
+In this case, 400 is focus distance. If the width of the screen is 800, that means 90 degrees horizontal FOV.
 Everything that's behind `z < -390` will be cut by near plane, everything that's too far away `z > 9600` will be cut too.
 
-We position camera at the center of the screen, so element with `position3d=(0,0,0)` will appear right in center.
-However, camera can look at something else - a character, or just the point with same coords as center of the screen.
+We position the camera at the center of the screen, so an element with `position3d=(0,0,0)` will appear right in the center.
+However, the camera can look at something else - a character, or just the point with same coords as center of the screen.
 
 ```js
 camera.position3d.set(app.screen.width/2, app.screen.height/2);
