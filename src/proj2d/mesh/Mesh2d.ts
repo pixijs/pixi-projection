@@ -114,7 +114,7 @@ gl_FragColor = texture2D(uSampler, vTextureCoord) * uColor;
 
         renderer.batch.flush();
 
-        if ((shader as any).program.uniformData.translationMatrix)
+        if ((shader as any).program.uniformData?.translationMatrix)
         {
             shader.uniforms.translationMatrix = this.worldTransform.toArray(true);
         }
