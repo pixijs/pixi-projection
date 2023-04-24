@@ -1,15 +1,8 @@
 {
-	"compilerOptions": {
-		"target": "es6",
-		"noImplicitAny": true,
-		"removeComments": true,
-		"preserveConstEnums": true,
-		"sourceMap": true,
-		"inlineSources": true,
-		"declaration": true,
-		"esModuleInterop": true,
-		"moduleResolution": "node",
-		"allowSyntheticDefaultImports": true,
+    "extends": "@pixi/extension-scripts/lib/configs/tsconfig.json",
+    "compilerOptions": {
+        "strict": false,
+        "preserveConstEnums": true,
         "baseUrl": "./",
         "paths": {
             "pixi-projection": [
@@ -17,11 +10,7 @@
             ]
         }
     },
-	"include": [
-		"src/**/*"
-	],
-	"exclude": [
-		"node_modules/**/*",
-		"dist"
-	]
+    "include": [
+        "src/**/*"
+    ]
 }

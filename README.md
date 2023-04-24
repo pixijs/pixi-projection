@@ -14,8 +14,12 @@ To-do:
 Works with PixiJS v6. Compatibility with v5 is not guaranteed.
 
 For v4 please see [v4.x branch](https://github.com/pixijs/pixi-projection/tree/v4.x), npm version `0.2.8`
+
 For v5.1 please use npm version `0.3.5`
+
 For >= v5.2 please see [v5.x branch](https://github.com/pixijs/pixi-projection/tree/v5.x), npm version `0.3.15`
+
+For >= v6 please see [v6.x branch](https://github.com/pixijs/pixi-projection/tree/v6.x), npm version `0.4.3`
 
 It even works with CanvasRenderer, though results can be strange.
 
