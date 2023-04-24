@@ -1,5 +1,5 @@
 import { Matrix2d } from '../Matrix2d';
-import { ObjectRenderer, QuadUv, Renderer, Shader } from '@pixi/core';
+import { ExtensionMetadata, ExtensionType, ObjectRenderer, QuadUv, Renderer, Shader } from '@pixi/core';
 import { DRAW_MODES, WRAP_MODES } from '@pixi/constants';
 import { correctBlendMode, premultiplyTintToRgba } from '@pixi/utils';
 
@@ -57,6 +57,11 @@ const tempMat = new Matrix2d();
 
 export class TilingSprite2dRenderer extends ObjectRenderer
 {
+    static extension: ExtensionMetadata = {
+        name: 'tilingSprite2d',
+        type: ExtensionType.RendererPlugin,
+    };
+
     constructor(renderer: Renderer)
     {
         super(renderer);

@@ -1,6 +1,12 @@
-import { AbstractBatchRenderer, BatchShaderGenerator, Renderer, ViewableBuffer, Buffer, Geometry } from '@pixi/core';
+import {
+    BatchRenderer,
+    BatchShaderGenerator,
+    ViewableBuffer,
+    Buffer,
+    Geometry,
+    ExtensionType, Color, Renderer
+} from '@pixi/core';
 import { TYPES } from '@pixi/constants';
-import { premultiplyTint } from '@pixi/utils';
 
 const shaderVert
     = `precision highp float;
@@ -57,85 +63,81 @@ export class Batch3dGeometry extends Geometry
     }
 }
 
-export class Batch2dPluginFactory
+export class Batch2dRenderer extends BatchRenderer
 {
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    static create(options: any): any
+    static extension = {
+        name: 'batch2d',
+        type: ExtensionType.RendererPlugin
+    };
+
+    constructor(renderer: Renderer)
     {
-        const { vertex, fragment, vertexSize, geometryClass } = (Object as any).assign({
-            vertex: shaderVert,
-            fragment: shaderFrag,
-            geometryClass: Batch3dGeometry,
-            vertexSize: 7,
-        }, options);
+        super(renderer);
+        this.geometryClass = Batch3dGeometry;
+        this.vertexSize = 7;
+    }
 
-        return class BatchPlugin extends AbstractBatchRenderer
+    setShaderGenerator()
+    {
+        this.shaderGenerator = new BatchShaderGenerator(
+            shaderVert,
+            shaderFrag
+        );
+    }
+
+    // eslint-disable-next-line max-len
+    packInterleavedGeometry(element: any, attributeBuffer: ViewableBuffer, indexBuffer: Uint16Array, aIndex: number, iIndex: number)
+    {
+        const {
+            uint32View,
+            float32View,
+        } = attributeBuffer;
+
+        const p = aIndex / this.vertexSize;// float32View.length / 6 / 2;
+        const uvs = element.uvs;
+        const indices = element.indices;// geometry.getIndex().data;// indicies;
+        const vertexData = element.vertexData;
+        const vertexData2d = element.vertexData2d;
+        const textureId = element._texture.baseTexture._batchLocation;
+
+        const alpha = Math.min(element.worldAlpha, 1.0);
+
+        const argb = Color.shared
+            .setValue(element._tintRGB)
+            .toPremultiplied(alpha);
+
+        if (vertexData2d)
         {
-            constructor(renderer: Renderer)
+            let j = 0;
+
+            for (let i = 0; i < vertexData2d.length; i += 3, j += 2)
             {
-                super(renderer);
-
-                this.shaderGenerator = new BatchShaderGenerator(vertex, fragment);
-                this.geometryClass = geometryClass;
-                this.vertexSize = vertexSize;
+                float32View[aIndex++] = vertexData2d[i];
+                float32View[aIndex++] = vertexData2d[i + 1];
+                float32View[aIndex++] = vertexData2d[i + 2];
+                float32View[aIndex++] = uvs[j];
+                float32View[aIndex++] = uvs[j + 1];
+                uint32View[aIndex++] = argb;
+                float32View[aIndex++] = textureId;
             }
-
-            vertexSize: number;
-
-            // eslint-disable-next-line max-len
-            packInterleavedGeometry(element: any, attributeBuffer: ViewableBuffer, indexBuffer: Uint16Array, aIndex: number, iIndex: number)
+        }
+        else
+        {
+            for (let i = 0; i < vertexData.length; i += 2)
             {
-                const {
-                    uint32View,
-                    float32View,
-                } = attributeBuffer;
-
-                const p = aIndex / this.vertexSize;// float32View.length / 6 / 2;
-                const uvs = element.uvs;
-                const indices = element.indices;// geometry.getIndex().data;// indicies;
-                const vertexData = element.vertexData;
-                const vertexData2d = element.vertexData2d;
-                const textureId = element._texture.baseTexture._batchLocation;
-
-                const alpha = Math.min(element.worldAlpha, 1.0);
-
-                const argb = alpha < 1.0 && element._texture.baseTexture.alphaMode ? premultiplyTint(element._tintRGB, alpha)
-                    : element._tintRGB + (alpha * 255 << 24);
-
-                if (vertexData2d)
-                {
-                    let j = 0;
-
-                    for (let i = 0; i < vertexData2d.length; i += 3, j += 2)
-                    {
-                        float32View[aIndex++] = vertexData2d[i];
-                        float32View[aIndex++] = vertexData2d[i + 1];
-                        float32View[aIndex++] = vertexData2d[i + 2];
-                        float32View[aIndex++] = uvs[j];
-                        float32View[aIndex++] = uvs[j + 1];
-                        uint32View[aIndex++] = argb;
-                        float32View[aIndex++] = textureId;
-                    }
-                }
-                else
-                {
-                    for (let i = 0; i < vertexData.length; i += 2)
-                    {
-                        float32View[aIndex++] = vertexData[i];
-                        float32View[aIndex++] = vertexData[i + 1];
-                        float32View[aIndex++] = 1.0;
-                        float32View[aIndex++] = uvs[i];
-                        float32View[aIndex++] = uvs[i + 1];
-                        uint32View[aIndex++] = argb;
-                        float32View[aIndex++] = textureId;
-                    }
-                }
-
-                for (let i = 0; i < indices.length; i++)
-                {
-                    indexBuffer[iIndex++] = p + indices[i];
-                }
+                float32View[aIndex++] = vertexData[i];
+                float32View[aIndex++] = vertexData[i + 1];
+                float32View[aIndex++] = 1.0;
+                float32View[aIndex++] = uvs[i];
+                float32View[aIndex++] = uvs[i + 1];
+                uint32View[aIndex++] = argb;
+                float32View[aIndex++] = textureId;
             }
-        };
+        }
+
+        for (let i = 0; i < indices.length; i++)
+        {
+            indexBuffer[iIndex++] = p + indices[i];
+        }
     }
 }

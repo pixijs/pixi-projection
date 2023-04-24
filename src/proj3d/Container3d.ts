@@ -10,7 +10,8 @@ export function container3dWorldTransform(): Matrix
     return this.proj.affine ? this.transform.worldTransform : this.proj.world as any;
 }
 
-export interface IDisplayObject3d {
+export interface IDisplayObject3d
+{
     isFrontFace(forceUpdate?: boolean): boolean;
     getDepth(forceUpdate?: boolean): number;
     // eslint-disable-next-line max-len

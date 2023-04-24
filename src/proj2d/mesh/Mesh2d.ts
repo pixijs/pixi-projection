@@ -8,8 +8,8 @@ import { container2dToLocal } from '../Container2d';
 
 export class Mesh2d extends Mesh
 {
-    static defaultVertexShader =
-        `precision highp float;
+    static defaultVertexShader
+        = `precision highp float;
 attribute vec2 aVertexPosition;
 attribute vec2 aTextureCoord;
 

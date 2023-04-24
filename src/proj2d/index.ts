@@ -1,4 +1,4 @@
-import { Renderer } from '@pixi/core';
+import { extensions } from '@pixi/core';
 import { TilingSprite2dRenderer } from './tiling/TilingSprite2dRenderer';
 
 export * from './Matrix2d';
@@ -17,4 +17,4 @@ export * from './z_masks/SpriteMaskFilter';
 
 export * from './mesh/Mesh2d';
 
-Renderer.registerPlugin('tilingSprite2d', TilingSprite2dRenderer as any);
+extensions.add(TilingSprite2dRenderer);

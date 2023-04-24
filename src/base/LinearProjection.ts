@@ -2,7 +2,8 @@ import { AbstractProjection } from './AbstractProjection';
 import { Matrix, Transform } from '@pixi/math';
 import type { Projection2d } from '../proj2d';
 
-export enum AFFINE {
+export enum AFFINE
+    {
     NONE = 0,
     FREE = 1,
     AXIS_X = 2,

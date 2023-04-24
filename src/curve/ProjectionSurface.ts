@@ -6,7 +6,8 @@ import { Sprite } from '@pixi/sprite';
 
 const fun = Transform.prototype.updateTransform;
 
-export interface IWorldTransform {
+export interface IWorldTransform
+{
     apply(pos: IPointData, newPos: IPointData): IPointData;
 
     // TODO: remove props

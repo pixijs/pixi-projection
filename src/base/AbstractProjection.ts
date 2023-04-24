@@ -36,7 +36,8 @@ export class AbstractProjection
     }
 }
 
-export enum TRANSFORM_STEP {
+export enum TRANSFORM_STEP
+    {
     NONE = 0,
     // POS = 1,
     // ROT = 2,

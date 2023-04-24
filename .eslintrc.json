@@ -1,0 +1,6 @@
+{
+    "extends": ["@pixi/eslint-config"],
+    "rules": {
+        "linebreak-style": ["off", "linux"]
+    }
+}

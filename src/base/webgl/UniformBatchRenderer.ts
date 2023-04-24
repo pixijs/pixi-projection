@@ -1,12 +1,12 @@
 import {
-    AbstractBatchRenderer,
+    BatchRenderer,
     ViewableBuffer,
     BatchTextureArray
 } from '@pixi/core';
 import { Dict, premultiplyBlendMode } from '@pixi/utils';
 import { Sprite } from '@pixi/sprite';
 
-export class UniformBatchRenderer extends AbstractBatchRenderer
+export class UniformBatchRenderer extends BatchRenderer
 {
     _iIndex: number;
     _aIndex: number;
@@ -46,7 +46,7 @@ export class UniformBatchRenderer extends AbstractBatchRenderer
             _indexBuffer,
             vertexSize,
         } = this;
-        const drawCalls = AbstractBatchRenderer._drawCallPool;
+        const drawCalls = BatchRenderer._drawCallPool;
 
         let dcIndex: number = this._dcIndex;
         let aIndex: number = this._aIndex;
@@ -101,7 +101,7 @@ export class UniformBatchRenderer extends AbstractBatchRenderer
     {
         const dcCount = this._dcIndex;
         const { gl, state: stateSystem, shader: shaderSystem } = this.renderer;
-        const drawCalls = AbstractBatchRenderer._drawCallPool;
+        const drawCalls = BatchRenderer._drawCallPool;
         let curUniforms: any = null;
         let curTexArray: BatchTextureArray = null;
 
@@ -138,12 +138,12 @@ export class UniformBatchRenderer extends AbstractBatchRenderer
             return;
         }
 
-        // we can override MAX_TEXTURES with this hack
+        // we can override maxTextures with this hack
 
         const thisAny = this as any;
 
-        thisAny.MAX_TEXTURES = this.forceMaxTextures;
-        this._shader = thisAny.shaderGenerator.generateShader(this.MAX_TEXTURES);
+        thisAny.maxTextures = this.forceMaxTextures;
+        this._shader = thisAny.shaderGenerator.generateShader(this.maxTextures);
         this.syncUniforms(this.defUniforms);
         for (let i = 0; i < thisAny._packedGeometryPoolSize; i++)
         {
