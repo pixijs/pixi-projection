@@ -104,7 +104,7 @@ export class Batch2dRenderer extends BatchRenderer
 
         const argb = Color.shared
             .setValue(element._tintRGB)
-            .toPremultiplied(alpha);
+            .toPremultiplied(alpha, element._texture.baseTexture.alphaMode > 0);
 
         if (vertexData2d)
         {
