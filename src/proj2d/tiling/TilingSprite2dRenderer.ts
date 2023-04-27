@@ -35,8 +35,8 @@ vec2 coord = mod(vTextureCoord.xy / vTextureCoord.z - uClampOffset, vec2(1.0, 1.
 coord = (uMapCoord * vec3(coord, 1.0)).xy;
 coord = clamp(coord, uClampFrame.xy, uClampFrame.zw);
 
-vec4 sample = texture2D(uSampler, coord);
-gl_FragColor = sample * uColor;
+vec4 _sample = texture2D(uSampler, coord);
+gl_FragColor = _sample * uColor;
 }
 `;
 const shaderSimpleFrag = `
@@ -47,8 +47,8 @@ uniform vec4 uColor;
 
 void main(void)
 {
-vec4 sample = texture2D(uSampler, vTextureCoord.xy / vTextureCoord.z);
-gl_FragColor = sample * uColor;
+vec4 _sample = texture2D(uSampler, vTextureCoord.xy / vTextureCoord.z);
+gl_FragColor = _sample * uColor;
 }
 `;
 
